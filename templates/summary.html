@@ -18,9 +18,9 @@
             <a href="/summary?type=month" class="btn">Monthly</a>
         </div>
 
-        <div class="total-box" style="background:#eee; padding:15px; margin:15px 0; border-radius:10px; text-align:center;">
-            <h2>Total: Rs {{ totals[view_type] }}</h2>
-        </div>
+   <div class="total-box" style="background: rgba(255, 255, 255, 0.05); border-top: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; margin: 20px 0; text-align: center; color: white; width: 100%; box-sizing: border-box;">
+    <h2 style="margin: 0; font-size: 1.5rem; opacity: 0.9;">Total: Rs {{ totals[view_type] }}</h2>
+</div>
 
         <div class="summary-cards">
             {% if data[view_type] %}
