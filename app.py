@@ -238,10 +238,49 @@ def delete(id):
 
 @app.route("/summary")
 def summary():
-    # Ye part aapke chart ke liye hai
-    expenses = list(expenses_collection.find())
-    # Note: Summary logic yahan update karni hogi taake MongoDB data use ho
-    return render_template("summary.html", expenses=expenses)
+    view_type = request.args.get("type", "overall")
+    today = datetime.today()
+    
+    # 1. MongoDB se saara data uthayein
+    all_expenses = list(expenses_collection.find())
+    
+    overall = {}
+    weekly = {}
+    monthly = {}
+
+    for e in all_expenses:
+        try:
+            amount = float(e.get("amount", 0))
+            category = e.get("category", "Other")
+            # Date string ko datetime object mein badlein
+            expense_date = datetime.strptime(e.get("date"), "%Y-%m-%d")
+        except:
+            continue
+
+        # Logic for Overall
+        overall[category] = overall.get(category, 0) + amount
+
+        # Logic for Weekly (Last 7 days)
+        if today - timedelta(days=7) <= expense_date <= today:
+            weekly[category] = weekly.get(category, 0) + amount
+
+        # Logic for Monthly (Current month)
+        if expense_date.month == today.month and expense_date.year == today.year:
+            monthly[category] = monthly.get(category, 0) + amount
+
+    # Chart generation (Vercel par 'static/chart.png' save karna kabhi kabhi allowed nahi hota)
+    # Agar chart show nahi ho raha, toh ye section skip kar dein ya cloud bucket use karein.
+    chart_file = None 
+    
+    return render_template(
+        "summary.html",
+        overall=overall,
+        weekly=weekly,
+        monthly=monthly,
+        view_type=view_type,
+        chart_file=chart_file # Filhal chart disable rakhein agar error aaye
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
