@@ -10,64 +10,32 @@
 
 <div class="summary-container">
     <div class="summary-card-main">
-        <h1>📊 Expense Summary</h1>
-        <p class="tagline">Analyze your expenses</p>
-
+        <h1>📊 {{ view_type.capitalize() }} Summary</h1>
+        
         <div class="summary-buttons">
             <a href="/summary?type=overall" class="btn">Overall</a>
             <a href="/summary?type=week" class="btn">Weekly</a>
             <a href="/summary?type=month" class="btn">Monthly</a>
         </div>
 
-        <div class="total-section" style="margin: 20px 0; padding: 15px; background: #f4f4f4; border-radius: 8px; text-align: center;">
-            <h2 style="margin: 0; color: #333;">Total Expenses: Rs {{ totals[view_type] }}</h2>
+        <div class="total-box" style="background:#eee; padding:15px; margin:15px 0; border-radius:10px; text-align:center;">
+            <h2>Total: Rs {{ totals[view_type] }}</h2>
         </div>
 
-        {% if view_type == "week" %}
-            <h2>Weekly Summary</h2>
-            {% if data['weekly'] %}
-                <div class="summary-cards">
-                    {% for cat, total in data['weekly'].items() %}
-                    <div class="summary-card">
-                        <h3>{{ cat }}</h3>
-                        <p>Rs {{ total }}</p>
-                    </div>
-                    {% endfor %}
+        <div class="summary-cards">
+            {% if data[view_type] %}
+                {% for cat, total in data[view_type].items() %}
+                <div class="summary-card">
+                    <h3>{{ cat }}</h3>
+                    <p>Rs {{ total }}</p>
                 </div>
+                {% endfor %}
             {% else %}
-                <p class="no-data">No data found for this week!</p>
+                <p class="no-data">No data found for this view!</p>
             {% endif %}
-        {% elif view_type == "month" %}
-            <h2>Monthly Summary</h2>
-            {% if data['monthly'] %}
-                <div class="summary-cards">
-                    {% for cat, total in data['monthly'].items() %}
-                    <div class="summary-card">
-                        <h3>{{ cat }}</h3>
-                        <p>Rs {{ total }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="no-data">No data found for this month!</p>
-            {% endif %}
-        {% else %}
-            <h2>Overall Summary</h2>
-            {% if data['overall'] %}
-                <div class="summary-cards">
-                    {% for cat, total in data['overall'].items() %}
-                    <div class="summary-card">
-                        <h3>{{ cat }}</h3>
-                        <p>Rs {{ total }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="no-data">No overall data found!</p>
-            {% endif %}
-        {% endif %}
+        </div>
 
-        <a href="/" class="back-link" style="display: block; margin-top: 20px;">Back to Home</a>
+        <a href="/" class="back-link" style="display:block; margin-top:20px;">Back to Home</a>
     </div>
 </div>
 
