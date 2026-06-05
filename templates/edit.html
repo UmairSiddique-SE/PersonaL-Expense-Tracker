@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Expense</title>
+   <link rel="stylesheet" href="{{ url_for('static', filename='edit-style.css') }}">
+</head>
+
+<body>
+   <div class="edit-container">
+    <div class="edit-card">
+     <h1>Edit Expense</h1>
+        <form method="POST">
+           <input type="text" name="amount" placeholder="Amount" value="{{ expense[0] }}" required>
+           <input type="text" name="category" placeholder="Category" value="{{ expense[1] }}" required>           
+           <input type="date" name="date" value="{{ expense[2] }}" required>
+           <input type="text" name="description" placeholder="Description" value="{{ expense[3] }}">
+           <button type="submit">Update</button>
+        </form>
+        <a class="back-link" href="{{ url_for('view') }}">Back to View</a>
+    </div>
+ </div>
+</body>
+</html>

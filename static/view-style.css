@@ -1,0 +1,155 @@
+/* BODY AND CONTAINER */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0b1f44, #1e3591); 
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* HEADER */
+h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    background: linear-gradient(180deg, #ddf74a, #129bad); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 1px 2px 6px rgba(0,0,0,0.4); 
+}
+
+/* TABLE HEAD */
+thead th {
+    background: linear-gradient(180deg, #1a2a50, #2c3e70); 
+    color: #ffffff; 
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
+/* CONTAINER AND CARD */
+.view-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.view-card {
+    background: rgba(20, 35, 80, 0.6); 
+    backdrop-filter: blur(20px);
+    padding: 40px;
+    border-radius: 25px;
+    color: #fff;
+    box-shadow: 0 25px 60px rgba(114, 175, 15, 0.35);
+    max-width: 900px;
+    width: 95%;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.view-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 60px rgba(236, 6, 6, 0.5);
+}
+
+/* TABLE WRAPPER */
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 30px;
+}
+
+/* TABLE BODY */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.05); 
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+table tbody td {
+    background: rgba(30, 50, 100, 0.4); 
+    color: #ffffff;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background 0.3s;
+}
+
+tr:hover { 
+    background: rgba(74, 108, 247, 0.2); 
+}
+
+.back-link {
+     display: inline-block;
+     margin-top: 25px;
+    margin: 5px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4a6cf7, #a17cf0);
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+.back-link:hover {
+    transform: translateY(-3px) scale(1.05);
+   background: #1e319a;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    color: #d1cd0c; 
+}
+/* ACTION BUTTONS */
+.edit-btn, .delete-btn {
+    padding: 8px 15px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s;
+    display: inline-block;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* EDIT BUTTON - TEAL/BLUE */
+.edit-btn {
+    background: #4a6cf7;
+    color: #fff;
+}
+
+.edit-btn:hover {
+    background: #6279f8; 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+
+/* DELETE BUTTON - RED */
+.delete-btn {
+    background: #e74c3c; 
+}
+
+.delete-btn:hover {
+    background: #cd2c1b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 600px) {
+    th, td {
+        padding: 10px;
+        font-size: 14px;
+    }
+    .edit-btn, .delete-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        margin: 2px;
+    }
+}

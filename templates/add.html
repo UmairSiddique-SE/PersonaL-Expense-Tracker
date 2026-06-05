@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Expense</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
+</head>
+<body>
+
+<div class="add-container">
+    <div class="add-card">
+        <h1>Add New Expense</h1>
+        <!-- Success Message -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="success-msg">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <input type="number" name="amount" placeholder="Amount" step="0.1" required>
+
+            <select name="category" required>
+                <option value="" disabled selected>Select Category</option>
+                <option>Food</option>
+                <option>Transport</option>
+                <option>Utilities</option>
+                <option>Entertainment</option>
+                <option>Other</option>
+            </select>
+
+            <input type="date" name="date" required>
+            <input type="text" name="description" placeholder="Description">
+
+            <button type="submit">Add Expense</button>
+        </form>
+
+        <a href="/" class="back-link">Back to Home</a>
+    </div>
+</div>
+
+</body>
+</html>

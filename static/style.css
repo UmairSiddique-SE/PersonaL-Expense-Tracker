@@ -1,0 +1,151 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+ 
+/* Background and Layout */
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a2a50, #204096, #3a548c); /* lighter navy → soft blue gradient */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hero Section */
+.hero {
+    width: 100%;
+    padding: 40px;
+}
+
+/* Frosted Glass Effect Container */
+.glass {
+    max-width: 1100px;
+    margin: auto;
+    padding: 60px;
+    border-radius: 30px;
+    background: rgba(8, 30, 91, 0.65); /* slightly lighter frosted glass */
+    backdrop-filter: blur(15px);
+    box-shadow: 0 25px 60px rgba(114, 175, 15, 0.35);
+    text-align: center;
+    color: white;
+}
+
+/* Headings and Text */
+h1 {
+    font-size: 50px;
+    margin-bottom: 10px;
+
+    /* Gradient text */
+    background: linear-gradient(180deg, #83cf0a, #e4f07c);
+    -webkit-background-clip: text;   
+    -webkit-text-fill-color: transparent;
+    background-clip: text;           
+    color: transparent;             
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.5); /* subtle shadow to make it pop */
+}
+
+/* Tagline */
+.tagline {
+    font-size: 18px;
+    opacity: 0.85;
+    margin-bottom: 50px;
+    color: #b0c0ff; /* softer blue tagline text */
+}
+
+/* VIP Cards Grid */
+.vip-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+}
+
+/* Individual VIP Card */
+.vip-card {
+    background: rgba(50, 65, 110, 0.6); /* lighter bluish card */
+    padding: 40px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    color: white;
+    transition: 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+/* Hover Effect */
+.vip-card::before {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.25), transparent);
+    transition: 0.6s;
+}
+
+/* Move the gradient on hover */
+.vip-card:hover::before {
+    top: 100%;
+    left: 100%;
+}
+
+/* Card Hover Transform */
+.vip-card:hover {
+    transform: translateY(-15px) scale(1.05);
+    background: rgba(65, 80, 130, 0.7); /* lighter hover */
+}
+
+/* Card Content */
+.vip-card span {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 15px;
+    color: #89a6ff; /* lighter blue accent */
+}
+
+.vip-card h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.vip-card p {
+    font-size: 14px;
+    opacity: 0.9;
+    color: #c0c8ff; 
+}
+
+.footer {
+    text-align: center;
+    padding: 20px 0;
+    margin: 50px auto 0 auto;       
+    width: 80%;                      
+    max-width: 800px;                
+    background: rgba(0,0,0,0.3);     
+    border-radius: 15px;            
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 16px;
+    color: #fff;
+}
+
+.footer p {
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.footer .name {
+    font-weight: 500;
+    color: #ffd700; /* golden */
+    transition: transform 0.3s;
+}
+
+.footer .name:hover {
+    transform: scale(1.1);
+    color: #4accf7;
+}
+
