@@ -1,0 +1,17 @@
+Flask==3.0.2
+```json
+   {
+      "version": 2,
+      "builds": [
+        {
+          "src": "app.py",
+          "use": "@vercel/python"
+        }
+      ],
+      "routes": [
+        {
+          "src": "/(.*)",
+          "dest": "app.py"
+        }
+      ]
+    }
