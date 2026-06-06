@@ -8,30 +8,30 @@
 <body>
 <div class="view-container">
     <div class="view-card">
-        <h1>All Expensess</h1>
+        <h1>All Expenses</h1>
         <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                 <th>Amount</th>
-                 <th>Category</th>
-                 <th>Date</th>
-                 <th>Description</th>
-                 <th>Actions</th>
-                </tr>
-            </thead>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Amount</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for expense in expenses %}
-                <tr>
-                    <td>{{ expense.amount }}</td>
-                    <td>{{ expense.category }}</td>
-                    <td>{{ expense.date }}</td>
-                    <td>{{ expense.description }}</td>
-                  <td>
-                     <a href="{{ url_for('edit', id=expense.id) }}" class="edit-btn">Edit</a>
-                     <a href="{{ url_for('delete', id=expense.id) }}" class="delete-btn">Delete</a>
-                  </td>
-                </tr>
+                    <tr>
+                        <td>{{ expense.amount }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.date }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>
+                            <a href="{{ url_for('edit', id=expense._id) }}" class="edit-btn">Edit</a>
+                            <a href="{{ url_for('delete', id=expense._id) }}" class="delete-btn" onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>

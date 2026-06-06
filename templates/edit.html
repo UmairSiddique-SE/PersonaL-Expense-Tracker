@@ -11,10 +11,10 @@
     <div class="edit-card">
      <h1>Edit Expense</h1>
         <form method="POST">
-           <input type="text" name="amount" placeholder="Amount" value="{{ expense[0] }}" required>
-           <input type="text" name="category" placeholder="Category" value="{{ expense[1] }}" required>           
-           <input type="date" name="date" value="{{ expense[2] }}" required>
-           <input type="text" name="description" placeholder="Description" value="{{ expense[3] }}">
+           <input type="text" name="amount" placeholder="Amount" value="{{ expense.amount }}" required>
+           <input type="text" name="category" placeholder="Category" value="{{ expense.category }}" required>           
+           <input type="date" name="date" value="{{ expense.date }}" required>
+           <input type="text" name="description" placeholder="Description" value="{{ expense.description }}">
            <button type="submit">Update</button>
         </form>
         <a class="back-link" href="{{ url_for('view') }}">Back to View</a>
