@@ -37,26 +37,20 @@ def login():
         flash("Invalid Credentials!", "danger")
     return render_template("auth.html")
 
-@app.route("/signup", methods=["POST"])
-def signup():
-    first_name = request.form.get("first_name")
-    last_name = request.form.get("last_name")
-    username = request.form.get("username")
-    password = request.form.get("password")
-    
-    if "@" not in username or "." not in username or len(password) < 8:
-        flash("Invalid email or password (min 8 chars)!", "danger")
-        return redirect(url_for("login"))
-        
-    if users_collection.find_one({"username": username}):
-        flash("User already exists!", "danger")
-        return redirect(url_for("login"))
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        # Yahan apna login logic likhein (Database check)
+        # Agar sahi hai to session['user_id'] = ... set karein
+        return redirect(url_for("dashboard"))
+    return render_template("login.html")
 
-    users_collection.insert_one({
-        "first_name": first_name, "last_name": last_name,
-        "username": username, "password": generate_password_hash(password)
-    })
-    return redirect(url_for("login"))
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        # Yahan apna signup logic likhein (Database insert)
+        return redirect(url_for("login"))
+    return render_template("signup.html")
 
 @app.route("/dashboard")
 @login_required
