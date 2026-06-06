@@ -6,7 +6,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, timedelta
 
-
 app = Flask(__name__)
 app.secret_key = "expense_secret_key"
 
@@ -25,46 +24,41 @@ def login_required(f):
     return decorated_function
 
 # --- AUTH ROUTES ---
+@app.route("/")
+def index():
+    return redirect(url_for('login'))
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    # Agar pehle se logged in hai, toh dashboard par bhejo
     if 'user_id' in session: 
         return redirect(url_for('dashboard'))
     
     if request.method == "POST":
-        # None-check: Agar username khali ho toh empty string lein
         raw_username = request.form.get("username")
         username = raw_username.lower() if raw_username else ""
         password = request.form.get("password")
         
-        # User dhoondhein
         user = users_collection.find_one({"username": username})
-        
-        # Password check karein
         if user and check_password_hash(user['password'], password):
             session['user_id'] = str(user['_id'])
             return redirect(url_for("dashboard"))
         
-        # Ghalat login par flash message
         flash("Invalid Username or Password!", "danger")
-        
     return render_template("login.html")
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         first_name = request.form.get("first_name")
         last_name = request.form.get("last_name")
-        # Username ko hamesha lowercase mein save aur check karein
         username = request.form.get("username").lower() 
         password = request.form.get("password")
         
-        # Check if already exists
         if users_collection.find_one({"username": username}):
             flash("User already exists! Please login.", "danger")
             return redirect(url_for("signup"))
         
         hashed_pw = generate_password_hash(password)
-        
         users_collection.insert_one({
             "first_name": first_name,
             "last_name": last_name,
@@ -73,9 +67,10 @@ def signup():
         })
         
         flash("Signup successful! Please login.", "success")
-        return redirect(url_for("login")) # Yahan se user login page par jayega
+        return redirect(url_for("login"))
         
     return render_template("signup.html")
+
 @app.route("/logout")
 def logout():
     session.clear()
