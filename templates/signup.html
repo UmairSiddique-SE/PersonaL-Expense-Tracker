@@ -4,76 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Expense Tracker</title>
-<style>
-    /* Global Reset */
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
-    body { 
-        height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        background: radial-gradient(circle at center, #1a2a50, #05070a); color: white;
-    }
+        body { 
+            height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background: radial-gradient(circle at center, #1a2a50, #05070a); color: white;
+        }
 
-    .auth-card { 
-        background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; 
-        backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1);
-        width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
-    }
+        .auth-card { 
+            background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; 
+            backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
+        }
 
-    h2 { margin-bottom: 20px; color: #fff; letter-spacing: 1px; }
+        h2 { margin-bottom: 20px; color: #fff; letter-spacing: 1px; }
 
-    /* Input Fields */
-    input { 
-        width: 100%; margin: 12px 0; padding: 15px 20px; border-radius: 12px;
-        border: 2px solid rgba(11, 110, 237, 0.1); outline: none; font-size: 16px;
-        color: #ffffff; background: rgba(255, 255, 255, 0.03);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    input:hover { 
-        background: rgba(255, 255, 255, 0.06); 
-        border-color: rgba(39, 89, 225, 0.5); 
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(41, 98, 255, 0.2);
-    }
+        input { 
+            width: 100%; margin: 12px 0; padding: 15px 20px; border-radius: 12px;
+            border: 2px solid rgba(11, 110, 237, 0.1); outline: none; font-size: 16px;
+            color: #ffffff; background: rgba(255, 255, 255, 0.03);
+            transition: all 0.4s;
+        }
+        
+        input:focus { border-color: #2962FF; box-shadow: 0 0 15px rgba(41, 98, 255, 0.3); }
 
-    input:focus { 
-        background: rgba(255, 255, 255, 0.08);
-        border-color: #2962FF; 
-        box-shadow: 0 0 15px rgba(41, 98, 255, 0.3);
-    }
+        .btn-auth { 
+            width: 100%; padding: 15px; background: #2962FF; color: white; 
+            border: none; border-radius: 12px; font-weight: bold; cursor: pointer; 
+            text-transform: uppercase; margin-top: 10px; transition: 0.3s;
+        }
+        .btn-auth:hover { background: #1e4ed9; transform: translateY(-2px); }
 
-    input::placeholder { color: rgba(255, 255, 255, 0.4); }
-
-    .btn-auth { 
-        width: 100%; padding: 15px; background: #2962FF; color: white; 
-        border: none; border-radius: 12px; font-weight: bold; cursor: pointer; 
-        text-transform: uppercase; transition: 0.3s; margin-top: 10px;
-    }
-    .btn-auth:hover { background: #1e4ed9; transform: translateY(-2px); }
-
-    .footer-link { margin-top: 20px; color: #3397c1; font-size: 14px; }
-    .footer-link a { color: #22b87a; text-decoration: underline; font-size: 18px; transition: 0.3s; }
-    .footer-link a:hover { color: #78d91e; }
-</style>
+        .footer-link { margin-top: 20px; color: #3397c1; font-size: 14px; }
+        .footer-link a { color: #22b87a; text-decoration: underline; font-size: 18px; }
+    </style>
 </head>
 <body>
     <div class="auth-card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div id="flash-msg" style="padding: 12px; margin-bottom: 20px; border-radius: 10px; text-align: center; font-weight: bold;
+                          {{ 'background:#e74c3c; color:white;' if category == 'danger' else 'background:#22b87a; color:white;' }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         <h2>SIGN UP</h2>
         <form action="/signup" method="POST">
             <input type="text" name="first_name" placeholder="First Name" required>
             <input type="text" name="last_name" placeholder="Last Name" required>
-            
             <input type="email" name="username" placeholder="Username@gmail.com" 
                    pattern=".+@gmail\.com" title="Must be a valid @gmail.com address" required>
-            
-            <input type="password" name="password" placeholder="Password (min 8 digits)" 
+            <input type="password" name="password" placeholder="Password (min 8 characters)" 
                    pattern=".{8,}" title="Password must be at least 8 characters" required>
-            
             <button type="submit" class="btn-auth">REGISTER</button>
-            
-            
         </form>
         <p class="footer-link">Already have an account? <a href="/login">Login</a></p>
     </div>
+
+    <script>
+        setTimeout(function() {
+            var msg = document.getElementById("flash-msg");
+            if (msg) {
+                msg.style.display = "none";
+            }
+        }, 5000); 
+    </script>
 </body>
 </html>

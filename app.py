@@ -49,15 +49,25 @@ def login():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        first_name = request.form.get("first_name")
-        last_name = request.form.get("last_name")
-        username = request.form.get("username").lower() 
+        first_name = request.form.get("first_name", "").strip()
+        last_name = request.form.get("last_name", "").strip()
+        
+        # None-check add kiya taake crash na ho
+        raw_username = request.form.get("username")
+        username = raw_username.lower().strip() if raw_username else ""
         password = request.form.get("password")
         
+        # Validation: check karein fields khali toh nahi
+        if not username or not password:
+            flash("All fields are required!", "danger")
+            return redirect(url_for("signup"))
+        
+        # Check if already exists
         if users_collection.find_one({"username": username}):
             flash("User already exists! Please login.", "danger")
             return redirect(url_for("signup"))
         
+        # Hash password and save
         hashed_pw = generate_password_hash(password)
         users_collection.insert_one({
             "first_name": first_name,
