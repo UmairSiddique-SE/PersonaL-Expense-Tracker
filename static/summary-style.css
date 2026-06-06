@@ -1,14 +1,18 @@
 body {
+  
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #0b1f44, #0b2db5);
     display: flex;
     justify-content: center;
+    align-items: center; /* Yeh add karein - content ko vertically center karega */
+    min-height: 100vh;   /* Yeh sabse important hai - full screen height */
     padding: 20px;
+    box-sizing: border-box; /* Yeh ensure karega ki padding aur border total width/height mein include ho */
 }
 
 .summary-container {
-    width: 80%;
+  width: 100%; /* Ise 100% karein taaki card responsive rahe */
     display: flex;
     justify-content: center;
 }
