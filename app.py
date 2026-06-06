@@ -25,49 +25,38 @@ def login_required(f):
     return decorated_function
 
 # --- AUTH ROUTES ---
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    if request.method == "POST":
-        username = request.form["username"]
-        if users_collection.find_one({"username": username}):
-            flash("User already exists!", "danger")
-            return redirect(url_for("signup"))
-        
-        user = {
-            "first_name": request.form["first_name"],
-            "last_name": request.form["last_name"],
-            "username": username,
-            "password": generate_password_hash(request.form["password"])
-        }
-        users_collection.insert_one(user)
-        return redirect(url_for("login"))
-    return render_template("signup.html")
-
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
+    if 'user_id' in session: return redirect(url_for('index'))
     if request.method == "POST":
         user = users_collection.find_one({"username": request.form["username"]})
         if user and check_password_hash(user['password'], request.form["password"]):
             session['user_id'] = str(user['_id'])
-            session['user_name'] = f"{user['first_name']} {user['last_name']}"
+            session['user_name'] = user.get('username', 'User')
             return redirect(url_for("index"))
         flash("Invalid Credentials", "danger")
-    return render_template("login.html")
+    return render_template("auth.html")
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    if users_collection.find_one({"username": request.form["username"]}):
+        flash("User already exists!", "danger")
+        return redirect(url_for("login"))
+    user = {
+        "username": request.form["username"],
+        "password": generate_password_hash(request.form["password"])
+    }
+    users_collection.insert_one(user)
+    flash("Account created! Please login.", "success")
+    return redirect(url_for("login"))
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# --- PWA ROUTES ---
-@app.route('/sw.js')
-def serve_sw(): return send_from_directory('static', 'sw.js')
-
-@app.route('/manifest.json')
-def serve_manifest(): return send_from_directory('static', 'manifest.json')
-
-# --- EXPENSE ROUTES ---
-@app.route("/")
+# --- APP ROUTES ---
+@app.route("/dashboard")
 @login_required
 def index():
     return render_template("index.html")
@@ -78,14 +67,13 @@ def add():
     if request.method == "POST":
         expense = {
             "user_id": session['user_id'],
-            "amount": request.form["amount"],
+            "amount": float(request.form["amount"]),
             "category": request.form["category"],
             "date": request.form["date"],
             "description": request.form["description"]
         }
         expenses_collection.insert_one(expense)
-        flash("Expense added successfully 👍", "success")
-        return redirect(url_for("add"))
+        return redirect(url_for("view"))
     return render_template("add.html")
 
 @app.route("/view")
@@ -94,51 +82,18 @@ def view():
     expenses = list(expenses_collection.find({"user_id": session['user_id']}))
     return render_template("view.html", expenses=expenses)
 
-@app.route("/edit/<id>", methods=["GET", "POST"])
-@login_required
-def edit(id):
-    if request.method == "POST":
-        expenses_collection.update_one({"_id": ObjectId(id)}, {"$set": {
-            "amount": request.form["amount"],
-            "category": request.form["category"],
-            "date": request.form["date"],
-            "description": request.form["description"]
-        }})
-        return redirect(url_for("view"))
-    expense = expenses_collection.find_one({"_id": ObjectId(id)})
-    return render_template("edit.html", expense=expense, id=id)
-
 @app.route("/delete/<id>")
 @login_required
 def delete(id):
     expenses_collection.delete_one({"_id": ObjectId(id)})
     return redirect(url_for("view"))
 
-@app.route("/summary")
-@login_required
-def summary():
-    view_type = request.args.get("type", "overall")
-    today = datetime.today()
-    all_expenses = list(expenses_collection.find({"user_id": session['user_id']}))
-    
-    data = {"overall": {}, "weekly": {}, "monthly": {}}
-    totals = {"overall": 0, "weekly": 0, "monthly": 0}
+# --- PWA & STATIC ---
+@app.route('/sw.js')
+def serve_sw(): return send_from_directory('static', 'sw.js')
 
-    for e in all_expenses:
-        try:
-            amount = float(e.get("amount", 0))
-            category = e.get("category", "Other")
-            expense_date = datetime.strptime(e.get("date"), "%Y-%m-%d")
-            data["overall"][category] = data["overall"].get(category, 0) + amount
-            totals["overall"] += amount
-            if today - timedelta(days=7) <= expense_date <= today:
-                data["weekly"][category] = data["weekly"].get(category, 0) + amount
-                totals["weekly"] += amount
-            if expense_date.month == today.month and expense_date.year == today.year:
-                data["monthly"][category] = data["monthly"].get(category, 0) + amount
-                totals["monthly"] += amount
-        except: continue
-    return render_template("summary.html", data=data, totals=totals, view_type=view_type)
+@app.route('/manifest.json')
+def serve_manifest(): return send_from_directory('static', 'manifest.json')
 
 if __name__ == "__main__":
     app.run(debug=True)
