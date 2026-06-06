@@ -110,16 +110,54 @@ def logout():
     session.clear()
     flash("You have been logged out.", "info")  
     return redirect(url_for("login"))
+from datetime import datetime
+
+from datetime import datetime, timedelta
+
 @app.route("/summary")
 @login_required
 def summary():
     uid = session.get('user_id')
+    view_type = request.args.get('type', 'overall')
+    selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    
+    # User ke saare expenses fetch karein
     expenses = list(expenses_collection.find({"user_id": uid}))
     
-    # Total calculation (Logic handle karna)
-    total = sum(item.get('amount', 0) for item in expenses)
+    # Containers
+    data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
+    totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
     
-    return render_template("summary.html", total=total, count=len(expenses))
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    now = datetime.now()
+    one_week_ago = now - timedelta(days=7)
+    
+    for exp in expenses:
+        amt = float(exp.get('amount', 0))
+        cat = exp.get('category', 'Other')
+        exp_date_str = exp.get('date')
+        exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
+        
+        # 1. Overall logic
+        data["overall"][cat] = data["overall"].get(cat, 0) + amt
+        totals["overall"] += amt
+        
+        # 2. Weekly logic (Pichle 7 din)
+        if exp_date >= one_week_ago:
+            data["weekly"][cat] = data["weekly"].get(cat, 0) + amt
+            totals["weekly"] += amt
+            
+        # 3. Monthly logic (Current month)
+        if exp_date.month == now.month and exp_date.year == now.year:
+            data["monthly"][cat] = data["monthly"].get(cat, 0) + amt
+            totals["monthly"] += amt
+            
+        # 4. Daily logic (Calendar filter)
+        if exp_date_str == selected_date:
+            data["daily"][cat] = data["daily"].get(cat, 0) + amt
+            totals["daily"] += amt
+            
+    return render_template("summary.html", 
+                           view_type=view_type, 
+                           data=data, 
+                           totals=totals, 
+                           selected_date=selected_date)
