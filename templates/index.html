@@ -5,58 +5,57 @@
     <title>Dashboard | Expense Tracker</title>
     <style>
         body { background-color: #05070a; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; min-height: 100vh; }
+
+        /* Navbar */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; }
+        .logo { font-weight: bold; font-size: 22px; color: #fff; }
+        .user-pill { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
         
-        /* Navbar Fix: Sidebar hata kar top pe laya hai */
-        .navbar { display: flex; justify-content: space-between; padding: 20px 50px; background: #0b1026; }
-        .logo { font-weight: bold; font-size: 22px; color: #2962FF; }
-
-        /* Main Content Centered */
-        .main-content { display: flex; flex-direction: column; align-items: center; padding: 50px; }
-        .welcome-header { text-align: center; margin-bottom: 40px; }
-        .welcome-header h1 { font-size: 3rem; margin: 0; }
-
-        /* Grid Cards Fix */
-        .dashboard-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 300px); /* 2 columns for symmetry */
-            gap: 25px; 
-            max-width: 700px;
-        }
+        /* Main Layout */
+        .main-content { padding: 40px 50px; }
+        .welcome-section h1 { font-size: 40px; margin: 0; }
+        .highlight { color: #8a84ff; text-shadow: 0 0 15px #8a84ff; }
+        
+        /* Cards Grid */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 900px; margin-top: 40px; }
         
         .card { 
-            background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;
+            background: #0f1219; padding: 40px; border-radius: 20px; text-align: center;
+            border: 1px solid #2962FF; box-shadow: 0 0 15px rgba(41, 98, 255, 0.2);
             text-decoration: none; color: #fff; transition: 0.3s;
         }
-        .card:hover { background: rgba(41, 98, 255, 0.1); transform: scale(1.02); }
+        .card:hover { box-shadow: 0 0 25px rgba(41, 98, 255, 0.4); transform: translateY(-5px); }
         
-        .footer { margin-top: 50px; color: #666; }
+        .summary-card { grid-column: span 2; border: 1px solid #8a84ff; box-shadow: 0 0 15px rgba(138, 132, 255, 0.2); }
+        .summary-card:hover { box-shadow: 0 0 25px rgba(138, 132, 255, 0.4); }
+        
+        .footer { text-align: center; margin-top: 60px; color: #444; }
     </style>
 </head>
 <body>
 
 <nav class="navbar">
-    <div class="logo">Expense Tracker</div>
-    <div>
-        <span style="margin-right:15px;">Hi, {{ session.get('first_name') }}</span>
-        <a href="/logout" style="color:#ff4d4d; text-decoration:none;">Logout</a>
+    <div class="logo">ExpenseTracker</div>
+    <div class="user-pill">
+        <div style="background:#2962FF; width:25px; height:25px; border-radius:50%; text-align:center; font-size:12px;">H</div>
+        Hi, {{ session.get('first_name') }}! | <a href="/logout" style="color:#ff4d4d; text-decoration:none;">Logout</a>
     </div>
 </nav>
 
 <div class="main-content">
-    <div class="welcome-header">
-        <h1>Hi, {{ session.get('first_name', 'User') }}! 👋</h1>
-        <p>Manage your finances like a Pro</p>
+    <div class="welcome-section">
+        <h1>Good Evening, <span class="highlight">{{ session.get('first_name', 'User') }}!</span></h1>
+        <p style="color:#888;">Manage your finances like a Pro. Plan and track your spending all in one place.</p>
     </div>
 
     <div class="dashboard-grid">
         <a href="/add" class="card"><h2>➕ Add Expense</h2></a>
         <a href="/view" class="card"><h2>📋 View Records</h2></a>
-        <a href="/summary" class="card" style="grid-column: span 2;"><h2>📊 Summary</h2></a>
+        <a href="/summary" class="card summary-card"><h2>📊 View Summary</h2></a>
     </div>
-
-    <div class="footer">Made with ❤️ by: Umair Siddique</div>
 </div>
+
+<div class="footer">Made with ❤️ by: Umair Siddique</div>
 
 </body>
 </html>
