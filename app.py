@@ -38,15 +38,20 @@ def login():
         flash("Invalid Credentials!", "danger")
     return render_template("login.html")
 
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=["POST"])
 def signup():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = generate_password_hash(request.form.get("password"))
-        users_collection.insert_one({"username": username, "password": password})
-        flash("Signup successful! Please login.", "success")
-        return redirect(url_for("login"))
-    return render_template("signup.html")
+    first_name = request.form.get("first_name")
+    last_name = request.form.get("last_name")
+    username = request.form.get("username") # @gmail.com handle karne ke liye
+    password = generate_password_hash(request.form.get("password"))
+    
+    users_collection.insert_one({
+        "first_name": first_name,
+        "last_name": last_name,
+        "username": username + "@gmail.com",
+        "password": password
+    })
+    return redirect(url_for("login"))
 
 @app.route("/logout")
 def logout():

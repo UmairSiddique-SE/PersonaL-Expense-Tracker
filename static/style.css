@@ -266,3 +266,22 @@ a:hover {
     text-decoration: underline;
 }
 
+/* Email group styling */
+.email-group {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    padding-right: 10px;
+}
+.email-group input { border: none; outline: none; }
+.domain { color: #888; font-size: 14px; }
+
+/* General theme update */
+body {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* Deep Blue Theme */
+}
+.auth-card { background: rgba(255, 255, 255, 0.9); }
+.btn-auth { background: #2c5364; }
+.btn-auth:hover { background: #0f2027; }
