@@ -70,7 +70,7 @@ table {
 thead th {
     background: linear-gradient(180deg, #1a2a50, #2c3e70); 
     color: #ffffff; 
-    font-size: 18px;
+    font-size: 20 px;
     padding: 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
@@ -79,6 +79,7 @@ table tbody td {
     background: rgba(30, 50, 100, 0.4); 
     color: #ffffff;
     padding: 15px;
+    font-size: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
