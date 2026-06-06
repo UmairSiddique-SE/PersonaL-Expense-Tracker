@@ -14,7 +14,6 @@ db = client['expense_db']
 expenses_collection = db['expenses']
 users_collection = db['users']
 
-# Login Required Decorator
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -23,7 +22,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# --- AUTH ROUTES ---
 @app.route("/", methods=["GET", "POST"])
 def login():
     if 'user_id' in session: 
@@ -34,17 +32,20 @@ def login():
         user = users_collection.find_one({"username": username})
         if user and check_password_hash(user['password'], password):
             session['user_id'] = str(user['_id'])
-            session['user_name'] = user.get('username', 'User')
+            # Pura naam session mein store karein
+            session['user_name'] = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip()
             return redirect(url_for("dashboard"))
         flash("Invalid Credentials!", "danger")
     return render_template("auth.html")
 
 @app.route("/signup", methods=["POST"])
 def signup():
+    # Naye fields fetch karein
+    first_name = request.form.get("first_name")
+    last_name = request.form.get("last_name")
     username = request.form.get("username")
     password = request.form.get("password")
     
-    # Validation Rules
     if "@" not in username or "." not in username or len(password) < 8:
         flash("Invalid email or password (min 8 chars)!", "danger")
         return redirect(url_for("login"))
@@ -53,7 +54,13 @@ def signup():
         flash("User already exists!", "danger")
         return redirect(url_for("login"))
 
-    user = {"username": username, "password": generate_password_hash(password)}
+    # DB mein save karein
+    user = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "username": username,
+        "password": generate_password_hash(password)
+    }
     users_collection.insert_one(user)
     flash("Account created! Please login.", "success")
     return redirect(url_for("login"))
@@ -63,12 +70,12 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# --- APP ROUTES ---
 @app.route("/dashboard")
 @login_required
 def dashboard():
     return render_template("index.html")
 
+# --- OTHER ROUTES (Add, View, Delete, PWA) ---
 @app.route("/add", methods=["GET", "POST"])
 @login_required
 def add():
@@ -95,7 +102,6 @@ def delete(id):
     expenses_collection.delete_one({"_id": ObjectId(id)})
     return redirect(url_for("view"))
 
-# --- PWA & STATIC ---
 @app.route('/sw.js')
 def serve_sw(): return send_from_directory('static', 'sw.js')
 

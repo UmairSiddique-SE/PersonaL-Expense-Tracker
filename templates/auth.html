@@ -3,10 +3,10 @@
 <head>
     <title>Expense Tracker</title>
     <style>
-        body { background: #0B1026; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0; }
+        body { background: #0B1026; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; margin: 0; }
         .card { background: #151c36; padding: 30px; border-radius: 20px; width: 300px; text-align: center; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 10px; border: none; background: #0B1026; color: white; }
-        button { width: 95%; padding: 12px; background: #2962FF; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
+        input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; background: #0B1026; color: white; }
+        button { width: 95%; padding: 12px; margin-top: 10px; background: #2962FF; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
         a { color: #2962FF; text-decoration: none; cursor: pointer; }
         .flash { color: #ff4d4d; font-size: 14px; margin-bottom: 10px; }
     </style>
@@ -21,6 +21,8 @@
     <div class="card" id="signup-div">
         <h2>Create Account</h2>
         <form action="/signup" method="POST">
+            <input type="text" name="first_name" placeholder="First Name" required>
+            <input type="text" name="last_name" placeholder="Last Name" required>
             <input type="email" name="username" placeholder="name@gmail.com" required>
             <input type="password" name="password" placeholder="Password (min 8 chars)" minlength="8" required>
             <button type="submit">SIGN UP</button>
