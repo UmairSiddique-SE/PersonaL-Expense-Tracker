@@ -1,14 +1,8 @@
-
-
-
-
-#                                       new code
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 app.secret_key = "expense_secret_key"
@@ -17,6 +11,16 @@ app.secret_key = "expense_secret_key"
 client = MongoClient(os.environ.get("MONGO_URI"))
 db = client['expense_db']
 expenses_collection = db['expenses']
+
+# --- PWA STATIC FILES ROUTE ---
+# Ye route ensure karega ki sw.js aur manifest.json hamesha milein
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory('static', 'sw.js')
+
+@app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory('static', 'manifest.json')
 
 @app.route("/")
 def index():
@@ -65,7 +69,6 @@ def summary():
     today = datetime.today()
     all_expenses = list(expenses_collection.find())
     
-    # Data aur Totals ke liye containers
     data = {"overall": {}, "weekly": {}, "monthly": {}}
     totals = {"overall": 0, "weekly": 0, "monthly": 0}
 
@@ -75,29 +78,20 @@ def summary():
             category = e.get("category", "Other")
             expense_date = datetime.strptime(e.get("date"), "%Y-%m-%d")
             
-            # Logic for Overall
             data["overall"][category] = data["overall"].get(category, 0) + amount
             totals["overall"] += amount
             
-            # Logic for Weekly (Last 7 days)
             if today - timedelta(days=7) <= expense_date <= today:
                 data["weekly"][category] = data["weekly"].get(category, 0) + amount
                 totals["weekly"] += amount
             
-            # Logic for Monthly (Current month)
             if expense_date.month == today.month and expense_date.year == today.year:
                 data["monthly"][category] = data["monthly"].get(category, 0) + amount
                 totals["monthly"] += amount
         except: 
             continue
     
-    return render_template(
-        "summary.html",
-        data=data,          # Isme overall, weekly, monthly ka data hai
-        totals=totals,      # Isme 3no ka total hai
-        view_type=view_type
-    )
-
+    return render_template("summary.html", data=data, totals=totals, view_type=view_type)
 
 if __name__ == "__main__":
     app.run(debug=True)
