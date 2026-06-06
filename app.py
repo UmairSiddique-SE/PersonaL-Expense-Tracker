@@ -94,7 +94,7 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard(): 
-    return render_template("index.html")
+    return render_template("dashboard.html")
 
 @app.route("/add", methods=["GET", "POST"])
 @login_required
