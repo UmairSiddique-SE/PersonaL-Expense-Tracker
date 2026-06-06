@@ -74,7 +74,8 @@ def add():
             "date": request.form.get("date"),
             "description": request.form.get("description", "")
         })
-        return redirect(url_for("view"))
+        flash("Expense added successfully!", "success")
+        return redirect(url_for("add"))
     return render_template("add.html")
 
 @app.route("/view")
@@ -99,6 +100,7 @@ def edit(id):
             "date": request.form.get("date"),
             "description": request.form.get("description")
         }})
+        flash("Expense updated successfully!", "success")
         return redirect(url_for("view"))
     expense = expenses_collection.find_one({"_id": ObjectId(id)})
     return render_template("edit.html", expense=expense)
@@ -106,7 +108,18 @@ def edit(id):
 @app.route("/logout")
 def logout():
     session.clear()
+    flash("You have been logged out.", "info")  
     return redirect(url_for("login"))
+@app.route("/summary")
+@login_required
+def summary():
+    uid = session.get('user_id')
+    expenses = list(expenses_collection.find({"user_id": uid}))
+    
+    # Total calculation (Logic handle karna)
+    total = sum(item.get('amount', 0) for item in expenses)
+    
+    return render_template("summary.html", total=total, count=len(expenses))
 
 if __name__ == "__main__":
     app.run(debug=True)
