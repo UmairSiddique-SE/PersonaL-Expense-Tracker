@@ -1,16 +1,18 @@
 {
   "name": "Personal Expense Tracker",
-  "short_name": "ExpenseTracker",
+  "short_name": "Expense",
+  "description": "Track your expenses like a pro",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
-"icons": [
-  {
-    "src": "/static/logo.png",
-    "sizes": "512x512",
-    "type": "image/png"
-  }
-]
-  
+  "theme_color": "#0056b3",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
