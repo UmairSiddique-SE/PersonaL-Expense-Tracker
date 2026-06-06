@@ -4,28 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Expense Tracker</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #0B1026 0%, #050711 100%); color: white; }
+        .auth-card { background: rgba(14, 20, 43, 0.7); padding: 50px 40px; border-radius: 25px; backdrop-filter: blur(20px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); width: 100%; max-width: 420px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.08); }
+        h2 { margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        input { width: 100%; padding: 16px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: white; outline: none; font-size: 16px; }
+        input:focus { border-color: #2962FF; }
+        .btn-auth { width: 100%; padding: 16px; background: #2962FF; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; }
+        .btn-auth:hover { background: #1E4ED9; }
+        a { color: #2962FF; text-decoration: none; font-weight: 600; }
+    </style>
 </head>
 <body>
     <div class="auth-card">
         <h2>LOGIN</h2>
-        {% with messages = get_flashed_messages() %}{% if messages %}
-            <p style="color: red; font-size: 14px;">{{ messages[0] }}</p>
-        {% endif %}{% endwith %}
-        
         <form action="/login" method="POST">
             <div class="input-group">
-                <input type="text" name="username" placeholder="Username" required>
+                <input type="text" name="username" placeholder="Roll Number / Email" required>
             </div>
             <div class="input-group">
                 <input type="password" name="password" placeholder="Password" required>
             </div>
-            <button type="submit" class="btn-auth">LOGIN</button>
+            <button type="submit" class="btn-auth">SIGN IN</button>
         </form>
-        <p style="margin-top: 20px; font-size: 14px;">
-            New to the tracker? <a href="/signup">Create an account</a>
-        </p>
+        <p style="margin-top: 20px;">New here? <a href="/signup">Create an account</a></p>
     </div>
 </body>
 </html>

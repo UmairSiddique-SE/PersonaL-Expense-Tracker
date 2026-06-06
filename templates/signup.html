@@ -2,9 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Expense Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #0B1026 0%, #050711 100%); color: white; }
+        .auth-card { background: rgba(14, 20, 43, 0.7); padding: 50px 40px; border-radius: 25px; backdrop-filter: blur(20px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); width: 100%; max-width: 420px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.08); }
+        h2 { margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        input { width: 100%; padding: 16px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: white; outline: none; font-size: 16px; }
+        .btn-auth { width: 100%; padding: 16px; background: #2962FF; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; }
+        .btn-auth:hover { background: #1E4ED9; }
+        a { color: #2962FF; text-decoration: none; font-weight: 600; }
+    </style>
 </head>
 <body>
     <div class="auth-card">
@@ -16,18 +26,15 @@
             <div class="input-group">
                 <input type="text" name="last_name" placeholder="Last Name" required>
             </div>
-            <div class="input-group email-group">
-                <input type="text" name="username" placeholder="Username" required>
-                <span class="domain">@gmail.com</span>
+            <div class="input-group">
+                <input type="text" name="username" placeholder="Username (without @gmail.com)" required>
             </div>
             <div class="input-group">
-                <input type="password" name="password" placeholder="Password (min 8 digits)" pattern=".{8,}" required>
+                <input type="password" name="password" placeholder="Password (min 8 digits)" required>
             </div>
-            <button type="submit" class="btn-auth">SIGN UP</button>
+            <button type="submit" class="btn-auth">REGISTER</button>
         </form>
-        <p style="margin-top: 20px; font-size: 14px;">
-            Already have an account? <a href="/login">Login</a>
-        </p>
+        <p style="margin-top: 20px;">Already have an account? <a href="/login">Login</a></p>
     </div>
 </body>
 </html>
