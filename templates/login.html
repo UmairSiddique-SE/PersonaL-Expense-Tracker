@@ -84,7 +84,22 @@
           <h1>Expense Tracker</h1>
         <p>Elegant Finance Management</p>
     </div>
+<div class="auth-card">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="padding: 12px; margin-bottom: 20px; border-radius: 10px; text-align: center; font-weight: bold;
+                      {{ 'background:#e74c3c; color:white;' if category == 'danger' else 'background:#22b87a; color:white;' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
+    <h2>LOGIN</h2>
+    <form action="/login" method="POST">
+        </form>
+</div>
     <div class="auth-card">
         <form action="/login" method="POST">
             <input type="text" name="username" placeholder="👤 Username" required>
