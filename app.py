@@ -27,16 +27,27 @@ def login_required(f):
 # --- AUTH ROUTES ---
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if 'user_id' in session: return redirect(url_for('dashboard'))
+    # Agar pehle se logged in hai, toh dashboard par bhejo
+    if 'user_id' in session: 
+        return redirect(url_for('dashboard'))
+    
     if request.method == "POST":
-        # .lower() yahan bhi lagayein taake casing ka masla na ho
-        username = request.form.get("username").lower() 
+        # None-check: Agar username khali ho toh empty string lein
+        raw_username = request.form.get("username")
+        username = raw_username.lower() if raw_username else ""
         password = request.form.get("password")
+        
+        # User dhoondhein
         user = users_collection.find_one({"username": username})
+        
+        # Password check karein
         if user and check_password_hash(user['password'], password):
             session['user_id'] = str(user['_id'])
             return redirect(url_for("dashboard"))
-        flash("Invalid Credentials!", "danger")
+        
+        # Ghalat login par flash message
+        flash("Invalid Username or Password!", "danger")
+        
     return render_template("login.html")
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
