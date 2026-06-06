@@ -105,13 +105,22 @@ def add():
             return redirect(url_for("add"))
             
     return render_template("add.html")
-
 @app.route("/view")
 @login_required
 def view():
-    expenses = list(expenses_collection.find({"user_id": session['user_id']}))
-    return render_template("view.html", expenses=expenses)
-
+    try:
+        # User ID check karein
+        uid = session.get('user_id')
+        print(f"DEBUG: Fetching expenses for User ID: {uid}")
+        
+        # MongoDB se data layein
+        expenses = list(expenses_collection.find({"user_id": uid}))
+        print(f"DEBUG: Total records found: {len(expenses)}")
+        
+        return render_template("view.html", expenses=expenses)
+    except Exception as e:
+        print(f"DEBUG CRASH: {e}")
+        return "Error loading records", 500
 @app.route("/delete/<id>")
 @login_required
 def delete(id):
