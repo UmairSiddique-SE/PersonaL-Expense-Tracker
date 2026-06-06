@@ -2,63 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>VIP Dashboard | Expense Tracker</title>
+    <title>Expense Tracker | Welcome</title>
     <style>
-        /* Global Styles */
+        /* Shared VIP Dark Theme */
         body { 
             margin: 0; font-family: 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
-            color: white; min-height: 100vh; overflow-x: hidden;
+            background: linear-gradient(135deg, #050505 0%, #0d0d1a 100%);
+            color: #ffffff; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* Navbar */
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 60px; }
-        .logo { font-weight: bold; font-size: 22px; }
-        .user-pill { 
-            background: rgba(255, 255, 255, 0.05); padding: 8px 20px; 
-            border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .container { text-align: center; max-width: 600px; padding: 20px; }
+        h1 { font-size: 48px; margin-bottom: 10px; }
+        .highlight { color: #2575fc; }
+        p { color: #888; font-size: 18px; margin-bottom: 40px; }
 
-        /* Content */
-        .container { max-width: 900px; margin: 50px auto; padding: 0 20px; }
-        .header h1 { font-size: 48px; margin-bottom: 10px; }
-        .header p { color: #888; font-size: 18px; }
-        .glow-text { color: #8a84ff; text-shadow: 0 0 20px #8a84ff; }
-
-        /* VIP Cards Grid */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
-        
-        .card { 
-            background: rgba(255, 255, 255, 0.03); padding: 40px; border-radius: 25px;
-            border: 1px solid rgba(41, 98, 255, 0.5); text-align: center;
-            text-decoration: none; color: white; transition: 0.4s;
-            box-shadow: 0 0 15px rgba(41, 98, 255, 0.2);
+        /* Buttons */
+        .btn-group { display: flex; gap: 20px; justify-content: center; }
+        .btn { 
+            padding: 15px 40px; border-radius: 50px; text-decoration: none; 
+            font-weight: 600; transition: 0.3s;
         }
-        .card:hover { background: rgba(41, 98, 255, 0.1); box-shadow: 0 0 30px rgba(41, 98, 255, 0.5); transform: translateY(-5px); }
-        
-        .summary-card { grid-column: span 2; border-color: #8a84ff; box-shadow: 0 0 15px rgba(138, 132, 255, 0.2); }
-        .summary-card:hover { box-shadow: 0 0 30px rgba(138, 132, 255, 0.5); }
+        .btn-login { background: #2575fc; color: #fff; }
+        .btn-login:hover { box-shadow: 0 0 20px rgba(37, 117, 252, 0.5); }
+        .btn-signup { border: 2px solid #2575fc; color: #fff; }
+        .btn-signup:hover { background: #2575fc; }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="logo">ExpenseTracker</div>
-    <div class="user-pill">
-        Hi, {{ session.get('first_name') }}! | <a href="/logout" style="color:#ff4d4d; text-decoration:none;">Logout</a>
-    </div>
-</nav>
-
 <div class="container">
-    <div class="header">
-        <h1>Good Evening, <span class="glow-text">{{ session.get('first_name', 'User') }}!</span></h1>
-        <p>Manage your finances like a Pro. Plan and track your spending all in one place.</p>
-    </div>
-
-    <div class="grid">
-        <a href="/add" class="card"><h2>➕ Add Expense</h2></a>
-        <a href="/view" class="card"><h2>📋 View Records</h2></a>
-        <a href="/summary" class="card summary-card"><h2>📊 View Summary</h2></a>
+    <h1>Manage Your <span class="highlight">Money</span> Like a Pro.</h1>
+    <p>Track your spending, analyze your habits, and take control of your financial future.</p>
+    
+    <div class="btn-group">
+        <a href="/login" class="btn btn-login">Login</a>
+        <a href="/signup" class="btn btn-signup">Create Account</a>
     </div>
 </div>
 
