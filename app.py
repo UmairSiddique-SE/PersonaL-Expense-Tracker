@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, timedelta
 
+
 app = Flask(__name__)
 app.secret_key = "expense_secret_key"
 
@@ -24,12 +25,12 @@ def login_required(f):
     return decorated_function
 
 # --- AUTH ROUTES ---
-@app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if 'user_id' in session: return redirect(url_for('dashboard'))
     if request.method == "POST":
-        username = request.form.get("username")
+        # .lower() yahan bhi lagayein taake casing ka masla na ho
+        username = request.form.get("username").lower() 
         password = request.form.get("password")
         user = users_collection.find_one({"username": username})
         if user and check_password_hash(user['password'], password):
@@ -40,30 +41,28 @@ def login():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        # Data fetch karein
         first_name = request.form.get("first_name")
         last_name = request.form.get("last_name")
-        username = request.form.get("username")
+        # Username ko hamesha lowercase mein save aur check karein
+        username = request.form.get("username").lower() 
         password = request.form.get("password")
         
-        # User exist check
-        if users_collection.find_one({"username": username + "@gmail.com"}):
-            flash("User already exists!", "danger")
+        # Check if already exists
+        if users_collection.find_one({"username": username}):
+            flash("User already exists! Please login.", "danger")
             return redirect(url_for("signup"))
         
-        # Password hash karein
         hashed_pw = generate_password_hash(password)
         
-        # Database mein save karein
         users_collection.insert_one({
             "first_name": first_name,
             "last_name": last_name,
-            "username": username + "@gmail.com",
+            "username": username,
             "password": hashed_pw
         })
         
         flash("Signup successful! Please login.", "success")
-        return redirect(url_for("login"))
+        return redirect(url_for("login")) # Yahan se user login page par jayega
         
     return render_template("signup.html")
 @app.route("/logout")
