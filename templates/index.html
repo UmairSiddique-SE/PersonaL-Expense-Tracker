@@ -3,62 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard | Expense Tracker</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0b1026">
-    <link rel="apple-touch-icon" href="/static/logo.png">
+    <style>
+        body { background-color: #05070a; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; min-height: 100vh; }
+        
+        /* Navbar Fix: Sidebar hata kar top pe laya hai */
+        .navbar { display: flex; justify-content: space-between; padding: 20px 50px; background: #0b1026; }
+        .logo { font-weight: bold; font-size: 22px; color: #2962FF; }
+
+        /* Main Content Centered */
+        .main-content { display: flex; flex-direction: column; align-items: center; padding: 50px; }
+        .welcome-header { text-align: center; margin-bottom: 40px; }
+        .welcome-header h1 { font-size: 3rem; margin: 0; }
+
+        /* Grid Cards Fix */
+        .dashboard-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 300px); /* 2 columns for symmetry */
+            gap: 25px; 
+            max-width: 700px;
+        }
+        
+        .card { 
+            background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;
+            text-decoration: none; color: #fff; transition: 0.3s;
+        }
+        .card:hover { background: rgba(41, 98, 255, 0.1); transform: scale(1.02); }
+        
+        .footer { margin-top: 50px; color: #666; }
+    </style>
 </head>
 <body>
 
-<nav style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#0B1026; color:white; border-bottom: 1px solid #2962FF;">
-    <div style="font-weight:bold; font-size:20px; color:#2962FF;">Expense Tracker</div>
+<nav class="navbar">
+    <div class="logo">Expense Tracker</div>
     <div>
-        {% if session.get('user_id') %}
-            <span style="margin-right:15px; font-size:14px;">Hi, {{ session.get('first_name') }}</span>
-            <a href="/logout" style="color:#ff4d4d; text-decoration:none; font-size:14px;">Logout</a>
-        {% else %}
-            <a href="/login" style="color:white; text-decoration:none; margin-right:10px;">Login</a>
-            <a href="/signup" style="color:#2962FF; text-decoration:none;">Signup</a>
-        {% endif %}
+        <span style="margin-right:15px;">Hi, {{ session.get('first_name') }}</span>
+        <a href="/logout" style="color:#ff4d4d; text-decoration:none;">Logout</a>
     </div>
 </nav>
 
-<div class="hero">
-    <div class="glass">
+<div class="main-content">
+    <div class="welcome-header">
         <h1>Hi, {{ session.get('first_name', 'User') }}! 👋</h1>
-        <p class="tagline">Manage your finances like a Pro</p>
-
-        <div class="vip-cards">
-            <a href="/add" class="vip-card">
-                <span>➕</span>
-                <h2>Add Expense</h2>
-                <p>Save your daily spending</p>
-            </a>
-            <a href="/view" class="vip-card">
-                <span>📋</span>
-                <h2>View Records</h2>
-                <p>Clean & organized history</p>
-            </a>
-            <a href="/summary" class="vip-card">
-                <span>📊</span>
-                <h2>Summary</h2>
-                <p>Simple expense analysis</p>
-            </a>
-        </div>
-
-        <footer class="footer">
-            <p>Made with ❤️ by:</p>
-            <span class="name">Umair Siddique</span>
-        </footer>
+        <p>Manage your finances like a Pro</p>
     </div>
+
+    <div class="dashboard-grid">
+        <a href="/add" class="card"><h2>➕ Add Expense</h2></a>
+        <a href="/view" class="card"><h2>📋 View Records</h2></a>
+        <a href="/summary" class="card" style="grid-column: span 2;"><h2>📊 Summary</h2></a>
+    </div>
+
+    <div class="footer">Made with ❤️ by: Umair Siddique</div>
 </div>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/static/sw.js')
-      .then(() => console.log('Service Worker Registered'));
-  }
-</script>
 </body>
 </html>
