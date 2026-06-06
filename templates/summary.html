@@ -21,11 +21,11 @@
     <div class="summary-card-main">
         <h1>📊 {{ view_type.capitalize() }} Summary</h1>
         
-        <div style="margin: 20px 0; text-align: center;">
+        <div class="calendar-wrapper" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 15px; margin: 20px auto; display: inline-block;">
             <form action="/summary" method="GET">
                 <input type="hidden" name="type" value="daily">
-                <label style="color: white;">Select Date:</label>
-                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" style="padding: 5px; border-radius: 5px;">
+                <label style="color: white; margin-right: 10px;">Pick Date:</label>
+                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
             </form>
         </div>
 

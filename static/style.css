@@ -149,3 +149,35 @@ h1 {
     color: #4accf7;
 }
 
+/* Calendar/Date Picker Styling */
+input[type="date"] {
+    background-color: #0B1026 !important; /* Wahi dark blue background */
+    color: #2962FF !important;           /* Blue text color */
+    border: 2px solid #2962FF !important;
+    padding: 12px;
+    border-radius: 10px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+/* Calendar par hover effect */
+input[type="date"]:hover {
+    border-color: #ffffff;
+    box-shadow: 0 0 10px rgba(41, 98, 255, 0.5);
+}
+
+/* Calendar Icon/Dropdown ka Color (Browser support ke hisab se) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* White icon ban jayega dark bg par */
+    cursor: pointer;
+}
+
+/* Label styling */
+label {
+    color: #ffffff;
+    font-weight: bold;
+    margin-right: 10px;
+}
