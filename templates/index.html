@@ -2,19 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Expense Tracker | Welcome</title>
-    <style>
-        body { background: #050505; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; text-align: center; }
-        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; }
-        .btn { padding: 15px 40px; background: #2575fc; color: white; text-decoration: none; border-radius: 30px; margin: 10px; display: inline-block; }
+    <title>VIP Dashboard | Expense Tracker</title>
+<style>
+        /* Deep Black Space Background */
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', sans-serif;
+            background: #050505; /* Pure dark black */
+            background-image: radial-gradient(circle at 70% 30%, #1a1a2e 0%, #050505 70%);
+            color: #ffffff; 
+            min-height: 100vh;
+        }
+
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 25px 60px; background: rgba(0,0,0,0.2); }
+        .logo { font-weight: 700; font-size: 24px; color: #fff; }
+
+        .container { max-width: 950px; margin: 60px auto; padding: 0 20px; }
+        
+        .header h1 { font-size: 44px; margin-bottom: 10px; font-weight: 600; }
+        .glow-text { 
+            color: #7b6bff; 
+            text-shadow: 0 0 20px rgba(123, 107, 255, 0.6); 
+        }
+
+        /* VIP Cards with Electric Glow */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 50px; }
+        
+        .card { 
+            background: rgba(20, 20, 25, 0.6); 
+            padding: 50px 30px; 
+            border-radius: 20px; 
+            text-align: center;
+            text-decoration: none; 
+            color: white; 
+            border: 1px solid #2d2d3a;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Hover Effect - Electric Blue/Purple */
+        .card:hover { 
+            border-color: #5b54ff;
+            box-shadow: 0 0 25px rgba(91, 84, 255, 0.3);
+            transform: translateY(-8px);
+        }
+
+        .summary-card { grid-column: span 2; border-color: #4b46c5; }
+        .summary-card:hover { border-color: #8a84ff; box-shadow: 0 0 25px rgba(138, 132, 255, 0.3); }
+
+        .footer { text-align: center; margin-top: 100px; color: #333; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div>
-        <h1>Welcome to Expense Tracker</h1>
-        <p>Manage your finances like a Pro.</p>
-        <a href="/login" class="btn">Login</a>
-        <a href="/signup" class="btn" style="background:#444;">Signup</a>
+
+<nav class="navbar">
+    <div class="logo">ExpenseTracker</div>
+    <div class="user-pill">
+        Hi, {{ session.get('first_name') }}! | <a href="/logout" style="color:#ff4d4d; text-decoration:none;">Logout</a>
     </div>
+</nav>
+
+<div class="container">
+    <div class="header">
+        <h1>Good Evening, <span class="glow-text">{{ session.get('first_name', 'User') }}!</span></h1>
+        <p>Manage your finances like a Pro. Plan and track your spending all in one place.</p>
+    </div>
+
+    <div class="grid">
+        <a href="/add" class="card"><h2>➕ Add Expense</h2></a>
+        <a href="/view" class="card"><h2>📋 View Records</h2></a>
+        <a href="/summary" class="card summary-card"><h2>📊 View Summary</h2></a>
+    </div>
+</div>
+
 </body>
 </html>
