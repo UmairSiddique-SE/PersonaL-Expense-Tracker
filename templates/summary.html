@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Summary</title>
     <link rel="stylesheet" href="/static/summary-style.css">
+    <style>
+        /* Date Input ka Style (waisa hi jaisa add expense par hai) */
+        .date-input-container {
+            margin: 20px auto;
+            text-align: center;
+        }
+        
+        /* Back to Home Button ka Style (Middle aur Small) */
+        .back-link-small {
+            display: block;
+            text-align: center;
+            margin: 20px auto;
+            font-size: 14px;
+            color: #2962FF !important;
+            text-decoration: underline;
+            width: fit-content;
+        }
+    </style>
 </head>
 <body>
    <nav style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#0B1026; color:white; border-bottom: 1px solid #2962FF;">
@@ -21,10 +39,10 @@
     <div class="summary-card-main">
         <h1>📊 {{ view_type.capitalize() }} Summary</h1>
         
-        <div class="calendar-wrapper" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 15px; margin: 20px auto; display: inline-block;">
+        <div class="date-input-container">
             <form action="/summary" method="GET">
                 <input type="hidden" name="type" value="daily">
-                <label style="color: white; margin-right: 10px;">Pick Date:</label>
+                <label style="color: white; display: block; margin-bottom: 5px;">Select Date</label>
                 <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
             </form>
         </div>
@@ -35,8 +53,8 @@
             <a href="/summary?type=monthly" class="btn">Monthly</a>
         </div>
 
-        <div class="total-box" style="background: rgba(255, 255, 255, 0.05); border-top: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; margin: 20px 0; text-align: center; color: white; width: 100%; box-sizing: border-box;">
-            <h2 style="margin: 0; font-size: 1.5rem; opacity: 0.9;">Total: Rs {{ totals.get(view_type, 0) }}</h2>
+        <div class="total-box" style="background: rgba(255, 255, 255, 0.05); padding: 20px; margin: 20px 0; text-align: center; color: white;">
+            <h2 style="margin: 0; font-size: 1.5rem;">Total: Rs {{ totals.get(view_type, 0) }}</h2>
         </div>
 
         <div class="summary-cards">
@@ -48,11 +66,11 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <p class="no-data" style="text-align: center; color: #fff;">No data found for this selection!</p>
+                <p style="text-align: center; color: #fff;">No data found for this selection!</p>
             {% endif %}
         </div>
 
-        <a href="/dashboard" class="back-link" style="display:block; margin-top:20px; text-align:center; color:#fff;">Back to Home</a>
+        <a href="/dashboard" class="back-link-small">Back to Home</a>
     </div>
 </div>
 </body>
