@@ -1,11 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Expense Tracker</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="auth-card">
         <h2>LOGIN</h2>
+        {% with messages = get_flashed_messages() %}{% if messages %}
+            <p style="color: red; font-size: 14px;">{{ messages[0] }}</p>
+        {% endif %}{% endwith %}
+        
         <form action="/login" method="POST">
             <div class="input-group">
                 <input type="text" name="username" placeholder="Username" required>
@@ -16,7 +24,7 @@
             <button type="submit" class="btn-auth">LOGIN</button>
         </form>
         <p style="margin-top: 20px; font-size: 14px;">
-            New to the tracker? <a href="/signup" style="color: #3b82f6;">Create an account</a>
+            New to the tracker? <a href="/signup">Create an account</a>
         </p>
     </div>
 </body>
