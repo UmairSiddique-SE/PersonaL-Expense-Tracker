@@ -4,71 +4,30 @@
     <meta charset="UTF-8">
     <title>Dashboard | Expense Tracker</title>
     <style>
-        /* CSS Dashboard ke andar hi add kar di hai */
-        body { background-color: #05070a; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
-
-        .navbar { display: flex; justify-content: space-between; padding: 20px 50px; background: #0b1026; border-bottom: 1px solid #1a2a50; align-items: center; }
-        .logo { font-weight: bold; font-size: 24px; color: #fff; }
-        .logo span { color: #2962FF; }
-
-        .main-container { padding: 40px 50px; }
-        .welcome-box { margin-bottom: 40px; }
-        .welcome-box h1 { font-size: 32px; color: #2962FF; margin-bottom: 10px; }
-
-        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-
-        .card { 
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 30px; border-radius: 20px; text-align: center;
-            text-decoration: none; color: white; transition: 0.3s;
-        }
-
-        .card:hover { background: rgba(41, 98, 255, 0.15); border-color: #2962FF; transform: translateY(-5px); }
-        .icon { font-size: 40px; margin-bottom: 15px; }
-
-        .footer { text-align: center; margin-top: 50px; color: #555; font-size: 14px; }
-        .logout-btn { color: #ff4d4d; text-decoration: none; font-weight: bold; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #050505 0%, #0d0d1a 100%); color: #ffffff; min-height: 100vh; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 25px 60px; }
+        .logo { font-weight: 800; font-size: 26px; color: #fff; }
+        .container { max-width: 1000px; margin: 80px auto; padding: 0 20px; }
+        .header h1 { font-size: 50px; }
+        .highlight { background: linear-gradient(90deg, #6a11cb, #2575fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px; }
+        .card { background: #111115; padding: 50px 30px; border-radius: 25px; text-align: center; text-decoration: none; color: white; border: 1px solid #222; transition: 0.4s; }
+        .card:hover { border: 1px solid transparent; background: linear-gradient(#111115, #111115) padding-box, linear-gradient(135deg, #6a11cb, #2575fc) border-box; box-shadow: 0 0 30px rgba(106, 17, 203, 0.4); transform: translateY(-10px); }
+        .summary-card { grid-column: span 2; }
     </style>
 </head>
 <body>
-
-<nav class="navbar">
-    <div class="logo">Expense<span>Tracker</span></div>
-    <div class="user-info">
-        <span class="user-name" style="margin-right:15px;">Hi, {{ session.get('first_name', 'User') }}</span>
-        <a href="/logout" class="logout-btn">Logout</a>
+    <nav class="navbar">
+        <div class="logo">ExpenseTracker</div>
+        <div>Hi, {{ session.get('first_name') }}! | <a href="/logout" style="color:#ff4d4d; text-decoration:none;">Logout</a></div>
+    </nav>
+    <div class="container">
+        <div class="header"><h1>Good Evening, <br><span class="highlight">{{ session.get('first_name', 'User') }}!</span></h1></div>
+        <div class="grid">
+            <a href="/add" class="card"><h2>➕ Add Expense</h2></a>
+            <a href="/view" class="card"><h2>📋 View Records</h2></a>
+            <a href="/summary" class="card summary-card"><h2>📊 View Summary</h2></a>
+        </div>
     </div>
-</nav>
-
-<div class="main-container">
-    <div class="welcome-box">
-        <h1>Good Evening, {{ session.get('first_name', 'User') }}!</h1>
-        <p>Manage your finances like a Pro. Track your spending all in one place.</p>
-    </div>
-
-    <div class="grid-container">
-        <a href="/add" class="card">
-            <div class="icon">➕</div>
-            <h2>Add Expense</h2>
-            <p>Save your daily spending</p>
-        </a>
-        <a href="/view" class="card">
-            <div class="icon">📋</div>
-            <h2>View Records</h2>
-            <p>Clean & organized history</p>
-        </a>
-        <a href="/summary" class="card">
-            <div class="icon">📊</div>
-            <h2>Summary</h2>
-            <p>Simple expense analysis</p>
-        </a>
-    </div>
-</div>
-
-<footer class="footer">
-    <p>Made with ❤️ by: <strong>Umair Siddique</strong></p>
-</footer>
-
 </body>
 </html>
