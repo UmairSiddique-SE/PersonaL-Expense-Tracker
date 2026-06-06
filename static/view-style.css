@@ -61,7 +61,6 @@ h1 {
 /* TABLE STYLING */
 table {
     width: 100%;
-    min-width: 400px;
     border-collapse: collapse;
     background: rgba(255, 255, 255, 0.05); 
     border-radius: 15px;
@@ -71,15 +70,15 @@ table {
 thead th {
     background: linear-gradient(180deg, #1a2a50, #2c3e70); 
     color: #ffffff; 
-    font-size: 13px;
-    padding: 10px 5px;
+    font-size: 18px;
+    padding: 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 table tbody td {
     background: rgba(30, 50, 100, 0.4); 
     color: #ffffff;
-    padding: 10px 5px;
+    padding: 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
