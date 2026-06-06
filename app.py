@@ -45,12 +45,12 @@ def signup():
     username = request.form["username"]
     password = request.form["password"]
 
-    # Validation: Email check
+    # Validation: Gmail/Email format check
     if "@" not in username or "." not in username:
-        flash("Please enter a valid email address!", "danger")
+        flash("Please enter a valid email address (e.g., name@gmail.com)!", "danger")
         return redirect(url_for("login"))
     
-    # Validation: Password length
+    # Validation: Password length check (8 digits)
     if len(password) < 8:
         flash("Password must be at least 8 characters long!", "danger")
         return redirect(url_for("login"))
