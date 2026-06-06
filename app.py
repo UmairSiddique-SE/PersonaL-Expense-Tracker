@@ -80,14 +80,30 @@ def dashboard():
 @login_required
 def add():
     if request.method == "POST":
-        expenses_collection.insert_one({
-            "user_id": session['user_id'],
-            "amount": float(request.form["amount"]),
-            "category": request.form["category"],
-            "date": request.form["date"],
-            "description": request.form["description"]
-        })
-        return redirect(url_for("view"))
+        try:
+            # Check karte hain ki data aa raha hai ya nahi
+            amount_str = request.form.get("amount")
+            category = request.form.get("category")
+            date = request.form.get("date")
+            description = request.form.get("description", "")
+            
+            if not amount_str or not category or not date:
+                flash("All fields are required!", "danger")
+                return redirect(url_for("add"))
+            
+            expenses_collection.insert_one({
+                "user_id": session['user_id'],
+                "amount": float(amount_str),
+                "category": category,
+                "date": date,
+                "description": description
+            })
+            return redirect(url_for("view"))
+        except Exception as e:
+            print(f"ERROR: {e}") # Terminal mein error dikhayega
+            flash("Error saving expense. Please check your input.", "danger")
+            return redirect(url_for("add"))
+            
     return render_template("add.html")
 
 @app.route("/view")
