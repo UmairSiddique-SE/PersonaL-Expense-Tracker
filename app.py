@@ -37,22 +37,35 @@ def login():
             return redirect(url_for("dashboard"))
         flash("Invalid Credentials!", "danger")
     return render_template("login.html")
-
-@app.route("/signup", methods=["POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
-    first_name = request.form.get("first_name")
-    last_name = request.form.get("last_name")
-    username = request.form.get("username") # @gmail.com handle karne ke liye
-    password = generate_password_hash(request.form.get("password"))
-    
-    users_collection.insert_one({
-        "first_name": first_name,
-        "last_name": last_name,
-        "username": username + "@gmail.com",
-        "password": password
-    })
-    return redirect(url_for("login"))
-
+    if request.method == "POST":
+        # Data fetch karein
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        username = request.form.get("username")
+        password = request.form.get("password")
+        
+        # User exist check
+        if users_collection.find_one({"username": username + "@gmail.com"}):
+            flash("User already exists!", "danger")
+            return redirect(url_for("signup"))
+        
+        # Password hash karein
+        hashed_pw = generate_password_hash(password)
+        
+        # Database mein save karein
+        users_collection.insert_one({
+            "first_name": first_name,
+            "last_name": last_name,
+            "username": username + "@gmail.com",
+            "password": hashed_pw
+        })
+        
+        flash("Signup successful! Please login.", "success")
+        return redirect(url_for("login"))
+        
+    return render_template("signup.html")
 @app.route("/logout")
 def logout():
     session.clear()
