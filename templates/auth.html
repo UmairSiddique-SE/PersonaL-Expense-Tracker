@@ -4,9 +4,9 @@
     <title>Expense Tracker</title>
     <style>
         body { background: #0B1026; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0; }
-        .card { background: #151c36; padding: 30px; border-radius: 20px; width: 300px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .card { background: #151c36; padding: 30px; border-radius: 20px; width: 300px; text-align: center; }
         input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 10px; border: none; background: #0B1026; color: white; }
-        button { width: 95%; padding: 12px; background: #2962FF; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button { width: 95%; padding: 12px; background: #2962FF; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
         a { color: #2962FF; text-decoration: none; cursor: pointer; }
     </style>
 </head>
@@ -23,9 +23,9 @@
 
     <div class="card" id="login-div" style="display:none;">
         <h2>Expense Tracker</h2>
-        <form action="/login" method="POST">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
+        <form action="/" method="POST">
+          <input type="email" name="username" placeholder="name@gmail.com" required>
+<input type="password" name="password" placeholder="Password (min 8 chars)" minlength="8" required>
             <button type="submit">SIGN IN</button>
         </form>
         <p>New user? <a onclick="toggle()">Sign Up</a></p>

@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
-from datetime import datetime, timedelta
+from datetime import datetime
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -30,26 +30,41 @@ def login():
     if 'user_id' in session: 
         return redirect(url_for('index'))
     if request.method == "POST":
-        user = users_collection.find_one({"username": request.form["username"]})
-        if user and check_password_hash(user['password'], request.form["password"]):
+        username = request.form["username"]
+        password = request.form["password"]
+        user = users_collection.find_one({"username": username})
+        if user and check_password_hash(user['password'], password):
             session['user_id'] = str(user['_id'])
             session['user_name'] = user.get('username', 'User')
             return redirect(url_for("index"))
-        flash("Invalid Credentials", "danger")
+        flash("Invalid Credentials!", "danger")
     return render_template("auth.html")
 
 @app.route("/signup", methods=["POST"])
 def signup():
     username = request.form["username"]
+    password = request.form["password"]
+
+    # Validation: Email check
+    if "@" not in username or "." not in username:
+        flash("Please enter a valid email address!", "danger")
+        return redirect(url_for("login"))
+    
+    # Validation: Password length
+    if len(password) < 8:
+        flash("Password must be at least 8 characters long!", "danger")
+        return redirect(url_for("login"))
+
     if users_collection.find_one({"username": username}):
         flash("User already exists!", "danger")
         return redirect(url_for("login"))
+
     user = {
         "username": username,
-        "password": generate_password_hash(request.form["password"])
+        "password": generate_password_hash(password)
     }
     users_collection.insert_one(user)
-    flash("Account created! Please login.", "success")
+    flash("Account created successfully! Please login.", "success")
     return redirect(url_for("login"))
 
 @app.route("/logout")
