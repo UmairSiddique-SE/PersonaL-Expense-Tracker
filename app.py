@@ -1,6 +1,5 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
-from datetime import datetime
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -28,43 +27,35 @@ def login_required(f):
 @app.route("/", methods=["GET", "POST"])
 def login():
     if 'user_id' in session: 
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
         user = users_collection.find_one({"username": username})
         if user and check_password_hash(user['password'], password):
             session['user_id'] = str(user['_id'])
             session['user_name'] = user.get('username', 'User')
-            return redirect(url_for("index"))
+            return redirect(url_for("dashboard"))
         flash("Invalid Credentials!", "danger")
     return render_template("auth.html")
 
 @app.route("/signup", methods=["POST"])
 def signup():
-    username = request.form["username"]
-    password = request.form["password"]
-
-    # Validation: Gmail/Email format check
-    if "@" not in username or "." not in username:
-        flash("Please enter a valid email address (e.g., name@gmail.com)!", "danger")
-        return redirect(url_for("login"))
+    username = request.form.get("username")
+    password = request.form.get("password")
     
-    # Validation: Password length check (8 digits)
-    if len(password) < 8:
-        flash("Password must be at least 8 characters long!", "danger")
+    # Validation Rules
+    if "@" not in username or "." not in username or len(password) < 8:
+        flash("Invalid email or password (min 8 chars)!", "danger")
         return redirect(url_for("login"))
-
+        
     if users_collection.find_one({"username": username}):
         flash("User already exists!", "danger")
         return redirect(url_for("login"))
 
-    user = {
-        "username": username,
-        "password": generate_password_hash(password)
-    }
+    user = {"username": username, "password": generate_password_hash(password)}
     users_collection.insert_one(user)
-    flash("Account created successfully! Please login.", "success")
+    flash("Account created! Please login.", "success")
     return redirect(url_for("login"))
 
 @app.route("/logout")
@@ -75,21 +66,20 @@ def logout():
 # --- APP ROUTES ---
 @app.route("/dashboard")
 @login_required
-def index():
+def dashboard():
     return render_template("index.html")
 
 @app.route("/add", methods=["GET", "POST"])
 @login_required
 def add():
     if request.method == "POST":
-        expense = {
+        expenses_collection.insert_one({
             "user_id": session['user_id'],
             "amount": float(request.form["amount"]),
             "category": request.form["category"],
             "date": request.form["date"],
             "description": request.form["description"]
-        }
-        expenses_collection.insert_one(expense)
+        })
         return redirect(url_for("view"))
     return render_template("add.html")
 
