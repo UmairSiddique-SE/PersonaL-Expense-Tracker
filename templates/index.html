@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,27 +6,15 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0b1f44"> 
+    <meta name="theme-color" content="#0b1f44">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
-    <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
-</script>
 </head>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('Service Worker Registered'));
-  }
-</script>
 <body>
 
 <div class="hero">
     <div class="glass">
-        <h1>Personal Expense Tracker </h1>
-        <p class="tagline">Track money like a Easy</p>
+        <h1>Personal Expense Tracker</h1>
+        <p class="tagline">Track money like a Pro</p>
 
         <div class="vip-cards">
             <a href="/add" class="vip-card">
@@ -34,33 +22,30 @@
                 <h2>Add Expense</h2>
                 <p>Save your daily spending</p>
             </a>
-
             <a href="/view" class="vip-card">
                 <span>📋</span>
                 <h2>View Records</h2>
                 <p>Clean & organized history</p>
             </a>
-
             <a href="/summary" class="vip-card">
                 <span>📊</span>
                 <h2>Summary</h2>
                 <p>Simple expense analysis</p>
             </a>
-
-           
         </div>
 
         <footer class="footer">
-    <p>Made with ❤️ by:</p>
-    <!-- <span class="name">Abdul Rafy </span> |   -->
-    <!-- <span class="name">Hanan</span> |   -->
-    <span class="name">Umair Siddique</span> 
-    <!-- <span class="name">Ahsan</span> |  -->
-    <!-- <span class="name">Aliyan</span>  -->
-</footer>
-
+            <p>Made with ❤️ by:</p>
+            <span class="name">Umair Siddique</span>
+        </footer>
     </div>
 </div>
 
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('Service Worker Registered'));
+  }
+</script>
 </body>
-</html> 
+</html>
