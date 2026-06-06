@@ -3,69 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <title>VIP Dashboard | Expense Tracker</title>
-<style>
-        /* Deep Black Space Background */
+    <style>
+        /* Background: Deep Black with subtle dark blue tint */
         body { 
-            margin: 0; 
-            font-family: 'Segoe UI', sans-serif;
-            background: #050505; /* Pure dark black */
-            background-image: radial-gradient(circle at 70% 30%, #1a1a2e 0%, #050505 70%);
-            color: #ffffff; 
-            min-height: 100vh;
+            margin: 0; font-family: 'Segoe UI', sans-serif;
+            background: #000000;
+            background: linear-gradient(135deg, #050505 0%, #0d0d1a 100%);
+            color: #ffffff; min-height: 100vh;
         }
 
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 25px 60px; background: rgba(0,0,0,0.2); }
-        .logo { font-weight: 700; font-size: 24px; color: #fff; }
+        /* Navbar */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 25px 60px; }
+        .logo { font-weight: 800; font-size: 26px; letter-spacing: 1px; color: #fff; }
 
-        .container { max-width: 950px; margin: 60px auto; padding: 0 20px; }
-        
-        .header h1 { font-size: 44px; margin-bottom: 10px; font-weight: 600; }
-        .glow-text { 
-            color: #7b6bff; 
-            text-shadow: 0 0 20px rgba(123, 107, 255, 0.6); 
+        /* Welcome Section */
+        .container { max-width: 1000px; margin: 80px auto; padding: 0 20px; }
+        .header h1 { font-size: 50px; margin: 0; }
+        .highlight { 
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
         }
 
-        /* VIP Cards with Electric Glow */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 50px; }
+        /* The VIP Cards with Gradient Borders */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px; }
         
         .card { 
-            background: rgba(20, 20, 25, 0.6); 
-            padding: 50px 30px; 
-            border-radius: 20px; 
+            position: relative;
+            background: #111115;
+            padding: 50px 30px;
+            border-radius: 25px;
             text-align: center;
-            text-decoration: none; 
-            color: white; 
-            border: 1px solid #2d2d3a;
-            transition: all 0.4s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-decoration: none;
+            color: white;
+            transition: 0.4s ease;
+            border: 1px solid #222;
         }
 
-        /* Hover Effect - Electric Blue/Purple */
-        .card:hover { 
-            border-color: #5b54ff;
-            box-shadow: 0 0 25px rgba(91, 84, 255, 0.3);
-            transform: translateY(-8px);
+        /* Hover effect: The gradient border glow */
+        .card:hover {
+            border: 1px solid transparent;
+            background: linear-gradient(#111115, #111115) padding-box,
+                        linear-gradient(135deg, #6a11cb, #2575fc) border-box;
+            box-shadow: 0 0 30px rgba(106, 17, 203, 0.4);
+            transform: translateY(-10px);
         }
 
-        .summary-card { grid-column: span 2; border-color: #4b46c5; }
-        .summary-card:hover { border-color: #8a84ff; box-shadow: 0 0 25px rgba(138, 132, 255, 0.3); }
-
-        .footer { text-align: center; margin-top: 100px; color: #333; font-size: 14px; }
+        .summary-card { grid-column: span 2; }
+        
+        .footer { text-align: center; margin-top: 100px; color: #444; }
     </style>
 </head>
 <body>
 
 <nav class="navbar">
     <div class="logo">ExpenseTracker</div>
-    <div class="user-pill">
+    <div style="background: rgba(255,255,255,0.05); padding: 12px 25px; border-radius: 50px;">
         Hi, {{ session.get('first_name') }}! | <a href="/logout" style="color:#ff4d4d; text-decoration:none;">Logout</a>
     </div>
 </nav>
 
 <div class="container">
     <div class="header">
-        <h1>Good Evening, <span class="glow-text">{{ session.get('first_name', 'User') }}!</span></h1>
-        <p>Manage your finances like a Pro. Plan and track your spending all in one place.</p>
+        <h1>Good Evening, <br><span class="highlight">{{ session.get('first_name', 'User') }}!</span></h1>
+        <p style="color: #666; font-size: 20px;">Manage your finances like a Pro.</p>
     </div>
 
     <div class="grid">
@@ -74,6 +76,8 @@
         <a href="/summary" class="card summary-card"><h2>📊 View Summary</h2></a>
     </div>
 </div>
+
+<div class="footer">Made with ❤️ by: Umair Siddique</div>
 
 </body>
 </html>
