@@ -6,12 +6,51 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0b1f44"> 
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
     <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js');
   }
 </script>
 </head>
+const CACHE_NAME = 'expense-tracker-v1';
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/style.css',
+  // Agar aapki koi JS file hai to uska naam yahan likhein
+];
+
+// 1. Install event: Files ko cache mein save karega
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
+  );
+});
+
+// 2. Fetch event: Files ko network ke bajaye cache se load karega
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
+});
+
+// 3. Activate event: Purana cache delete karega (optional)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+    })
+  );
+});
 <body>
 
 <div class="hero">
