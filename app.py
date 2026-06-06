@@ -39,8 +39,12 @@ def login():
         password = request.form.get("password")
         
         user = users_collection.find_one({"username": username})
+        
         if user and check_password_hash(user['password'], password):
+            # Session mein user_id aur first_name dono save karein
             session['user_id'] = str(user['_id'])
+            session['first_name'] = user.get('first_name', 'User') # <--- Ye line add hui
+            
             return redirect(url_for("dashboard"))
         
         flash("Invalid Username or Password!", "danger")
