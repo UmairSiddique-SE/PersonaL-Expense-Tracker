@@ -1,66 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Add Expense</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
 </head>
 <body>
-<body>
-   <nav style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#0B1026; color:white; border-bottom: 1px solid #2962FF;">
-    <div style="font-weight:bold; font-size:20px; color:#2962FF;">Expense Tracker</div>
-    <div>
-        {% if session.get('user_id') %}
-            <span style="margin-right:15px; font-size:14px;">Hi, {{ session.get('user_name') }}</span>
-            <a href="/logout" style="color:#ff4d4d; text-decoration:none; font-size:14px;">Logout</a>
-        {% else %}
-            <a href="/login" style="color:white; text-decoration:none; margin-right:10px;">Login</a>
-            <a href="/signup" style="color:#2962FF; text-decoration:none;">Signup</a>
-        {% endif %}
+    <nav style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#0B1026; color:white; border-bottom: 1px solid #2962FF;">
+        <div style="font-weight:bold; font-size:20px; color:#2962FF;">Expense Tracker</div>
+        <div>
+            {% if session.get('user_id') %}
+                <span style="margin-right:15px; font-size:14px;">Hi, {{ session.get('user_name') }}</span>
+                <a href="/logout" style="color:#ff4d4d; text-decoration:none; font-size:14px;">Logout</a>
+            {% else %}
+                <a href="/" style="color:white; text-decoration:none; margin-right:10px;">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="add-container">
+        <div class="add-card">
+            <h1>Add New Expense</h1>
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="success-msg">{{ messages[0] }}</div>
+              {% endif %}
+            {% endwith %}
+
+            <form action="/add" method="POST">
+                <input type="number" name="amount" placeholder="Amount" step="0.01" required>
+                <select name="category" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="date" name="date" required>
+                <input type="text" name="description" placeholder="Description">
+                <button type="submit">Add Expense</button>
+            </form>
+
+            <a href="/dashboard" class="back-link">Back to Home</a>
+        </div>
     </div>
-</nav>
-<div class="add-container">
-    <div class="add-card">
-        <h1>Add New Expense</h1>
-        <!-- Success Message -->
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="success-msg">{{ messages[0] }}</div>
-          {% endif %}
-        {% endwith %}
-
-        <form method="post">
-            <input type="number" name="amount" placeholder="Amount" step="0.1" required>
-
-            <select name="category" required>
-                <option value="" disabled selected>Select Category</option>
-                <option>Food</option>
-                <option>Transport</option>
-                <option>Utilities</option>
-                <option>Entertainment</option>
-                <option>Other</option>
-            </select>
-
-            <input type="date" name="date" required>
-            <input type="text" name="description" placeholder="Description">
-
-            <button type="submit">Add Expense</button>
-        </form>
-
-        <a href="/" class="back-link">Back to Home</a>
-    </div>
-</div>
-<nav>
-    <a href="/dashboard">Home</a>
-    {% if session.get('user_id') %}
-        <span>Hello, {{ session.get('user_name') }}!</span>
-        <a href="/logout">Logout</a>
-    {% else %}
-        <a href="/login">Login</a>
-        <a href="/signup">Signup</a>
-    {% endif %}
-</nav>
-
 </body>
 </html>

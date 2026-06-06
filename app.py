@@ -109,14 +109,9 @@ def add():
 @login_required
 def view():
     try:
-        # User ID check karein
         uid = session.get('user_id')
-        print(f"DEBUG: Fetching expenses for User ID: {uid}")
-        
-        # MongoDB se data layein
         expenses = list(expenses_collection.find({"user_id": uid}))
-        print(f"DEBUG: Total records found: {len(expenses)}")
-        
+        # Data ko template mein pass karein
         return render_template("view.html", expenses=expenses)
     except Exception as e:
         print(f"DEBUG CRASH: {e}")
