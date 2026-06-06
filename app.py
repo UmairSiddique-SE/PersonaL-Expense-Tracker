@@ -27,7 +27,8 @@ def login_required(f):
 # --- AUTH ROUTES ---
 @app.route("/", methods=["GET", "POST"])
 def login():
-    if 'user_id' in session: return redirect(url_for('index'))
+    if 'user_id' in session: 
+        return redirect(url_for('index'))
     if request.method == "POST":
         user = users_collection.find_one({"username": request.form["username"]})
         if user and check_password_hash(user['password'], request.form["password"]):
@@ -39,11 +40,12 @@ def login():
 
 @app.route("/signup", methods=["POST"])
 def signup():
-    if users_collection.find_one({"username": request.form["username"]}):
+    username = request.form["username"]
+    if users_collection.find_one({"username": username}):
         flash("User already exists!", "danger")
         return redirect(url_for("login"))
     user = {
-        "username": request.form["username"],
+        "username": username,
         "password": generate_password_hash(request.form["password"])
     }
     users_collection.insert_one(user)
