@@ -7,6 +7,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='view-style.css') }}">
 </head>
 <body>
+    <body>
+   <nav style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#0B1026; color:white; border-bottom: 1px solid #2962FF;">
+    <div style="font-weight:bold; font-size:20px; color:#2962FF;">MessPro</div>
+    <div>
+        {% if session.get('user_id') %}
+            <span style="margin-right:15px; font-size:14px;">Hi, {{ session.get('user_name') }}</span>
+            <a href="/logout" style="color:#ff4d4d; text-decoration:none; font-size:14px;">Logout</a>
+        {% else %}
+            <a href="/login" style="color:white; text-decoration:none; margin-right:10px;">Login</a>
+            <a href="/signup" style="color:#2962FF; text-decoration:none;">Signup</a>
+        {% endif %}
+    </div>
+</nav>
 <div class="view-container">
     <div class="view-card">
         <h1>All Expenses</h1>
