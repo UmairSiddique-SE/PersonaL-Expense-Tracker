@@ -12,7 +12,7 @@ body {
 
 /* HEADER */
 h1 {
-    font-size: 36px;
+    font-size: 32px;
     margin-bottom: 20px;
     background: linear-gradient(180deg, #ddf74a, #129bad); 
     -webkit-background-clip: text;
@@ -28,14 +28,14 @@ h1 {
     width: 100%;
     display: flex;
     justify-content: center;
-    padding: 20px;
+    padding: 10px;
     box-sizing: border-box;
 }
 
 .view-card {
     background: rgba(20, 35, 80, 0.6); 
     backdrop-filter: blur(20px);
-    padding: 40px;
+    padding: 30px;
     border-radius: 25px;
     color: #fff;
     box-shadow: 0 25px 60px rgba(114, 175, 15, 0.35);
@@ -61,6 +61,7 @@ h1 {
 /* TABLE STYLING */
 table {
     width: 100%;
+    min-width: 500px; /* Table ko mobile par bhi spread rakhne ke liye */
     border-collapse: collapse;
     background: rgba(255, 255, 255, 0.05); 
     border-radius: 15px;
@@ -70,15 +71,15 @@ table {
 thead th {
     background: linear-gradient(180deg, #1a2a50, #2c3e70); 
     color: #ffffff; 
-    font-size: 20 px;
-    padding: 15px;
+    font-size: 18px; /* Fixed: space hataya */
+    padding: 15px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 table tbody td {
     background: rgba(30, 50, 100, 0.4); 
     color: #ffffff;
-    padding: 15px;
+    padding: 15px 10px;
     font-size: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -110,18 +111,14 @@ tr:hover {
     box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 
-/* RESPONSIVENESS (Corrected) */
-@media (max-width: 768px) {
-    .view-card {
-        padding: 20px;
-        width: 100%;
-    }
-    th, td {
-        padding: 10px;
-        font-size: 13px;
-    }
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 600px) {
+    h1 { font-size: 26px; }
+    .view-card { padding: 15px; }
+    thead th { font-size: 14px; padding: 10px 5px; }
+    table tbody td { font-size: 13px; padding: 10px 5px; }
     .edit-btn, .delete-btn {
-        padding: 5px 10px;
+        padding: 5px 8px;
         font-size: 11px;
     }
 }
