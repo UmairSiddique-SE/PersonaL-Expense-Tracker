@@ -152,4 +152,30 @@ tr:hover {
         font-size: 12px;
         margin: 2px;
     }
+    /* Tablet aur Mobile ke liye (Screen width 768px se kam) */
+@media (max-width: 768px) {
+    .view-container {
+        padding: 10px;
+    }
+    .view-card {
+        width: 100%; /* Mobile par poori screen le lega */
+        margin: 0;
+    }
+    table {
+        font-size: 12px; /* Font chota ho jayega */
+        width: 100%;
+    }
+    /* Mobile par table overflow na ho isliye scroll add karein */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+}
+
+/* Desktop ke liye (Screen width 768px se zyada) */
+@media (min-width: 769px) {
+    .view-card {
+        width: 800px; /* Desktop par ek fixed width size */
+        margin: 50px auto;
+    }
+}
 }
