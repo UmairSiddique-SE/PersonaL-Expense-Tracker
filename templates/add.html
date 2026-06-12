@@ -25,7 +25,7 @@
         }
 
         .form-container {
-            max-width: 400px;
+            max-width: 300px;
             margin: 60px auto;
             padding: 30px;
             background: #0B1026;
@@ -102,12 +102,14 @@
 </head>
 <body>
 
-   <nav>
-    <div style="font-weight:bold; font-size:20px; color:#2962FF;">Expense Tracker</div>
-    <div>
-        {% if session.get('user_id') %}
-            <span style="margin-right:15px; font-size:14px;">Hi, {{ session.get('user_name') }}</span>
-            <a href="/logout" style="color:#ff4d4d; text-decoration:none; font-size:14px;">Logout</a>
+<nav style="display: flex; justify-content: space-between; align-items: center; padding: 15px 1px; background: #0B1026; color: white; border-bottom: 1px solid #2962FF;">
+    <div style="font-weight: bold; font-size: 14px; color: #2962FF;">Expense Tracker</div>
+    <div style="font-size: 11px;">
+        {% if session and session.get('user_id') %}
+            <span style="margin-right: 10px; color: #a0aec0;">Hi, {{ session.get('user_name', 'User') }}</span>
+            <a href="/logout" style="color: #ff4d4d; text-decoration: none; font-weight: bold;">Logout</a>
+        {% else %}
+            <a href="/login" style="color: #2962FF; text-decoration: none;">Login</a>
         {% endif %}
     </div>
    </nav>
