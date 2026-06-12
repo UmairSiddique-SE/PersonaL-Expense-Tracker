@@ -100,15 +100,22 @@ def dashboard():
 @login_required
 def add():
     if request.method == "POST":
+        amount = request.form.get("amount")
+        category = request.form.get("category")
+        date = request.form.get("date")
+        description = request.form.get("description", "")
+        
+        # MongoDB database mein expense save karna
         expenses_collection.insert_one({
             "user_id": session['user_id'],
-            "amount": float(request.form.get("amount")),
-            "category": request.form.get("category"),
-            "date": request.form.get("date"),
-            "description": request.form.get("description", "")
+            "amount": float(amount) if amount else 0.0,
+            "category": category,
+            "date": date,
+            "description": description
         })
         flash("Expense added!", "success")
         return redirect(url_for("view"))
+        
     return render_template("add.html")
 
 @app.route("/view")
