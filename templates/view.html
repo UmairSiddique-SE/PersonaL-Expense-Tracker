@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Expenses</title>
+    <title>View Expenses | Expense Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='view-style.css') }}">
 </head>
 <body>
-    <body>
-   <nav style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#0B1026; color:white; border-bottom: 1px solid #2962FF;">
-    <div style="font-weight:bold; font-size:20px; color:#2962FF;">Expense Tracker</div>
-    <div>
-        {% if session.get('user_id') %}
-            <span style="margin-right:15px; font-size:14px;">Hi, {{ session.get('user_name') }}</span>
-            <a href="/logout" style="color:#ff4d4d; text-decoration:none; font-size:14px;">Logout</a>
-        {% else %}
-            <a href="/login" style="color:white; text-decoration:none; margin-right:10px;">Login</a>
-            <a href="/signup" style="color:#2962FF; text-decoration:none;">Signup</a>
-        {% endif %}
+<nav class="navbar">
+    <div class="logo">Expense<span>Tracker</span></div>
+    <div class="user-info">
+        <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
+        <a href="/logout" class="logout-btn">Logout</a>
     </div>
 </nav>
 <div class="view-container">
     <div class="view-card">
-        <h1>All Expenses</h1>
+        <div class="card-header">
+            <div>
+                <h1>All Expenses</h1>
+                <p class="subtitle">Review and manage your spending history in one place.</p>
+            </div>
+            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
+        </div>
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -37,20 +37,19 @@
                 <tbody>
                     {% for expense in expenses %}
                     <tr>
-                        <td>{{ expense.amount }}</td>
+                        <td>Rs {{ expense.amount }}</td>
                         <td>{{ expense.category }}</td>
                         <td>{{ expense.date }}</td>
                         <td>{{ expense.description }}</td>
                         <td>
-                            <a href="{{ url_for('edit', id=expense._id) }}" class="edit-btn">Edit</a>
-                            <a href="{{ url_for('delete', id=expense._id) }}" class="delete-btn" onclick="return confirm('Are you sure?')">Delete</a>
+                            <a href="{{ url_for('edit', id=expense._id) }}" class="action-btn edit-btn">Edit</a>
+                            <a href="{{ url_for('delete', id=expense._id) }}" class="action-btn delete-btn" onclick="return confirm('Are you sure?')">Delete</a>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
     </div>
 </div>
 </body>

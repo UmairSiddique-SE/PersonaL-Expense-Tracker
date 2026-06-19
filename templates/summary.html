@@ -3,51 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Summary</title>
-    <link rel="stylesheet" href="/static/summary-style.css">
-    <style>
-        /* CSS jo aapke existing theme se match karti hai */
-        .date-input-container {
-            margin: 20px 0;
-            text-align: center;
-        }
-        input[type="date"] {
-            background: rgba(20, 35, 80, 0.8);
-            color: white;
-            border: 1px solid #4a6cf7;
-            padding: 12px;
-            border-radius: 12px;
-            width: 250px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-        }
-    </style>
+    <title>Expense Summary | Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='summary-style.css') }}">
 </head>
 <body>
-
+<nav class="navbar">
+    <div class="logo">Expense<span>Tracker</span></div>
+    <div class="user-info">
+        <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</nav>
 <div class="summary-container">
     <div class="summary-card-main">
-        <h1>📊 {{ view_type.capitalize() }} Summary</h1>
-        
-        <div class="date-input-container">
-            <form action="/summary" method="GET">
-                <input type="hidden" name="type" value="daily">
-                <label style="display:block; margin-bottom: 8px; font-weight: bold;">Select Date</label>
+        <div class="card-header">
+            <div>
+                <h1>📊 {{ view_type.capitalize() }} Summary</h1>
+                <p class="subtitle">Explore your spending across categories with clean filters.</p>
+            </div>
+            <a class="back-link" href="/dashboard">Back to Home</a>
+        </div>
+
+        <div class="controls-row">
+            <form action="/summary" method="GET" class="date-form">
+                <input type="hidden" name="type" value="{{ view_type }}">
+                <label>Select Date</label>
                 <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
             </form>
+            <div class="summary-buttons">
+                <a href="/summary?type=overall" class="btn{% if view_type == 'overall' %} active{% endif %}">Overall</a>
+                <a href="/summary?type=weekly" class="btn{% if view_type == 'weekly' %} active{% endif %}">Weekly</a>
+                <a href="/summary?type=monthly" class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
+                <a href="/summary?type=daily" class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
+            </div>
         </div>
 
-        <div class="summary-buttons">
-            <a href="/summary?type=overall" class="btn">Overall</a>
-            <a href="/summary?type=weekly" class="btn">Weekly</a>
-            <a href="/summary?type=monthly" class="btn">Monthly</a>
-        </div>
-
-        <div class="total-box" style="background: rgba(20, 35, 80, 0.6); padding: 20px; margin: 20px 0; border-radius: 15px; border: 1px solid #4a6cf7;">
-            <h2 style="margin: 0; font-size: 1.5rem;">Total: Rs {{ totals.get(view_type, 0) }}</h2>
+        <div class="total-box">
+            <h2>Total: Rs {{ totals.get(view_type, 0) }}</h2>
         </div>
 
         <div class="summary-cards">
@@ -62,9 +54,7 @@
                 <p class="no-data">No data found for this selection!</p>
             {% endif %}
         </div>
-       <a href="/dashboard" class="back-link">Back to Home</a>
     </div>
 </div>
-
 </body>
 </html>
