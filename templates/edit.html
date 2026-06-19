@@ -2,36 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Expense</title>
-   <link rel="stylesheet" href="{{ url_for('static', filename='edit-style.css') }}">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Expense | Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='edit-style.css') }}">
 </head>
-
 <body>
-   <nav style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#0B1026; color:white; border-bottom: 1px solid #2962FF;">
-    <div style="font-weight:bold; font-size:20px; color:#2962FF;">Expense Tracker</div>
-    <div>
-        {% if session.get('user_id') %}
-            <span style="margin-right:15px; font-size:14px;">Hi, {{ session.get('user_name') }}</span>
-            <a href="/logout" style="color:#ff4d4d; text-decoration:none; font-size:14px;">Logout</a>
-        {% else %}
-            <a href="/login" style="color:white; text-decoration:none; margin-right:10px;">Login</a>
-            <a href="/signup" style="color:#2962FF; text-decoration:none;">Signup</a>
-        {% endif %}
-    </div>
-</nav>
-   <div class="edit-container">
-    <div class="edit-card">
-     <h1>Edit Expense</h1>
-        <form method="POST">
-           <input type="text" name="amount" placeholder="Amount" value="{{ expense.amount }}" required>
-           <input type="text" name="category" placeholder="Category" value="{{ expense.category }}" required>           
-           <input type="date" name="date" value="{{ expense.date }}" required>
-           <input type="text" name="description" placeholder="Description" value="{{ expense.description }}">
-           <button type="submit">Update</button>
-        </form>
-        <a class="back-link" href="{{ url_for('view') }}">Back to View</a>
-    </div>
- </div>
+    <nav class="navbar">
+        <div class="logo">Expense<span>Tracker</span></div>
+        <div class="user-info">
+            <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main class="page-shell">
+        <section class="form-panel">
+            <div class="card-header">
+                <div>
+                    <h1>Edit Expense</h1>
+                    <p class="subtitle">Update your expense details cleanly with a consistent app layout.</p>
+                </div>
+            </div>
+
+            <form class="form-card" method="POST">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="text" name="amount" placeholder="Amount" value="{{ expense.amount }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" name="category" placeholder="Category" value="{{ expense.category }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="date" value="{{ expense.date }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="Description" value="{{ expense.description }}">
+                </div>
+                <button type="submit" class="primary-btn">Update Expense</button>
+            </form>
+
+            <a class="back-link" href="{{ url_for('view') }}">← Back to Records</a>
+        </section>
+    </main>
 </body>
 </html>
