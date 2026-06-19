@@ -14,8 +14,8 @@
         <a href="/logout" class="logout-btn">Logout</a>
     </div>
 </nav>
-<div class="summary-container">
-    <div class="summary-card-main">
+<main class="page-shell">
+    <section class="form-panel">
         <div class="card-header">
             <div>
                 <h1>📊 {{ view_type.capitalize() }} Summary</h1>
@@ -54,7 +54,7 @@
                 <p class="no-data">No data found for this selection!</p>
             {% endif %}
         </div>
-    </div>
-</div>
+    </section>
+</main>
 </body>
 </html>
