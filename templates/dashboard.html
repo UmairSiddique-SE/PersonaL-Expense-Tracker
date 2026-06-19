@@ -2,73 +2,291 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Expense Tracker</title>
     <style>
-        /* CSS Dashboard ke andar hi add kar di hai */
-        body { background-color: #05070a; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
-
-        .navbar { display: flex; justify-content: space-between; padding: 20px 50px; background: #0b1026; border-bottom: 1px solid #1a2a50; align-items: center; }
-        .logo { font-weight: bold; font-size: 24px; color: #fff; }
-        .logo span { color: #2962FF; }
-
-        .main-container { padding: 40px 50px; }
-        .welcome-box { margin-bottom: 40px; }
-        .welcome-box h1 { font-size: 32px; color: #2962FF; margin-bottom: 10px; }
-
-        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-
-        .card { 
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 30px; border-radius: 20px; text-align: center;
-            text-decoration: none; color: white; transition: 0.3s;
+        :root {
+            color-scheme: dark;
+            --bg: #060b1f;
+            --surface: rgba(15, 28, 73, 0.88);
+            --surface-strong: rgba(10, 18, 55, 0.95);
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #5f81ff;
+            --accent-strong: #77abff;
+            --text: #eef3ff;
+            --muted: #b9c4e8;
         }
 
-        .card:hover { background: rgba(41, 98, 255, 0.15); border-color: #2962FF; transform: translateY(-5px); }
-        .icon { font-size: 40px; margin-bottom: 15px; }
+        * {
+            box-sizing: border-box;
+        }
 
-        .footer { text-align: center; margin-top: 50px; color: #555; font-size: 14px; }
-        .logout-btn { color: #ff4d4d; text-decoration: none; font-weight: bold; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top left, #0d1d4a 0%, #070b23 40%, #03050f 100%);
+            color: var(--text);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 36px;
+            background: rgba(3, 8, 28, 0.9);
+            border-bottom: 1px solid rgba(95, 129, 255, 0.18);
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .user-info {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .logout-btn {
+            color: #ff6f7b;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.25s ease;
+        }
+
+        .logout-btn:hover {
+            color: #ffffff;
+        }
+
+        .page-shell {
+            display: flex;
+            justify-content: center;
+            padding: 40px 24px 60px;
+            gap: 24px;
+        }
+
+        .dashboard-card {
+            width: min(1240px, 100%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 28px 80px rgba(7, 13, 37, 0.28);
+            backdrop-filter: blur(18px);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 22px;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.6rem, 4vw, 3.75rem);
+            line-height: 1.02;
+            margin: 0;
+            color: #eef4ff;
+            text-shadow: 0 10px 30px rgba(17, 43, 99, 0.2);
+        }
+
+        .hero p {
+            max-width: 720px;
+            margin: 16px 0 0;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.9;
+        }
+
+        .hero .stats {
+            display: grid;
+            gap: 10px;
+            justify-items: end;
+        }
+
+        .stat-pill {
+            padding: 14px 22px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: right;
+        }
+
+        .stat-pill strong {
+            display: block;
+            color: #f5f8ff;
+            font-size: 1.05rem;
+        }
+
+        .stat-pill span {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        .module-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            padding: 34px 24px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-7px);
+            background: rgba(57, 88, 218, 0.18);
+            border-color: rgba(95, 129, 255, 0.35);
+        }
+
+        .module-card .icon {
+            width: 82px;
+            height: 82px;
+            display: grid;
+            place-items: center;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(90, 126, 255, 0.18), rgba(102, 189, 255, 0.1));
+            color: #c5d6ff;
+            font-size: 2.2rem;
+            box-shadow: inset 0 2px 14px rgba(255,255,255,0.08);
+        }
+
+        .module-card h2 {
+            font-size: 1.55rem;
+            margin: 0;
+            color: #fbfbff;
+        }
+
+        .module-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .module-card .badge {
+            margin-top: 10px;
+            display: inline-flex;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(74, 109, 255, 0.16);
+            color: #dbe8ff;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .footer strong {
+            color: #fbfbff;
+        }
+
+        @media (max-width: 1024px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 760px) {
+            .page-shell {
+                padding: 24px 18px 40px;
+            }
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+            .hero .stats {
+                justify-items: start;
+            }
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="logo">Expense<span>Tracker</span></div>
+        <div class="user-info">
+            <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
 
-<nav class="navbar">
-    <div class="logo">Expense<span>Tracker</span></div>
-    <div class="user-info">
-        <span class="user-name" style="margin-right:15px;">Hi, {{ session.get('first_name', 'User') }}</span>
-        <a href="/logout" class="logout-btn">Logout</a>
-    </div>
-</nav>
+    <main class="page-shell">
+        <section class="dashboard-card">
+            <div class="hero">
+                <div>
+                    <h1>Good Evening, {{ session.get('first_name', 'User') }}!</h1>
+                    <p>Manage your finances with a premium dashboard designed to help you add expenses, review records, and track your spending in one unified flow.</p>
+                </div>
+                <div class="stats">
+                    <div class="stat-pill">
+                        <strong>Fast Access</strong>
+                        <span>One-click navigation to every section</span>
+                    </div>
+                    <div class="stat-pill">
+                        <strong>Clean History</strong>
+                        <span>Modern cards, crisp table view, smooth interactions</span>
+                    </div>
+                </div>
+            </div>
 
-<div class="main-container">
-    <div class="welcome-box">
-        <h1>Good Evening, {{ session.get('first_name', 'User') }}!</h1>
-        <p>Manage your finances like a Pro. Track your spending all in one place.</p>
-    </div>
+            <div class="cards-grid">
+                <a href="/add" class="module-card">
+                    <div class="icon">➕</div>
+                    <h2>Add Expense</h2>
+                    <p>Log new spending quickly with a polished entry form.</p>
+                    <span class="badge">Quick Add</span>
+                </a>
+                <a href="/view" class="module-card">
+                    <div class="icon">📋</div>
+                    <h2>View Records</h2>
+                    <p>See your full expense history in a neat responsive table.</p>
+                    <span class="badge">Detailed List</span>
+                </a>
+                <a href="/summary" class="module-card">
+                    <div class="icon">📊</div>
+                    <h2>Summary</h2>
+                    <p>Analyze spending by category, week, month, or day.</p>
+                    <span class="badge">Smart Insights</span>
+                </a>
+            </div>
 
-    <div class="grid-container">
-        <a href="/add" class="card">
-            <div class="icon">➕</div>
-            <h2>Add Expense</h2>
-            <p>Save your daily spending</p>
-        </a>
-        <a href="/view" class="card">
-            <div class="icon">📋</div>
-            <h2>View Records</h2>
-            <p>Clean & organized history</p>
-        </a>
-        <a href="/summary" class="card">
-            <div class="icon">📊</div>
-            <h2>Summary</h2>
-            <p>Simple expense analysis</p>
-        </a>
-    </div>
-</div>
-
-<footer class="footer">
-    <p>Made with ❤️ by: <strong>Umair Siddique</strong></p>
-</footer>
-
+            <div class="footer">
+                Made with ❤️ by: <strong>Umair Siddique</strong>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
