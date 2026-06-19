@@ -148,6 +148,9 @@ def edit(id):
 @login_required
 def summary():
     uid = session.get('user_id')
+    view_type = request.args.get('type', 'overall')
+    if view_type not in ['overall', 'weekly', 'monthly', 'daily']:
+        view_type = 'overall'
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     expenses = list(expenses_collection.find({"user_id": uid}))
     
@@ -162,7 +165,8 @@ def summary():
         exp_date_str = exp.get('date')
         try:
             exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
-        except: continue
+        except:
+            continue
         
         data["overall"][cat] = data["overall"].get(cat, 0) + amt
         totals["overall"] += amt
@@ -176,7 +180,7 @@ def summary():
             data["daily"][cat] = data["daily"].get(cat, 0) + amt
             totals["daily"] += amt
             
-    return render_template("summary.html", data=data, totals=totals, selected_date=selected_date)
+    return render_template("summary.html", data=data, totals=totals, selected_date=selected_date, view_type=view_type)
 
 if __name__ == "__main__":
     app.run(debug=True)
