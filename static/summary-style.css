@@ -107,13 +107,13 @@ body {
 }
 
 .date-form label {
-    color: #c5d2ff;
+    color: #a8b9f6;
     font-weight: 600;
 }
 
 .date-form input[type="date"] {
     max-width: 220px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.858);
     border: 1px solid rgba(255,255,255,0.14);
 }
 

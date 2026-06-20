@@ -40,13 +40,42 @@
         }
 
         .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
             font-size: 28px;
             font-weight: 800;
             letter-spacing: 0.6px;
+            color: var(--text);
         }
 
-        .logo span {
+        .logo img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+        .logo .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .logo .logo-text span {
+            display: block;
+        }
+
+        .logo .logo-text .brand-name {
             color: var(--accent);
+        }
+
+        .logo .logo-text .brand-sub {
+            color: #eef3ff;
+            font-size: 0.85em;
+            letter-spacing: 0.4px;
         }
 
         .user-info {
@@ -100,7 +129,7 @@
             font-size: clamp(2.6rem, 4vw, 3.75rem);
             line-height: 1.02;
             margin: 0;
-            color: #eef4ff;
+            color: #1a5ddb;
             text-shadow: 0 10px 30px rgba(17, 43, 99, 0.2);
         }
 
@@ -236,7 +265,13 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo">Expense<span>Tracker</span></div>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
+            <div class="logo-text">
+                <span class="brand-name">Expense Tracker</span>
+                <span class="brand-sub">Your expense companion</span>
+            </div>
+        </div>
         <div class="user-info">
             <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
             <a href="/logout" class="logout-btn">Logout</a>
@@ -248,19 +283,10 @@
             <div class="hero">
                 <div>
                     <h1>Good Evening, {{ session.get('first_name', 'User') }}!</h1>
-                    <p>Manage your finances with a premium dashboard designed to help you add expenses, review records, and track your spending in one unified flow.</p>
+                    <p>Manage your finances with a premium dashboard designed to help you stay on top of your spending.</p>
                 </div>
-                <div class="stats">
-                    <div class="stat-pill">
-                        <strong>Fast Access</strong>
-                        <span>One-click navigation to every section</span>
-                    </div>
-                    <div class="stat-pill">
-                        <strong>Clean History</strong>
-                        <span>Modern cards, crisp table view, smooth interactions</span>
-                    </div>
-                </div>
-            </div>
+          
+             
 
             <div class="cards-grid">
                 <a href="/add" class="module-card">
