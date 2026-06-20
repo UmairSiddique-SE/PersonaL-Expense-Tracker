@@ -56,34 +56,78 @@ def signup():
         first_name = request.form.get("first_name", "").strip()
         last_name = request.form.get("last_name", "").strip()
         
-        # None-check add kiya taake crash na ho
         raw_username = request.form.get("username")
         username = raw_username.lower().strip() if raw_username else ""
         password = request.form.get("password")
+        security_question = request.form.get("security_question", "").strip()
+        security_answer = request.form.get("security_answer", "").strip()
         
-        # Validation: check karein fields khali toh nahi
-        if not username or not password:
+        if not username or not password or not security_question or not security_answer:
             flash("All fields are required!", "danger")
             return redirect(url_for("signup"))
         
-        # Check if already exists
         if users_collection.find_one({"username": username}):
             flash("User already exists! Please login.", "danger")
             return redirect(url_for("signup"))
         
-        # Hash password and save
         hashed_pw = generate_password_hash(password)
         users_collection.insert_one({
             "first_name": first_name,
             "last_name": last_name,
             "username": username,
-            "password": hashed_pw
+            "password": hashed_pw,
+            "security_question": security_question,
+            "security_answer": security_answer.lower()
         })
         
         flash("Signup successful! Please login.", "success")
         return redirect(url_for("login"))
         
     return render_template("signup.html")
+
+@app.route("/forgot", methods=["GET", "POST"])
+def forgot():
+    if request.method == "POST":
+        step = request.form.get("step", "lookup")
+        raw_username = request.form.get("username")
+        username = raw_username.lower().strip() if raw_username else ""
+
+        if not username:
+            flash("Please enter your registered username.", "danger")
+            return render_template("forgot.html")
+
+        user = users_collection.find_one({"username": username})
+        if not user:
+            flash("Invalid username.", "danger")
+            return render_template("forgot.html")
+
+        if step == "lookup":
+            question = user.get("security_question")
+            if not question:
+                flash("No security question set for this account. Contact support.", "danger")
+                return render_template("forgot.html")
+            return render_template("forgot.html", step="question", username=username, question=question)
+
+        security_answer = request.form.get("security_answer", "").strip().lower()
+        new_password = request.form.get("new_password", "")
+
+        if not security_answer or not new_password:
+            flash("Please answer the security question and provide a new password.", "danger")
+            return render_template("forgot.html", step="question", username=username, question=user.get("security_question"))
+
+        if security_answer != user.get("security_answer", ""):
+            flash("Security answer does not match.", "danger")
+            return render_template("forgot.html", step="question", username=username, question=user.get("security_question"))
+
+        if len(new_password) < 8:
+            flash("New password must be at least 8 characters.", "danger")
+            return render_template("forgot.html", step="question", username=username, question=user.get("security_question"))
+
+        users_collection.update_one({"_id": user["_id"]}, {"$set": {"password": generate_password_hash(new_password)}})
+        flash("Password reset successful. Please login.", "success")
+        return redirect(url_for("login"))
+
+    return render_template("forgot.html")
 
 @app.route("/logout")
 def logout():

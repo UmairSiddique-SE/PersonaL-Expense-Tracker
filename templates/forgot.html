@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password | Expense Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1a2a50, #05070a);
+            color: white;
+            padding: 20px;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 36px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            text-align: center;
+        }
+        h2 { margin-bottom: 20px; font-size: 2rem; }
+        .flash-message {
+            margin-bottom: 18px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .flash-message.success { background: rgba(34, 184, 122, 0.18); color: #c5f7dc; border: 1px solid rgba(34, 184, 122, 0.45); }
+        .flash-message.danger { background: rgba(231, 76, 60, 0.18); color: #ffd3d0; border: 1px solid rgba(231, 76, 60, 0.45); }
+        input, select, button {
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            color: #eef2ff;
+            font-size: 15px;
+            padding: 16px 18px;
+            margin: 14px 0;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, button:focus {
+            border-color: rgba(90,150,255,0.6);
+            box-shadow: 0 0 0 5px rgba(45, 80, 255, 0.12);
+        }
+        button {
+            cursor: pointer;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2575fc, #6a11cb);
+            color: white;
+            border: none;
+            margin-top: 10px;
+        }
+        .note {
+            color: #b8d1ff;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .footer-link { margin-top: 20px; font-size: 15px; }
+        .footer-link a { color: #2962ff; text-decoration: none; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% if step == 'question' %}
+            <h2>Reset Password</h2>
+            <p class="note">Answer the security question you set during signup.</p>
+            <form method="POST">
+                <input type="hidden" name="step" value="question">
+                <input type="hidden" name="username" value="{{ username }}">
+                <label style="display:none">Security Question</label>
+                <input type="text" value="{{ question }}" readonly>
+                <input type="text" name="security_answer" placeholder="Answer" required>
+                <input type="password" name="new_password" placeholder="New Password (min 8 chars)" required>
+                <button type="submit">Reset Password</button>
+            </form>
+        {% else %}
+            <h2>Forgot Password</h2>
+            <p class="note">Enter your registered username to continue.</p>
+            <form method="POST">
+                <input type="hidden" name="step" value="lookup">
+                <input type="text" name="username" placeholder="Username@gmail.com" required>
+                <button type="submit">Continue</button>
+            </form>
+        {% endif %}
+
+        <div class="footer-link">
+            <a href="/login">Back to Login</a>
+        </div>
+    </div>
+</body>
+</html>
