@@ -37,45 +37,35 @@
             background: rgba(3, 8, 28, 0.9);
             border-bottom: 1px solid rgba(95, 129, 255, 0.18);
             backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 20;
         }
 
         .logo {
             display: inline-flex;
             align-items: center;
-            gap: 14px;
-            font-size: 28px;
+            gap: 12px;
+            font-size: 26px;
             font-weight: 800;
             letter-spacing: 0.6px;
             color: var(--text);
         }
 
         .logo img {
-            width: 52px;
-            height: 52px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.18);
             box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
         }
 
-        .logo .logo-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1;
-        }
-
-        .logo .logo-text span {
-            display: block;
-        }
-
-        .logo .logo-text .brand-name {
+        .logo strong {
             color: var(--accent);
-        }
-
-        .logo .logo-text .brand-sub {
-            color: #eef3ff;
-            font-size: 0.85em;
-            letter-spacing: 0.4px;
+            display: inline-block;
+            line-height: 1;
+            font-size: 1em;
         }
 
         .user-info {
@@ -267,10 +257,7 @@
     <nav class="navbar">
         <div class="logo">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
-            <div class="logo-text">
-                <span class="brand-name">Expense Tracker</span>
-                <span class="brand-sub">Your expense companion</span>
-            </div>
+            <strong>Expense Tracker</strong>
         </div>
         <div class="user-info">
             <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
@@ -285,8 +272,7 @@
                     <h1>Good Evening, {{ session.get('first_name', 'User') }}!</h1>
                     <p>Manage your finances with a premium dashboard designed to help you stay on top of your spending.</p>
                 </div>
-          
-             
+            </div>
 
             <div class="cards-grid">
                 <a href="/add" class="module-card">
