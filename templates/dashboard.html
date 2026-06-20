@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Expense Tracker</title>
+    <title>Dashboard | Expense Tracker </title>
+
     <style>
         :root {
             color-scheme: dark;
@@ -257,7 +258,8 @@
     <nav class="navbar">
         <div class="logo">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
-            <strong>Expense Tracker</strong>
+            <a href="/dashboard"><strong>Expense Tracker</strong></a>
+        
         </div>
         <div class="user-info">
             <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>

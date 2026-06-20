@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Expenses | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
     <link rel="stylesheet" href="{{ url_for('static', filename='view-style.css') }}">
 </head>
 <body>
 <nav class="navbar">
-    <div class="logo">Expense<span>Tracker</span></div>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
+        <span>Expense Tracker</span>
+    </div>
     <div class="user-info">
         <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
         <a href="/logout" class="logout-btn">Logout</a>
@@ -21,7 +27,6 @@
                 <h1>All Expenses</h1>
                 <p class="subtitle">Review and manage your spending history in one place.</p>
             </div>
-            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
         </div>
         <div class="table-wrapper">
             <table>
@@ -49,6 +54,9 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="footer-actions">
+            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
         </div>
     </section>
 </main>

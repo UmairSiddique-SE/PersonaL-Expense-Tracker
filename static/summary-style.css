@@ -17,12 +17,29 @@ body {
 }
 
 .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
     font-size: 26px;
     font-weight: 700;
 }
 
+.logo img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
 .logo span {
     color: #5a84ff;
+}
+
+.footer-actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
 }
 
 .user-info {
@@ -210,6 +227,12 @@ body {
 .back-link:hover {
     transform: translateY(-2px);
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+}
+
+.footer-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
 }
 
 @media (max-width: 760px) {

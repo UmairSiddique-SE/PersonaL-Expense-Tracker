@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
     <title>Expense Tracker | Welcome</title>
     <style>
         /* Shared VIP Dark Theme */
@@ -27,13 +35,37 @@
         .btn-login:hover { box-shadow: 0 0 20px rgba(37, 117, 252, 0.5); }
         .btn-signup { border: 2px solid #2575fc; color: #fff; }
         .btn-signup:hover { background: #2575fc; }
+
+        .hero-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .hero-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            border: 2px solid rgba(255,255,255,0.15);
+            box-shadow: 0 12px 35px rgba(37, 117, 252, 0.18);
+        }
+
+        .hero-text { color: #b3c3e1; margin-top: 8px; font-size: 18px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Manage Your <span class="highlight">Money</span> Like a Pro.</h1>
-    <p>Track your spending, analyze your habits, and take control of your financial future.</p>
+    <div class="hero-header">
+        <img class="hero-logo" src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
+        <div>
+            <h1>Welcome to <span class="highlight">Expense Tracker</span></h1>
+            <p class="hero-text">Start managing your money from the welcome page.</p>
+        </div>
+    </div>
+    <h2>Track your spending, analyze habits, and stay in control.</h2>
     
     <div class="btn-group">
         <a href="/login" class="btn btn-login">Login</a>

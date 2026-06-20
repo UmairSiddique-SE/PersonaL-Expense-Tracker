@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -26,7 +26,11 @@ def login_required(f):
 # --- AUTH ROUTES ---
 @app.route("/")
 def index():
-    return redirect(url_for('login'))
+    return render_template('index.html')
+
+@app.route('/sw.js')
+def service_worker():
+    return send_from_directory(app.root_path, 'sw.js')
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
