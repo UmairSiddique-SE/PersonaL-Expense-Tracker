@@ -4,7 +4,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: radial-gradient(circle at top left, rgba(23, 55, 114, 0.9) 0%, rgba(6, 17, 52, 0.95) 40%, #050514 100%),
+    background: radial-gradient(circle at top left, rgba(34, 82, 172, 0.9) 0%, rgba(6, 17, 52, 0.95) 40%, #050514 100%),
                 radial-gradient(circle at bottom right, rgba(96, 150, 255, 0.18), transparent 40%);
     color: #eef2ff;
     font-family: 'Segoe UI', sans-serif;
@@ -110,12 +110,12 @@ body {
 
 .form-card input,
 .form-card select {
-    width: 80%;
+    width: 100%;
     padding: 14px 16px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(20, 34, 68, 0.95);
-    color: #000000;
+    color: #eef2ff;
     font-size: 15px;
     outline: none;
     box-shadow: inset 0 4px 10px rgba(0,0,0,0.25);
