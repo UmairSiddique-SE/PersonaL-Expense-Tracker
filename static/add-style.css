@@ -114,12 +114,22 @@ body {
     padding: 14px 16px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(20, 34, 68, 0.95);
     color: #eef2ff;
     font-size: 15px;
     outline: none;
     box-shadow: inset 0 4px 10px rgba(0,0,0,0.25);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, background-color 0.25s ease;
+}
+
+.form-card select {
+    appearance: none;
+    background: rgba(20, 34, 68, 0.95);
+}
+
+.form-card option {
+    background: #0c1a38;
+    color: #eef2ff;
 }
 
 .form-card input:focus,
@@ -127,6 +137,7 @@ body {
     border-color: rgba(74, 108, 247, 0.8);
     box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.14);
     transform: translateY(-1px);
+    background: rgba(24, 42, 82, 0.98);
 }
 
 .primary-btn {
