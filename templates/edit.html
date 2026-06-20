@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Expense | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
     <link rel="stylesheet" href="{{ url_for('static', filename='edit-style.css') }}">
 </head>
 <body>
@@ -48,5 +55,6 @@
             <a class="back-link" href="{{ url_for('view') }}">← Back to Records</a>
         </section>
     </main>
+    <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
 </body>
 </html>
