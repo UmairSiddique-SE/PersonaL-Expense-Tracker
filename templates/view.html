@@ -17,7 +17,7 @@
 <nav class="navbar">
     <div class="logo">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
-        <span>Expense Tracker</span>
+        <a href="/dashboard" class="logo">Expense<span>Tracker</span></a>
     </div>
     <div class="user-info">
         <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
