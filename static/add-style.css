@@ -96,6 +96,8 @@ body {
 
 .form-group {
     display: grid;
+    color: #0c3ce8;
+    font-size: 14px;
     gap: 10px;
     text-align: left;
 }
