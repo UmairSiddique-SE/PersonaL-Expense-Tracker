@@ -136,9 +136,9 @@ def forgot():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for("index"))
 
-# --- DASHBOARD & EXPENSE ROUTES ---
+# --- DASHBOARD & EXPENSE ROUTes ---
 @app.route("/dashboard")
 @login_required
 def dashboard(): 
