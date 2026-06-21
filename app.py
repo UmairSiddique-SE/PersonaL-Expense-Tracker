@@ -28,6 +28,10 @@ def login_required(f):
 def index():
     return render_template('index.html')
 
+@app.route("/index")
+def index_alias():
+    return redirect(url_for('index'))
+
 @app.route('/sw.js')
 def service_worker():
     return send_from_directory(app.root_path, 'sw.js')

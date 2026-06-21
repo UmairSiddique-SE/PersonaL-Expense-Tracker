@@ -219,7 +219,7 @@
             display: inline-flex;
             padding: 8px 16px;
             border-radius: 999px;
-            background: rgba(48, 79, 205, 0.16);
+            background: rgba(74, 109, 255, 0.16);
             color: #dbe8ff;
             font-size: 0.9rem;
             letter-spacing: 0.02em;
@@ -264,9 +264,7 @@
 <body>
     <nav class="navbar">
         <div class="logo">
-            <a href="{{ url_for('dashboard') }}" style="text-decoration: none; color: inherit;">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="eager">
-            </a>
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="eager">
             <strong>Expense Tracker</strong>
         </div>
         <div class="user-info">
