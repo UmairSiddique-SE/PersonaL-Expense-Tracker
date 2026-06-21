@@ -240,5 +240,55 @@ def summary():
         view_type=view_type
     )
 
+@app.route("/summary/details")
+@login_required
+def summary_details():
+    uid = session.get('user_id')
+    category = request.args.get('category', '')
+    view_type = request.args.get('type', 'overall')
+    selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    expenses = list(expenses_collection.find({"user_id": uid, "category": category}))
+
+    filtered = []
+    total = 0
+    filter_text = ''
+    now = datetime.now()
+    one_week_ago = now - timedelta(days=7)
+
+    for exp in expenses:
+        exp_date_str = exp.get('date')
+        try:
+            exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
+        except:
+            continue
+
+        include = False
+        if view_type == 'overall':
+            include = True
+            filter_text = 'Overall category expenses'
+        elif view_type == 'weekly':
+            include = exp_date >= one_week_ago
+            filter_text = 'Last 7 days'
+        elif view_type == 'monthly':
+            include = exp_date.month == now.month and exp_date.year == now.year
+            filter_text = 'This month'
+        elif view_type == 'daily':
+            include = exp_date_str == selected_date
+            filter_text = f'Date: {selected_date}'
+
+        if include:
+            total += float(exp.get('amount', 0))
+            filtered.append(exp)
+
+    return render_template(
+        'summary_details.html',
+        category=category,
+        expenses=filtered,
+        total=total,
+        filter_text=filter_text,
+        view_type=view_type,
+        selected_date=selected_date
+    )
+
 if __name__ == "__main__":
     app.run(debug=True)
