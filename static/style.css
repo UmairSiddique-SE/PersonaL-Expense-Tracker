@@ -235,6 +235,16 @@ body {
     box-shadow: 0 0 8px rgba(118, 75, 162, 0.2);
 }
 
+.auth-card input,
+.auth-card select,
+.auth-card textarea {
+    color: #000;
+}
+
+.auth-card input[readonly] {
+    color: #000;
+}
+
 /* Button Styling */
 .btn-auth {
     width: 100%;
