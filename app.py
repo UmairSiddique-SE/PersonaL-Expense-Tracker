@@ -165,8 +165,8 @@ def add():
             "date": date,
             "description": description
         })
-        flash("Expense added!", "success")
-        return redirect(url_for("view"))
+        flash("Expense added successfully!", "success")
+        return redirect(url_for("add"))
         
     return render_template("add.html")
 

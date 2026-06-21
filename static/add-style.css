@@ -95,11 +95,29 @@ body {
     gap: 18px;
 }
 
-.form-group {
-    display: grid;
-    color: #1e8ed9;
-    font-size: 14px;
-    gap: 10px;
+    .flash-container {
+        margin-bottom: 18px;
+    }
+
+    .flash-message {
+        padding: 14px 18px;
+        border-radius: 14px;
+        margin-bottom: 14px;
+        font-weight: 600;
+    }
+
+    .flash-message.success {
+        background: rgba(34, 184, 122, 0.18);
+        color: #c5f7dc;
+        border: 1px solid rgba(34, 184, 122, 0.45);
+    }
+
+    .flash-message.danger {
+        background: rgba(231, 76, 60, 0.18);
+        color: #ffd3d0;
+        border: 1px solid rgba(231, 76, 60, 0.45);
+    }
+
     text-align: left;
 }
 
