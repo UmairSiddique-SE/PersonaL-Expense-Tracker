@@ -270,7 +270,7 @@
         </div>
         <div class="user-info">
             <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
-            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </nav>
 
@@ -284,13 +284,13 @@
             </div>
 
             <div class="cards-grid">
-                <a href="{{ url_for('add_expense') }}" class="module-card">
+                <a href="/add" class="module-card">
                     <div class="icon">➕</div>
                     <h2>Add Expense</h2>
                     <p>Log new spending quickly with a polished entry form.</p>
                     <span class="badge">Quick Add</span>
                 </a>
-                <a href="{{ url_for('view_records') }}  " class="module-card">
+                <a href="/view" class="module-card">
                     <div class="icon">📋</div>
                     <h2>View Records</h2>
                     <p>See your full expense history in a neat responsive table.</p>
