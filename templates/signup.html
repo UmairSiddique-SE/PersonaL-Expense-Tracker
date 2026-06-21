@@ -58,25 +58,25 @@
             padding: 18px 22px;
             margin: 14px 0;
             border-radius: 18px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(108, 147, 255, 0.24);
-            color: #e9f2ff;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f7f8ff;
             font-size: 16px;
             outline: none;
-            transition: all 0.35s ease;
+            transition: all 0.25s ease;
         }
 
         input:hover,
         select:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(48, 141, 241, 0.4);
+            background: rgba(0, 0, 0, 0.9);
+            border-color: rgba(255, 255, 255, 0.18);
         }
 
         input:focus,
         select:focus {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(37, 117, 252, 0.9);
-            box-shadow: 0 0 18px rgba(37, 117, 252, 0.22);
+            background: rgba(0, 0, 0, 0.95);
+            border-color: rgba(68, 187, 255, 0.8);
+            box-shadow: 0 0 18px rgba(68, 187, 255, 0.18);
             transform: translateY(-1px);
         }
 
@@ -84,10 +84,16 @@
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
         input:-webkit-autofill:active {
-            -webkit-text-fill-color: #e9f2ff !important;
-            -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.06) inset !important;
-            box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.06) inset !important;
-            background-color: rgba(255, 255, 255, 0.06) !important;
+            -webkit-text-fill-color: #f7f8ff !important;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.8) inset !important;
+            box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.8) inset !important;
+            background-color: rgba(0, 0, 0, 0.8) !important;
+        }
+
+        input::placeholder,
+        select::placeholder {
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 300;
         }
 
         select {
