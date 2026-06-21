@@ -39,37 +39,26 @@
                 <label>Select Date</label>
                 <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
             </form>
-            <form action="/summary" method="GET" class="date-form range-form">
-                <input type="hidden" name="type" value="range">
-                <label>Start Date</label>
-                <input type="date" name="start_date" value="{{ start_date }}">
-                <label>End Date</label>
-                <input type="date" name="end_date" value="{{ end_date }}">
-                <button type="submit" class="btn">Apply Range</button>
-            </form>
             <div class="summary-buttons">
                 <a href="/summary?type=overall" class="btn{% if view_type == 'overall' %} active{% endif %}">Overall</a>
                 <a href="/summary?type=weekly" class="btn{% if view_type == 'weekly' %} active{% endif %}">Weekly</a>
                 <a href="/summary?type=monthly" class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
                 <a href="/summary?type=daily" class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
-                <a href="/summary?type=range" class="btn{% if view_type == 'range' %} active{% endif %}">Date Range</a>
             </div>
         </div>
 
         <div class="total-box">
             <h2>Total: Rs {{ totals.get(view_type, 0) }}</h2>
-            {% if view_type == 'range' and start_date and end_date %}
-                <p class="range-label">Showing from {{ start_date }} to {{ end_date }}</p>
-            {% endif %}
         </div>
 
         <div class="summary-cards">
             {% if data[view_type] %}
                 {% for cat, total in data[view_type].items() %}
-                <div class="summary-card">
+                <a href="{{ url_for('summary_details') }}?category={{ cat }}&type={{ view_type }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}" class="summary-card">
                     <h3>{{ cat }}</h3>
                     <p>Rs {{ total }}</p>
-                </div>
+                    <span class="view-details">View details</span>
+                </a>
                 {% endfor %}
             {% else %}
                 <p class="no-data">No data found for this selection!</p>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Details | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <link rel="stylesheet" href="{{ url_for('static', filename='summary-style.css') }}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
+        <span>Expense Tracker</span>
+    </div>
+    <div class="user-info">
+        <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</nav>
+<main class="page-shell">
+    <section class="form-panel">
+        <div class="card-header">
+            <div>
+                <h1>{{ category }} Details</h1>
+                <p class="subtitle">Showing all expenses for this category.</p>
+            </div>
+        </div>
+        <div class="total-box">
+            <h2>Total: Rs {{ total }}</h2>
+            {% if filter_text %}
+            <p class="range-label">{{ filter_text }}</p>
+            {% endif %}
+        </div>
+        <div class="summary-cards details-list">
+            {% if expenses %}
+                {% for exp in expenses %}
+                <div class="detail-card">
+                    <div>
+                        <strong>Rs {{ exp.amount }}</strong>
+                        <span>{{ exp.date }}</span>
+                    </div>
+                    <p>{{ exp.description or 'No description provided.' }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-data">No expenses found for this category.</p>
+            {% endif %}
+        </div>
+        <div class="footer-actions">
+            <a class="back-link" href="{{ url_for('summary', type=view_type, date=selected_date) }}">Back to Summary</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

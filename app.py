@@ -201,28 +201,15 @@ def edit(id):
 def summary():
     uid = session.get('user_id')
     view_type = request.args.get('type', 'overall')
-    if view_type not in ['overall', 'weekly', 'monthly', 'daily', 'range']:
+    if view_type not in ['overall', 'weekly', 'monthly', 'daily']:
         view_type = 'overall'
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    start_date = request.args.get('start_date', "")
-    end_date = request.args.get('end_date', "")
     expenses = list(expenses_collection.find({"user_id": uid}))
     
-    data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}, "range": {}}
-    totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0, "range": 0}
+    data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
+    totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
-    range_start = None
-    range_end = None
-    if start_date and end_date:
-        try:
-            range_start = datetime.strptime(start_date, '%Y-%m-%d')
-            range_end = datetime.strptime(end_date, '%Y-%m-%d')
-            if range_start > range_end:
-                range_start, range_end = range_end, range_start
-        except:
-            range_start = None
-            range_end = None
     
     for exp in expenses:
         amt = float(exp.get('amount', 0))
@@ -244,17 +231,12 @@ def summary():
         if exp_date_str == selected_date:
             data["daily"][cat] = data["daily"].get(cat, 0) + amt
             totals["daily"] += amt
-        if range_start and range_end and range_start <= exp_date <= range_end:
-            data["range"][cat] = data["range"].get(cat, 0) + amt
-            totals["range"] += amt
             
     return render_template(
         "summary.html",
         data=data,
         totals=totals,
         selected_date=selected_date,
-        start_date=start_date,
-        end_date=end_date,
         view_type=view_type
     )
 
