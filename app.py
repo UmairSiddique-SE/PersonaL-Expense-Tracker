@@ -289,6 +289,12 @@ def summary_details():
         view_type=view_type,
         selected_date=selected_date
     )
+    
+    from flask import send_from_directory
+
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory('.', 'sitemap.xml')
 
 if __name__ == "__main__":
     app.run(debug=True)
