@@ -6,7 +6,7 @@ body {
     line-height: 1.6;
     color: #e0e0e0;
     /* Deep Gradient Background */
-    background: radial-gradient(circle at top left, rgba(13, 6, 110, 0.95) 0%, rgba(8, 14, 39, 0.95) 35%, #02040f 100%),
+    background: radial-gradient(circle at top left, rgba(1, 22, 95, 0.95) 0%, rgba(8, 14, 39, 0.95) 35%, #02040f 100%),
                 radial-gradient(circle at bottom right, rgba(6, 43, 103, 0.452), transparent 40%);
     min-height: 100vh;
 }
@@ -74,6 +74,7 @@ body {
 .hero h1 span {
     background: linear-gradient(to right, #253dd4, #00d4ff);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
