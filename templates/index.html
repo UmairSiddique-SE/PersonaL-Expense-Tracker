@@ -9,10 +9,13 @@
 <body>
 
     <nav class="navbar">
-        <div class="logo">ExpenseTracker</div>
+      <div class="logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="eager">
+            <strong>Expense Tracker</strong>
+        </div>
         <div class="nav-links">
             <a href="/login">Login</a>
-            <a href="/signup" class="btn-primary">Get Started</a>
+           
         </div>
     </nav>
 
@@ -26,15 +29,15 @@
         <h2>Why Choose Our Tracker?</h2>
         <div class="feature-grid">
             <div class="card">
-                <h3>Instant Tracking</h3>
+                <h3>⚡Instant Tracking</h3>
                 <p>Add your daily expenses in seconds with our user-friendly interface.</p>
             </div>
             <div class="card">
-                <h3>Smart Analysis</h3>
+                <h3>📊 Smart Analysis</h3>
                 <p>Visualize your spending habits with clean and simple charts.</p>
             </div>
             <div class="card">
-                <h3>Secure & Private</h3>
+                <h3>🔒 Secure & Private</h3>
                 <p>Your financial data stays protected and accessible only to you.</p>
             </div>
         </div>
