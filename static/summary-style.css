@@ -161,7 +161,15 @@ body {
 .btn.active {
     background: linear-gradient(135deg, #2b4eed, #6f7fff);
 }
+/* Ye rule saare links se underline hata dega */
+.a {
+    text-decoration: none !important;
+}
 
+/* Agar tum chahte ho ki hover karne par bhi line na aaye */
+.a:hover {
+    text-decoration: none !important;
+}
 .total-box {
     margin-bottom: 24px;
     padding: 24px;
