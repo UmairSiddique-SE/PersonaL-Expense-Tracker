@@ -38,10 +38,6 @@
             font-size: 14px;
             margin-top: 4px;
         }
-        @media print {
-            .navbar, .controls-row, .report-actions, .footer-actions, .range-form { display: none !important; }
-            .total-box, .card-header, .subtitle { page-break-inside: avoid; }
-        }
     </style>
 </head>
 <body>
@@ -77,7 +73,6 @@
             </div>
             <div class="report-actions">
                 <a href="{{ url_for('download_report', type=view_type, date=selected_date, from_date=from_date, to_date=to_date) }}" class="btn report-btn">⬇️ Download PDF Report</a>
-                <button type="button" class="btn report-btn" onclick="window.print()">🖨️ Print Report</button>
             </div>
         </div>
 

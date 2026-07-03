@@ -377,19 +377,61 @@ def summary_details():
     )
     
 @app.route('/summary/report')
+@login_required
 def download_report():
-    if 'user_id' not in session:          # adjust to match your auth check
-        return redirect(url_for('login'))
-
+    uid = session.get('user_id')
     view_type = request.args.get('type', 'overall')
-    selected_date = request.args.get('date', '')
+    selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     from_date = request.args.get('from_date', '')
     to_date = request.args.get('to_date', '')
 
-    data, totals = get_summary_data(view_type, selected_date, from_date, to_date)
+    expenses = list(expenses_collection.find({"user_id": uid}))
 
-    categories = data.get(view_type, {})
-    total_amount = totals.get(view_type, 0)
+    now = datetime.now()
+    one_week_ago = now - timedelta(days=7)
+
+    range_start = None
+    range_end = None
+    if from_date:
+        try:
+            range_start = datetime.strptime(from_date, '%Y-%m-%d')
+        except ValueError:
+            range_start = None
+    if to_date:
+        try:
+            range_end = datetime.strptime(to_date, '%Y-%m-%d')
+        except ValueError:
+            range_end = None
+
+    # ---------------- Row-wise filtering ----------------
+    filtered = []
+    total_amount = 0.0
+
+    for exp in expenses:
+        exp_date_str = exp.get('date')
+        try:
+            exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
+        except (TypeError, ValueError):
+            continue
+
+        include = False
+        if view_type == 'overall':
+            include = True
+        elif view_type == 'weekly':
+            include = exp_date >= one_week_ago
+        elif view_type == 'monthly':
+            include = exp_date.month == now.month and exp_date.year == now.year
+        elif view_type == 'daily':
+            include = exp_date_str == selected_date
+        elif view_type == 'range':
+            include = bool(range_start and range_end and range_start <= exp_date <= range_end)
+
+        if include:
+            filtered.append(exp)
+            total_amount += float(exp.get('amount', 0))
+
+    # Purane se naye date order mein sort
+    filtered.sort(key=lambda e: e.get('date', ''))
 
     # ---------------- Build PDF ----------------
     buffer = io.BytesIO()
@@ -429,28 +471,43 @@ def download_report():
     ))
     elements.append(Spacer(1, 10))
 
-    # Table of categories
-    table_data = [["Category", "Amount (Rs)"]]
-    for cat, amount in categories.items():
-        table_data.append([cat, f"{amount}"])
-    table_data.append(["Total", f"{total_amount}"])
+    # Row-wise table: har expense ek line mein, end mein Total
+    table_data = [["#", "Date", "Category", "Description", "Amount (Rs)"]]
+    for i, exp in enumerate(filtered, start=1):
+        table_data.append([
+            str(i),
+            exp.get('date', '-'),
+            exp.get('category', '-'),
+            exp.get('description', '') or '-',
+            f"{float(exp.get('amount', 0)):.2f}"
+        ])
 
-    if len(table_data) == 1:
+    if len(filtered) == 0:
         elements.append(Paragraph("No expense data found for this selection.", styles['Normal']))
     else:
-        table = Table(table_data, colWidths=[300, 150])
-        table.setStyle(TableStyle([
+        # Total row aakhir mein add karein
+        table_data.append(["", "", "", "Total", f"{total_amount:.2f}"])
+
+        table = Table(table_data, colWidths=[25, 65, 85, 190, 90], repeatRows=1)
+        style_commands = [
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0056b3')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (4, 0), (4, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#f7f9fc')]),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            # Total row styling (aakhri row)
+            ('SPAN', (0, -1), (3, -1)),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#f0f4f8')),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#f7f9fc')]),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ]))
+            ('ALIGN', (0, -1), (3, -1), 'RIGHT'),
+        ]
+        table.setStyle(TableStyle(style_commands))
         elements.append(table)
 
     doc.build(elements)
