@@ -55,6 +55,25 @@
             box-shadow: 0 0 20px rgba(57, 17, 203, 0.4); transform: scale(1.02);
         }
 
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input {
+            padding-right: 55px;
+        }
+        .toggle-eye {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            user-select: none;
+            font-size: 18px;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        .toggle-eye:hover { opacity: 1; }
+
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -116,7 +135,10 @@
     
             
             <input type="text" name="username" placeholder="👤 Username" autocomplete="username" required>
-            <input type="password" name="password" placeholder="🔒 Password" autocomplete="current-password" required>
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" placeholder="🔒 Password" autocomplete="current-password" required>
+                <span class="toggle-eye" onclick="togglePassword('password', this)">👁️</span>
+            </div>
              <a href="{{ url_for('forgot') }}" style="color: #2962FF; text-decoration: underline;">Forgot password?</a><br>
             <button type="submit" class="btn-signin">SIGN IN</button>
         </form>
@@ -126,5 +148,17 @@
         </div>
     </div>
 
+    <script>
+        function togglePassword(id, icon) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+    </script>
 </body>
 </html>

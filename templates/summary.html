@@ -12,6 +12,37 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Expense Tracker">
     <link rel="stylesheet" href="{{ url_for('static', filename='summary-style.css') }}">
+    <style>
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .report-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: none;
+            font: inherit;
+        }
+        .period-label {
+            color: #b8d4ff;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        @media print {
+            .navbar, .controls-row, .report-actions, .footer-actions, .range-form { display: none !important; }
+            .total-box, .card-header, .subtitle { page-break-inside: avoid; }
+        }
+    </style>
 </head>
 <body>
 <nav class="navbar">
@@ -30,6 +61,23 @@
             <div>
                 <h1>📊 {{ view_type.capitalize() }} Summary</h1>
                 <p class="subtitle">Explore your spending across categories with clean filters.</p>
+                <p class="period-label">
+                    {% if view_type == 'daily' %}
+                        Date: <strong>{{ selected_date }}</strong>
+                    {% elif view_type == 'range' %}
+                        Range: <strong>{{ from_date }}</strong> to <strong>{{ to_date }}</strong>
+                    {% elif view_type == 'monthly' %}
+                        Period: <strong>Current Month</strong>
+                    {% elif view_type == 'weekly' %}
+                        Period: <strong>Current Week</strong>
+                    {% else %}
+                        Period: <strong>All Time</strong>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="report-actions">
+                <a href="{{ url_for('download_report', type=view_type, date=selected_date, from_date=from_date, to_date=to_date) }}" class="btn report-btn">⬇️ Download PDF Report</a>
+                <button type="button" class="btn report-btn" onclick="window.print()">🖨️ Print Report</button>
             </div>
         </div>
 

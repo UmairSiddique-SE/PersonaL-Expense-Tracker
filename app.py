@@ -6,6 +6,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, timedelta
 
+from flask import send_file
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.lib import colors
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import io
+from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "expense_secret_key"
 

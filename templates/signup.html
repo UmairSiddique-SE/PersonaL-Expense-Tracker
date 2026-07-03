@@ -80,6 +80,29 @@
             transform: translateY(-1px);
         }
 
+        .password-wrapper {
+            position: relative;
+            width: 90%;
+            margin: 10px auto;
+        }
+        .password-wrapper input {
+            width: 100%;
+            margin: 0;
+            padding-right: 55px;
+        }
+        .toggle-eye {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            user-select: none;
+            font-size: 18px;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        .toggle-eye:hover { opacity: 1; }
+
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -195,15 +218,18 @@
             <input type="text" name="last_name" placeholder="Last Name" required>
             <input type="email" name="username" placeholder="Username@gmail.com" 
                    pattern=".+@gmail\.com" title="Must be a valid @gmail.com address" required>
-            <input type="password" name="password" placeholder="Password (min 8 characters)" 
-                   pattern=".{8,}" title="Password must be at least 8 characters" required>
+            <div class="password-wrapper">
+                <input type="password" id="signup-password" name="password" placeholder="Password (min 8 characters)"
+                       autocomplete="new-password" pattern=".{8,}" title="Password must be at least 8 characters" required>
+                <span class="toggle-eye" onclick="togglePassword('signup-password', this)">👁️</span>
+            </div>
             <select name="security_question" required>
                 <option value="" disabled selected hidden>Select a security question</option>
                 <option value="What was your first school's name?">What was your first school's name?</option>
                 <option value="What city were you born in?">What city were you born in?</option>
                 <option value="What is your childhood nickname?">What is your childhood nickname?</option>
             </select>
-            <input type="text" name="security_answer" placeholder="Security Answer" required>
+            <input type="text" name="security_answer" placeholder="Security Answer" autocomplete="off" required>
             <button type="submit" class="btn-auth">REGISTER</button>
         </form>
         <p class="footer-link">Already have an account? <a href="/login">Login</a></p>
@@ -211,6 +237,17 @@
 
 <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
     <script>
+        function togglePassword(id, icon) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+
         setTimeout(function() {
             var msg = document.getElementById("flash-msg");
             if (msg) {
