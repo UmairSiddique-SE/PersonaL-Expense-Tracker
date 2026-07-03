@@ -26,10 +26,13 @@ def login_required(f):
 # --- AUTH ROUTES ---
 @app.route("/")
 def index():
-    # App open hote hi seedha login (ya agar already logged in ho to dashboard) par bhej dena
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+    # Installed PWA app icon se khulne par (manifest start_url ke through) seedha login/dashboard
+    if request.args.get('source') == 'pwa':
+        if 'user_id' in session:
+            return redirect(url_for('dashboard'))
+        return redirect(url_for('login'))
+    # Normal browser se aane par landing page dikhao
+    return render_template('index.html')
 
 @app.route("/index")
 def index_alias():
@@ -149,7 +152,37 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard(): 
-    return render_template("dashboard.html")
+    uid = session.get('user_id')
+    expenses = list(expenses_collection.find({"user_id": uid}))
+
+    now = datetime.now()
+    total_expense = 0.0
+    month_expense = 0.0
+    category_totals = {}
+
+    for exp in expenses:
+        amt = float(exp.get('amount', 0))
+        cat = exp.get('category', 'Other')
+        total_expense += amt
+        category_totals[cat] = category_totals.get(cat, 0) + amt
+
+        exp_date_str = exp.get('date')
+        try:
+            exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
+        except (TypeError, ValueError):
+            continue
+        if exp_date.month == now.month and exp_date.year == now.year:
+            month_expense += amt
+
+    top_category = max(category_totals, key=category_totals.get) if category_totals else "N/A"
+
+    return render_template(
+        "dashboard.html",
+        total_expense=total_expense,
+        month_expense=month_expense,
+        total_records=len(expenses),
+        top_category=top_category
+    )
 
 @app.route("/add", methods=["GET", "POST"])
 @login_required
@@ -204,15 +237,30 @@ def edit(id):
 def summary():
     uid = session.get('user_id')
     view_type = request.args.get('type', 'overall')
-    if view_type not in ['overall', 'weekly', 'monthly', 'daily']:
+    if view_type not in ['overall', 'weekly', 'monthly', 'daily', 'range']:
         view_type = 'overall'
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    from_date = request.args.get('from_date', '')
+    to_date = request.args.get('to_date', '')
     expenses = list(expenses_collection.find({"user_id": uid}))
     
-    data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
-    totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
+    data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}, "range": {}}
+    totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0, "range": 0}
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
+
+    range_start = None
+    range_end = None
+    if from_date:
+        try:
+            range_start = datetime.strptime(from_date, '%Y-%m-%d')
+        except ValueError:
+            range_start = None
+    if to_date:
+        try:
+            range_end = datetime.strptime(to_date, '%Y-%m-%d')
+        except ValueError:
+            range_end = None
     
     for exp in expenses:
         amt = float(exp.get('amount', 0))
@@ -234,12 +282,17 @@ def summary():
         if exp_date_str == selected_date:
             data["daily"][cat] = data["daily"].get(cat, 0) + amt
             totals["daily"] += amt
+        if range_start and range_end and range_start <= exp_date <= range_end:
+            data["range"][cat] = data["range"].get(cat, 0) + amt
+            totals["range"] += amt
             
     return render_template(
         "summary.html",
         data=data,
         totals=totals,
         selected_date=selected_date,
+        from_date=from_date,
+        to_date=to_date,
         view_type=view_type
     )
 
@@ -250,6 +303,8 @@ def summary_details():
     category = request.args.get('category', '')
     view_type = request.args.get('type', 'overall')
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    from_date = request.args.get('from_date', '')
+    to_date = request.args.get('to_date', '')
     expenses = list(expenses_collection.find({"user_id": uid, "category": category}))
 
     filtered = []
@@ -257,6 +312,19 @@ def summary_details():
     filter_text = ''
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
+
+    range_start = None
+    range_end = None
+    if from_date:
+        try:
+            range_start = datetime.strptime(from_date, '%Y-%m-%d')
+        except ValueError:
+            range_start = None
+    if to_date:
+        try:
+            range_end = datetime.strptime(to_date, '%Y-%m-%d')
+        except ValueError:
+            range_end = None
 
     for exp in expenses:
         exp_date_str = exp.get('date')
@@ -278,6 +346,9 @@ def summary_details():
         elif view_type == 'daily':
             include = exp_date_str == selected_date
             filter_text = f'Date: {selected_date}'
+        elif view_type == 'range':
+            include = bool(range_start and range_end and range_start <= exp_date <= range_end)
+            filter_text = f'{from_date} to {to_date}' if from_date and to_date else 'Custom range'
 
         if include:
             total += float(exp.get('amount', 0))
@@ -290,10 +361,10 @@ def summary_details():
         total=total,
         filter_text=filter_text,
         view_type=view_type,
-        selected_date=selected_date
+        selected_date=selected_date,
+        from_date=from_date,
+        to_date=to_date
     )
-    
-    from flask import send_from_directory
 
 @app.route('/sitemap.xml')
 def sitemap():

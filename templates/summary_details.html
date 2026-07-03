@@ -54,7 +54,7 @@
             {% endif %}
         </div>
         <div class="footer-actions">
-            <a class="back-link" href="{{ url_for('summary', type=view_type, date=selected_date) }}">Back to Summary</a>
+            <a class="back-link" href="{{ url_for('summary', type=view_type, date=selected_date, from_date=from_date, to_date=to_date) }}">Back to Summary</a>
         </div>
     </section>
 </main>

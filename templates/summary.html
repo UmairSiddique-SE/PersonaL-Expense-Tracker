@@ -44,8 +44,20 @@
                 <a href="/summary?type=weekly" class="btn{% if view_type == 'weekly' %} active{% endif %}">Weekly</a>
                 <a href="/summary?type=monthly" class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
                 <a href="/summary?type=daily" class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
+                <a href="/summary?type=range{% if from_date %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}" class="btn{% if view_type == 'range' %} active{% endif %}">Custom Range</a>
             </div>
         </div>
+
+        {% if view_type == 'range' %}
+        <form action="/summary" method="GET" class="date-form range-form">
+            <input type="hidden" name="type" value="range">
+            <label>From</label>
+            <input type="date" name="from_date" value="{{ from_date }}" required>
+            <label>To</label>
+            <input type="date" name="to_date" value="{{ to_date }}" required>
+            <button type="submit" class="btn">Apply</button>
+        </form>
+        {% endif %}
 
         <div class="total-box">
             <h2>Total: Rs {{ totals.get(view_type, 0) }}</h2>
@@ -54,7 +66,7 @@
         <div class="summary-cards">
             {% if data[view_type] %}
                 {% for cat, total in data[view_type].items() %}
-                <a href="{{ url_for('summary_details') }}?category={{ cat }}&type={{ view_type }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}" class="summary-card">
+                <a href="{{ url_for('summary_details') }}?category={{ cat }}&type={{ view_type }}{% if view_type == 'daily' %}&date={{ selected_date }}{% elif view_type == 'range' %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}" class="summary-card">
                     <h3>{{ cat }}</h3>
                     <p>Rs {{ total }}</p>
                     <span class="view-details">View details</span>

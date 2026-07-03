@@ -134,6 +134,10 @@ body {
     border: 1px solid rgba(255,255,255,0.14);
 }
 
+.range-form {
+    margin-bottom: 24px;
+}
+
 .summary-buttons {
     display: flex;
     gap: 10px;
@@ -249,4 +253,3 @@ body {
         align-items: stretch;
     }
 }
-

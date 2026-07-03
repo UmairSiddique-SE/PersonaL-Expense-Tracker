@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Expense Tracker </title>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}"
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
  <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
-    <meta name="apple-mobile-web-app-capable" content="yes"
+    <meta name="apple-mobile-web-app-capable" content="yes">
      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
     <meta name="apple-mobile-web-app-title" content="Expense Tracker"> 
 
@@ -263,12 +263,12 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo">
+        <a href="{{ url_for('index') }}" class="logo" style="text-decoration:none;">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="eager">
             <strong>Expense Tracker</strong>
-        </div>
+        </a>
         <div class="user-info">
-            <span class="user-name">Hi, {{ session.get('first_name','' 'User') }}</span>
+            <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </nav>
@@ -279,6 +279,20 @@
                 <div>
                     <h1>Good Evening, {{ session.get('first_name', 'User') }}!</h1>
                     <p>Manage your finances with a premium dashboard designed to help you stay on top of your spending.</p>
+                </div>
+                <div class="stats">
+                    <div class="stat-pill">
+                        <strong>Rs {{ "%.0f"|format(total_expense) }}</strong>
+                        <span>Total Expense</span>
+                    </div>
+                    <div class="stat-pill">
+                        <strong>Rs {{ "%.0f"|format(month_expense) }}</strong>
+                        <span>This Month</span>
+                    </div>
+                    <div class="stat-pill">
+                        <strong>{{ top_category }}</strong>
+                        <span>Top Category</span>
+                    </div>
                 </div>
             </div>
 

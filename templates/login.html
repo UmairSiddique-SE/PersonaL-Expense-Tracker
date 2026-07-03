@@ -112,11 +112,11 @@
           {% endif %}
         {% endwith %}
         
-        <form method="POST">
+        <form method="POST" autocomplete="on">
     
             
-            <input type="text" name="username" placeholder="👤 Username" required>
-            <input type="password" name="password" placeholder="🔒 Password" required>
+            <input type="text" name="username" placeholder="👤 Username" autocomplete="username" required>
+            <input type="password" name="password" placeholder="🔒 Password" autocomplete="current-password" required>
              <a href="{{ url_for('forgot') }}" style="color: #2962FF; text-decoration: underline;">Forgot password?</a><br>
             <button type="submit" class="btn-signin">SIGN IN</button>
         </form>
