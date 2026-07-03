@@ -9,7 +9,6 @@ body {
     color: #eef2ff;
     font-family: 'Segoe UI', sans-serif;
 }
-
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -118,8 +117,10 @@ body {
         border: 1px solid rgba(231, 76, 60, 0.45);
     }
 
-    text-align: left;
-}
+    .text-align {
+        text-align: left;
+    }
+
 
 .form-group label {
     color: #1b75dce8;

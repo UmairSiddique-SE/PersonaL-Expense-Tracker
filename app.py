@@ -26,7 +26,10 @@ def login_required(f):
 # --- AUTH ROUTES ---
 @app.route("/")
 def index():
-    return render_template('index.html')
+    # App open hote hi seedha login (ya agar already logged in ho to dashboard) par bhej dena
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
 
 @app.route("/index")
 def index_alias():
