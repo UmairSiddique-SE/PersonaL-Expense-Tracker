@@ -375,6 +375,94 @@ def summary_details():
         from_date=from_date,
         to_date=to_date
     )
+    
+@app.route('/summary/report')
+def download_report():
+    if 'user_id' not in session:          # adjust to match your auth check
+        return redirect(url_for('login'))
+
+    view_type = request.args.get('type', 'overall')
+    selected_date = request.args.get('date', '')
+    from_date = request.args.get('from_date', '')
+    to_date = request.args.get('to_date', '')
+
+    data, totals = get_summary_data(view_type, selected_date, from_date, to_date)
+
+    categories = data.get(view_type, {})
+    total_amount = totals.get(view_type, 0)
+
+    # ---------------- Build PDF ----------------
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        topMargin=20 * mm, bottomMargin=20 * mm,
+        leftMargin=18 * mm, rightMargin=18 * mm
+    )
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'TitleStyle', parent=styles['Title'], textColor=colors.HexColor('#0056b3')
+    )
+    subtitle_style = ParagraphStyle(
+        'SubtitleStyle', parent=styles['Normal'], textColor=colors.grey, spaceAfter=12
+    )
+
+    elements = []
+    elements.append(Paragraph("Expense Tracker – Expense Report", title_style))
+
+    user_name = session.get('first_name', 'User')
+    generated_on = datetime.now().strftime('%d %b %Y, %I:%M %p')
+
+    range_label = view_type.capitalize()
+    if view_type == 'daily' and selected_date:
+        range_label += f" ({selected_date})"
+    elif view_type == 'range' and from_date and to_date:
+        range_label += f" ({from_date} to {to_date})"
+    elif view_type == 'monthly':
+        range_label += " (Current Month)"
+    elif view_type == 'weekly':
+        range_label += " (Current Week)"
+
+    elements.append(Paragraph(
+        f"User: {user_name} &nbsp;&nbsp;|&nbsp;&nbsp; Report Type: {range_label} "
+        f"&nbsp;&nbsp;|&nbsp;&nbsp; Generated: {generated_on}",
+        subtitle_style
+    ))
+    elements.append(Spacer(1, 10))
+
+    # Table of categories
+    table_data = [["Category", "Amount (Rs)"]]
+    for cat, amount in categories.items():
+        table_data.append([cat, f"{amount}"])
+    table_data.append(["Total", f"{total_amount}"])
+
+    if len(table_data) == 1:
+        elements.append(Paragraph("No expense data found for this selection.", styles['Normal']))
+    else:
+        table = Table(table_data, colWidths=[300, 150])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0056b3')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#f0f4f8')),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#f7f9fc')]),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(table)
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    filename = f"expense_report_{view_type}_{datetime.now().strftime('%Y%m%d')}.pdf"
+    return send_file(
+        buffer,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=filename
+    )
 
 @app.route('/sitemap.xml')
 def sitemap():
