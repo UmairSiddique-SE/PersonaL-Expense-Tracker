@@ -193,19 +193,33 @@ def dashboard():
         total_records=len(expenses),
         top_category=top_category
     )
-
 @app.route("/add", methods=["GET", "POST"])
 @login_required
 def add():
+    uid = session.get('user_id')
+    
     if request.method == "POST":
         amount = request.form.get("amount")
         category = request.form.get("category")
+        
+        # Agar user ne 'custom' select kiya hai
+        if category == 'custom':
+            custom_cat = request.form.get("custom_category", "").strip().capitalize()
+            if custom_cat:
+                category = custom_cat
+                # User ke document mein ye custom category permanently add kar dein (agar pehle se nahi hai)
+                users_collection.update_one(
+                    {"_id": ObjectId(uid)},
+                    {"$addToSet": {"custom_categories": category}}
+                )
+            else:
+                category = "Other"
+        
         date = request.form.get("date")
         description = request.form.get("description", "")
         
-        # MongoDB database mein expense save karna
         expenses_collection.insert_one({
-            "user_id": session['user_id'],
+            "user_id": uid,
             "amount": float(amount) if amount else 0.0,
             "category": category,
             "date": date,
@@ -213,8 +227,12 @@ def add():
         })
         flash("Expense added successfully!", "success")
         return redirect(url_for("add"))
-        
-    return render_template("add.html")
+    
+    # Sirf is current user ki custom categories database se nikalein
+    user_data = users_collection.find_one({"_id": ObjectId(uid)})
+    user_custom_categories = user_data.get("custom_categories", []) if user_data else []
+    
+    return render_template("add.html", custom_categories=user_custom_categories)
 
 @app.route("/view")
 @login_required
