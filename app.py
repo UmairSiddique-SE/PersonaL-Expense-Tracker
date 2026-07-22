@@ -243,18 +243,19 @@ def view():
     expenses = list(expenses_collection.find({"user_id": session.get('user_id')}))
     return render_template("view.html", expenses=expenses)
 
-@app.route("/delete_custom_category/<path:cat_name>")
+@app.route("/delete_custom_category")
 @login_required
-def delete_custom_category(cat_name):
+def delete_custom_category():
     uid = session.get('user_id')
+    cat_name = request.args.get('name')
     
-    # Sirf current logged-in user ki custom category delete hogi
-    users_collection.update_one(
-        {"_id": ObjectId(uid)},
-        {"$pull": {"custom_categories": cat_name}}
-    )
+    if cat_name:
+        users_collection.update_one(
+            {"_id": ObjectId(uid)},
+            {"$pull": {"custom_categories": cat_name}}
+        )
+        flash(f"Category '{cat_name}' deleted successfully!", "success")
     
-    flash(f"Category '{cat_name}' deleted successfully!", "success")
     return redirect(url_for("add"))
 
 @app.route("/delete/<id>")

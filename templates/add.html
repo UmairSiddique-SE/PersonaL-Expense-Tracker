@@ -99,7 +99,7 @@
         if (select.value.startsWith('DELETE:')) {
             const catName = select.value.replace('DELETE:', '');
             if (confirm(`Kya aap '${catName}' category ko delete karna chahte hain?`)) {
-                window.location.href = `/delete_custom_category/${encodeURIComponent(catName)}`;
+                window.location.href = `/delete_custom_category?name=${encodeURIComponent(catName)}`;
             } else {
                 select.value = "Food";
             }
