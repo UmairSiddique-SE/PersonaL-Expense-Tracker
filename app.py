@@ -193,6 +193,7 @@ def dashboard():
         total_records=len(expenses),
         top_category=top_category
     )
+    
 @app.route("/add", methods=["GET", "POST"])
 @login_required
 def add():
@@ -232,13 +233,29 @@ def add():
     user_data = users_collection.find_one({"_id": ObjectId(uid)})
     user_custom_categories = user_data.get("custom_categories", []) if user_data else []
     
-    return render_template("add.html", custom_categories=user_custom_categories)
-
+    # Aaj ki date YYYY-MM-DD format mein generate kar ke template ko bhej rahe hain
+    today_date = datetime.now().strftime('%Y-%m-%d')
+    
+    return render_template("add.html", custom_categories=user_custom_categories, today_date=today_date)
 @app.route("/view")
 @login_required
 def view():
     expenses = list(expenses_collection.find({"user_id": session.get('user_id')}))
     return render_template("view.html", expenses=expenses)
+
+@app.route("/delete_custom_category/<path:cat_name>")
+@login_required
+def delete_custom_category(cat_name):
+    uid = session.get('user_id')
+    
+    # Sirf current logged-in user ki custom category delete hogi
+    users_collection.update_one(
+        {"_id": ObjectId(uid)},
+        {"$pull": {"custom_categories": cat_name}}
+    )
+    
+    flash(f"Category '{cat_name}' deleted successfully!", "success")
+    return redirect(url_for("add"))
 
 @app.route("/delete/<id>")
 @login_required

@@ -67,6 +67,21 @@
                     </select>
                 </div>
 
+                <!-- Custom Categories Delete Management List -->
+{% if custom_categories %}
+<div class="mb-4 text-sm bg-navy-950 p-3 rounded-xl border border-gray-800">
+    <span class="text-gray-400 block mb-2 font-medium">Manage Your Custom Categories:</span>
+    <div class="flex flex-wrap gap-2">
+        {% for cat in custom_categories %}
+            <span class="inline-flex items-center bg-gray-800 text-gray-200 px-3 py-1 rounded-lg text-xs">
+                {{ cat }}
+                <a href="{{ url_for('delete_custom_category', cat_name=cat) }}" class="ml-2 text-red-400 hover:text-red-300 font-bold" title="Delete category">&times;</a>
+            </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
          <div class="mb-4" id="customCategoryDiv" style="display: none;">
     <label for="custom_category" class="block text-gray-300 text-sm font-medium mb-2">Enter Custom Category</label>
     <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym" class="w-full bg-navy-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:border-blue-500">
