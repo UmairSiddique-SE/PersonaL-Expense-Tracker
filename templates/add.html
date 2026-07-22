@@ -60,11 +60,11 @@
                         {% if custom_categories %}
                             {% for cat in custom_categories %}
                                 <option value="{{ cat }}">{{ cat }}</option>
-                                <option value="DELETE:{{ cat }}">{{ cat }} ✕ Delete</option>
+                                <option value="DELETE:{{ cat }}">{{ cat }}  Delete choice</option>
                             {% endfor %}
                         {% endif %}
                         
-                        <option value="custom">Other / Custom...</option>
+                        <option value="custom">Add choice</option>
                     </select>
                 </div>
 
