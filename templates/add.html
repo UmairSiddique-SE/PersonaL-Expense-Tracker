@@ -67,10 +67,10 @@
                     </select>
                 </div>
 
-                <div class="mb-4 hidden" id="customCategoryDiv">
-                    <label for="custom_category" class="block text-gray-300 text-sm font-medium mb-2">Enter Custom Category</label>
-                    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym" class="w-full bg-navy-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:border-blue-500">
-                </div>
+         <div class="mb-4" id="customCategoryDiv" style="display: none;">
+    <label for="custom_category" class="block text-gray-300 text-sm font-medium mb-2">Enter Custom Category</label>
+    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym" class="w-full bg-navy-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:border-blue-500">
+</div>
 
                 <div class="form-group">
                     <label>Date</label>
@@ -111,5 +111,33 @@
         checkCustomCategory(select);
     });
     </script>
+
+    <script>
+function checkCustomCategory(select) {
+    const customDiv = document.getElementById('customCategoryDiv');
+    const customInput = document.getElementById('customCategoryInput');
+    
+    if (select.value === 'custom') {
+        customDiv.style.display = 'block'; // Show kar do
+        customInput.required = true;
+    } else {
+        customDiv.style.display = 'none';  // Chupa do
+        customInput.required = false;
+        customInput.value = '';
+    }
+}
+
+// Page load hote hi check karein
+document.addEventListener("DOMContentLoaded", function() {
+    const select = document.getElementById('categorySelect');
+    const customDiv = document.getElementById('customCategoryDiv');
+    
+    // Pehle se hi style hidden kar do
+    if (select.value !== 'custom') {
+        customDiv.style.display = 'none';
+    }
+    checkCustomCategory(select);
+});
+</script>
 </body>
 </html>
