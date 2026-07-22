@@ -56,11 +56,11 @@
                         <option value="Bills">Bills</option>
                         <option value="Shopping">Shopping</option>
                         
-                        <!-- Custom Categories with Delete Option -->
+                        <!-- Custom Categories with * Delete Option -->
                         {% if custom_categories %}
                             {% for cat in custom_categories %}
                                 <option value="{{ cat }}">{{ cat }}</option>
-                                <option value="DELETE:{{ cat }}" class="text-red-400">🗑️ Delete "{{ cat }}"</option>
+                                <option value="DELETE:{{ cat }}">{{ cat }} [ * Delete ]</option>
                             {% endfor %}
                         {% endif %}
                         
@@ -76,7 +76,6 @@
 
                 <div class="form-group">
                     <label>Date</label>
-                    <!-- Default Today's Date Set -->
                     <input type="date" name="date" value="{{ today_date }}" required>
                 </div>
                 
@@ -92,24 +91,21 @@
         </section>
     </main>
 
-    <!-- Clean JavaScript for handling custom options and deletion trigger -->
     <script>
     function checkCustomCategory(select) {
         const customDiv = document.getElementById('customCategoryDiv');
         const customInput = document.getElementById('customCategoryInput');
         
-        // Agar user ne delete option select ki hai
         if (select.value.startsWith('DELETE:')) {
             const catName = select.value.replace('DELETE:', '');
             if (confirm(`Kya aap '${catName}' category ko delete karna chahte hain?`)) {
-                window.location.href = `/delete_custom_category/${catName}`;
+                window.location.href = `/delete_custom_category/${encodeURIComponent(catName)}`;
             } else {
-                select.value = "Food"; // Cancel karne par wapis default kar dein
+                select.value = "Food";
             }
             return;
         }
 
-        // Agar custom select kiya hai
         if (select.value === 'custom') {
             customDiv.style.display = 'block';
             customInput.required = true;
