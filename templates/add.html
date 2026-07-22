@@ -49,6 +49,7 @@
                 </div>
                
  <!-- Category Dropdown -->
+<!-- Category Dropdown -->
 <div class="mb-4">
     <label for="category" class="block text-gray-300 text-sm font-medium mb-2">Category</label>
     <select name="category" id="categorySelect" onchange="checkCustomCategory(this)" class="w-full bg-navy-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:border-blue-500">
@@ -57,7 +58,6 @@
         <option value="Bills">Bills</option>
         <option value="Shopping">Shopping</option>
         
-        <!-- User ki apni saved custom categories yahan show hongi -->
         {% if custom_categories %}
             {% for cat in custom_categories %}
                 <option value="{{ cat }}">{{ cat }}</option>
@@ -74,17 +74,26 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+function checkCustomCategory(select) {
     const customDiv = document.getElementById('customCategoryDiv');
     const customInput = document.getElementById('customCategoryInput');
-    const select = document.getElementById('categorySelect');
     
-    // Page load hone par check karein ke agar 'custom' selected nahi hai toh box chup rahe
-    if (select.value !== 'custom') {
+    if (select.value === 'custom') {
+        customDiv.classList.remove('hidden');
+        customInput.required = true;
+    } else {
         customDiv.classList.add('hidden');
         customInput.required = false;
+        customInput.value = '';
     }
+}
+
+// Page load hote hi ensure karein ke agar 'custom' selected nahi hai toh box hidden rahay
+document.addEventListener("DOMContentLoaded", function() {
+    const select = document.getElementById('categorySelect');
+    checkCustomCategory(select);
 });
+</script>
 
 function checkCustomCategory(select) {
     const customDiv = document.getElementById('customCategoryDiv');
