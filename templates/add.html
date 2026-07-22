@@ -56,11 +56,11 @@
                         <option value="Bills">Bills</option>
                         <option value="Shopping">Shopping</option>
                         
-                        <!-- Custom Categories with Cross (✕) Delete Option -->
+                        <!-- Custom Categories with Cross Option -->
                         {% if custom_categories %}
                             {% for cat in custom_categories %}
                                 <option value="{{ cat }}">{{ cat }}</option>
-                                <option value="DELETE:{{ cat }}">❌ Delete "{{ cat }}"</option>
+                                <option value="DELETE:{{ cat }}">{{ cat }} ✕ Delete</option>
                             {% endfor %}
                         {% endif %}
                         
