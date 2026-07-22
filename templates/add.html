@@ -15,8 +15,7 @@
 </head>
 <body>
     <nav class="navbar">
-            <a href="/dashboard" class="logo">Expense<span>Tracker</span></a>
-        </div>
+        <a href="/dashboard" class="logo">Expense<span>Tracker</span></a>
         <div class="user-info">
             <span class="user-name">Hi, {{ session.get('first_name', 'User') }}</span>
             <a href="/logout" class="logout-btn">Logout</a>
@@ -57,9 +56,11 @@
                         <option value="Bills">Bills</option>
                         <option value="Shopping">Shopping</option>
                         
+                        <!-- Custom Categories with Delete Option -->
                         {% if custom_categories %}
                             {% for cat in custom_categories %}
                                 <option value="{{ cat }}">{{ cat }}</option>
+                                <option value="DELETE:{{ cat }}" class="text-red-400">🗑️ Delete "{{ cat }}"</option>
                             {% endfor %}
                         {% endif %}
                         
@@ -67,29 +68,16 @@
                     </select>
                 </div>
 
-                <!-- Custom Categories Delete Management List -->
-{% if custom_categories %}
-<div class="mb-4 text-sm bg-navy-950 p-3 rounded-xl border border-gray-800">
-    <span class="text-gray-400 block mb-2 font-medium">Manage Your Custom Categories:</span>
-    <div class="flex flex-wrap gap-2">
-        {% for cat in custom_categories %}
-            <span class="inline-flex items-center bg-gray-800 text-gray-200 px-3 py-1 rounded-lg text-xs">
-                {{ cat }}
-                <a href="{{ url_for('delete_custom_category', cat_name=cat) }}" class="ml-2 text-red-400 hover:text-red-300 font-bold" title="Delete category">&times;</a>
-            </span>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
-
-         <div class="mb-4" id="customCategoryDiv" style="display: none;">
-    <label for="custom_category" class="block text-gray-300 text-sm font-medium mb-2">Enter Custom Category</label>
-    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym" class="w-full bg-navy-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:border-blue-500">
-</div>
+                <!-- Custom Category Input Box -->
+                <div class="mb-4" id="customCategoryDiv" style="display: none;">
+                    <label for="custom_category" class="block text-gray-300 text-sm font-medium mb-2">Enter Custom Category</label>
+                    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym" class="w-full bg-navy-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 focus:outline-none focus:border-blue-500">
+                </div>
 
                 <div class="form-group">
                     <label>Date</label>
-                    <input type="date" name="date" required>
+                    <!-- Default Today's Date Set -->
+                    <input type="date" name="date" value="{{ today_date }}" required>
                 </div>
                 
                 <div class="form-group">
@@ -100,59 +88,42 @@
                 <button type="submit" class="primary-btn">Add Expense</button>
             </form>
 
-             <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
+            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
         </section>
     </main>
 
-    <!-- JavaScript code ab theek jagah par hai aur extra script tags nikal diye hain -->
+    <!-- Clean JavaScript for handling custom options and deletion trigger -->
     <script>
     function checkCustomCategory(select) {
         const customDiv = document.getElementById('customCategoryDiv');
         const customInput = document.getElementById('customCategoryInput');
         
+        // Agar user ne delete option select ki hai
+        if (select.value.startsWith('DELETE:')) {
+            const catName = select.value.replace('DELETE:', '');
+            if (confirm(`Kya aap '${catName}' category ko delete karna chahte hain?`)) {
+                window.location.href = `/delete_custom_category/${catName}`;
+            } else {
+                select.value = "Food"; // Cancel karne par wapis default kar dein
+            }
+            return;
+        }
+
+        // Agar custom select kiya hai
         if (select.value === 'custom') {
-            customDiv.classList.remove('hidden');
+            customDiv.style.display = 'block';
             customInput.required = true;
         } else {
-            customDiv.classList.add('hidden');
+            customDiv.style.display = 'none';
             customInput.required = false;
             customInput.value = '';
         }
     }
 
-    // Page load hote hi ensure karein ke agar 'custom' selected nahi hai toh box hidden rahay
     document.addEventListener("DOMContentLoaded", function() {
         const select = document.getElementById('categorySelect');
         checkCustomCategory(select);
     });
     </script>
-
-    <script>
-function checkCustomCategory(select) {
-    const customDiv = document.getElementById('customCategoryDiv');
-    const customInput = document.getElementById('customCategoryInput');
-    
-    if (select.value === 'custom') {
-        customDiv.style.display = 'block'; // Show kar do
-        customInput.required = true;
-    } else {
-        customDiv.style.display = 'none';  // Chupa do
-        customInput.required = false;
-        customInput.value = '';
-    }
-}
-
-// Page load hote hi check karein
-document.addEventListener("DOMContentLoaded", function() {
-    const select = document.getElementById('categorySelect');
-    const customDiv = document.getElementById('customCategoryDiv');
-    
-    // Pehle se hi style hidden kar do
-    if (select.value !== 'custom') {
-        customDiv.style.display = 'none';
-    }
-    checkCustomCategory(select);
-});
-</script>
 </body>
 </html>
