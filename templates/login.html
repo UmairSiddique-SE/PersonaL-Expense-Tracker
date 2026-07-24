@@ -227,7 +227,7 @@
                     const challenge = new Uint8Array(32);
                     window.crypto.getRandomValues(challenge);
 
-                    await navigator.credentials.get({
+                    const credential = await navigator.credentials.get({
                         publicKey: {
                             challenge: challenge,
                             timeout: 60000,
@@ -235,15 +235,15 @@
                         }
                     });
                     
-                    performBiometricLogin(username);
-                    return;
+                    // Only log in if native fingerprint verification succeeded
+                    if (credential) {
+                        performBiometricLogin(username);
+                    }
                 } catch (e) {
-                    console.log('Native fingerprint scan cancelled or bypassed:', e);
+                    console.log('Native fingerprint scan cancelled, failed, or no passkey:', e);
+                    // Do NOT log in automatically on error/cancel - stay on login form for password entry
                 }
             }
-
-            // Perform biometric verification & automatic login
-            performBiometricLogin(username);
         }
 
         async function performBiometricLogin(username) {
