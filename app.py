@@ -18,6 +18,7 @@ import io
 from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "expense_secret_key"
+app.permanent_session_lifetime = timedelta(days=30)
 
 # MongoDB Connection
 client = MongoClient(os.environ.get("MONGO_URI", "mongodb://localhost:27017/"))
@@ -61,24 +62,41 @@ def login():
         raw_username = request.form.get("username")
         username = raw_username.lower() if raw_username else ""
         password = request.form.get("password")
+        remember = request.form.get("remember_me")
         
         user = users_collection.find_one({"username": username})
         
         if user and check_password_hash(user['password'], password):
-            # Session mein user_id aur first_name dono save karein
+            if remember:
+                session.permanent = True
+            else:
+                session.permanent = False
             session['user_id'] = str(user['_id'])
-            session['first_name'] = user.get('first_name', 'User') # <--- Ye line add hui
+            session['first_name'] = user.get('first_name', 'User')
             
             return redirect(url_for("dashboard"))
         
         flash("Invalid Username or Password!", "danger")
     return render_template("login.html")
 
+@app.route("/biometric_login", methods=["POST"])
+def biometric_login():
+    data = request.get_json() or {}
+    username = data.get("username", "").lower().strip()
+    if not username:
+        return {"status": "error", "message": "Username required"}, 400
+    user = users_collection.find_one({"username": username})
+    if user:
+        session.permanent = True
+        session['user_id'] = str(user['_id'])
+        session['first_name'] = user.get('first_name', 'User')
+        return {"status": "success", "redirect": url_for("dashboard")}
+    return {"status": "error", "message": "User not found"}, 404
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         first_name = request.form.get("first_name", "").strip()
-        last_name = request.form.get("last_name", "").strip()
         
         raw_username = request.form.get("username")
         username = raw_username.lower().strip() if raw_username else ""
@@ -97,7 +115,6 @@ def signup():
         hashed_pw = generate_password_hash(password)
         users_collection.insert_one({
             "first_name": first_name,
-            "last_name": last_name,
             "username": username,
             "password": hashed_pw,
             "security_question": security_question,
