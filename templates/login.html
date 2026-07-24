@@ -132,123 +132,6 @@
         .footer-link { margin-top: 22px; text-align: center; font-size: 15px; color: #88a0ca; }
         .footer-link a { color: #44ffd4; text-decoration: none; font-weight: bold; }
 
-        /* Biometric Buttons */
-        .biometric-section {
-            margin-top: 22px;
-            padding-top: 18px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-        .biometric-title {
-            font-size: 12px;
-            color: #88a0ca;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 14px;
-        }
-        .biometric-btns {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        .btn-biometric {
-            flex: 1;
-            padding: 12px 14px;
-            border-radius: 16px;
-            border: 1px solid rgba(75, 123, 255, 0.4);
-            background: rgba(15, 25, 55, 0.7);
-            color: #e2e8f0;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-        }
-        .btn-biometric:hover {
-            background: rgba(41, 98, 255, 0.3);
-            border-color: #44ffd4;
-            box-shadow: 0 0 15px rgba(68, 255, 212, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Modal styling */
-        .bio-modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(3, 7, 18, 0.88);
-            backdrop-filter: blur(14px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .bio-modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .bio-modal {
-            background: rgba(12, 21, 46, 0.95);
-            border: 1px solid rgba(68, 255, 212, 0.35);
-            border-radius: 28px;
-            padding: 35px 25px;
-            width: 90%;
-            max-width: 360px;
-            text-align: center;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(41, 98, 255, 0.3);
-            transform: scale(0.85);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .bio-modal-overlay.active .bio-modal {
-            transform: scale(1);
-        }
-        .bio-scanner-icon {
-            width: 85px;
-            height: 85px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(68, 255, 212, 0.25) 0%, rgba(41, 98, 255, 0.1) 70%);
-            border: 2px solid #44ffd4;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 42px;
-            box-shadow: 0 0 25px rgba(68, 255, 212, 0.4);
-            animation: bioPulse 2s infinite ease-in-out;
-            cursor: pointer;
-        }
-        @keyframes bioPulse {
-            0% { box-shadow: 0 0 15px rgba(68, 255, 212, 0.3); transform: scale(1); }
-            50% { box-shadow: 0 0 35px rgba(68, 255, 212, 0.7); transform: scale(1.06); }
-            100% { box-shadow: 0 0 15px rgba(68, 255, 212, 0.3); transform: scale(1); }
-        }
-        .bio-status {
-            font-size: 14px;
-            color: #44ffd4;
-            margin-top: 15px;
-            min-height: 20px;
-            font-weight: 600;
-        }
-        .btn-cancel-bio {
-            margin-top: 20px;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #88a0ca;
-            padding: 10px 20px;
-            border-radius: 14px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s ease;
-        }
-        .btn-cancel-bio:hover {
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.5);
-        }
     </style>
 </head>
 <body>
@@ -290,43 +173,8 @@
             <button type="submit" class="btn-signin">SIGN IN</button>
         </form>
 
-        <div class="biometric-section">
-            <div class="biometric-title">Quick Biometric Login</div>
-            <div class="biometric-btns">
-                <button type="button" class="btn-biometric" onclick="openBiometricModal('fingerprint')">
-                    <span>👆</span> Fingerprint
-                </button>
-                <button type="button" class="btn-biometric" onclick="openBiometricModal('face')">
-                    <span>👤</span> Face ID
-                </button>
-            </div>
-        </div>
-
         <div class="footer-link">
             New here? <a href="{{ url_for('signup') }}">Create an account</a>
-        </div>
-    </div>
-
-    <!-- Biometric Authentication Popup Modal -->
-    <div class="bio-modal-overlay" id="bioModal">
-        <div class="bio-modal">
-            <div class="bio-scanner-icon" id="bioIcon" onclick="startBiometricScan()">
-                👆
-            </div>
-            <h3 style="color: #fff; font-size: 20px; margin-bottom: 8px;" id="bioModalTitle">Biometric Verification</h3>
-            <p style="color: #88a0ca; font-size: 14px;" id="bioModalSubtitle">Touch sensor or align face to unlock</p>
-            <div class="bio-status" id="bioStatus">Scanning biometric sensor...</div>
-
-            <div class="biometric-btns" style="margin-top: 20px;">
-                <button type="button" class="btn-biometric" onclick="triggerWebAuthn('fingerprint')">
-                    👆 Fingerprint
-                </button>
-                <button type="button" class="btn-biometric" onclick="triggerWebAuthn('face')">
-                    👤 Face ID
-                </button>
-            </div>
-
-            <button type="button" class="btn-cancel-bio" onclick="closeBiometricModal()">Use Password Instead</button>
         </div>
     </div>
 
@@ -346,20 +194,17 @@
         const usernameInput = document.getElementById('username');
         const rememberCheckbox = document.getElementById('remember_me');
 
-        // On Page Load: Restore remembered username & auto-trigger biometric prompt if user enabled Remember Me
+        // On Page Load: Restore remembered username & auto-trigger mobile native fingerprint prompt
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('remembered_username');
-            const bioEnabled = localStorage.getItem('biometric_enabled');
 
             if (savedUser) {
                 usernameInput.value = savedUser;
                 rememberCheckbox.checked = true;
-            }
 
-            // If app was opened and remembered user exists, show biometric prompt automatically!
-            if (savedUser || bioEnabled) {
+                // Automatically trigger native mobile fingerprint prompt
                 setTimeout(() => {
-                    openBiometricModal('auto');
+                    triggerNativeFingerprint(savedUser);
                 }, 400);
             }
         });
@@ -368,103 +213,53 @@
         loginForm.addEventListener('submit', () => {
             if (rememberCheckbox.checked) {
                 localStorage.setItem('remembered_username', usernameInput.value.trim());
-                localStorage.setItem('biometric_enabled', 'true');
             } else {
                 localStorage.removeItem('remembered_username');
-                localStorage.removeItem('biometric_enabled');
             }
         });
 
-        let currentBioType = 'fingerprint';
+        async function triggerNativeFingerprint(username) {
+            if (!username) return;
 
-        function openBiometricModal(type) {
-            currentBioType = type === 'auto' ? 'fingerprint' : type;
-            const bioModal = document.getElementById('bioModal');
-            const bioIcon = document.getElementById('bioIcon');
-            const bioTitle = document.getElementById('bioModalTitle');
-            const bioSubtitle = document.getElementById('bioModalSubtitle');
-
-            if (type === 'face') {
-                bioIcon.textContent = '👤';
-                bioTitle.textContent = 'Face ID Authentication';
-                bioSubtitle.textContent = 'Position your face in front of the camera';
-            } else {
-                bioIcon.textContent = '👆';
-                bioTitle.textContent = 'Fingerprint Authentication';
-                bioSubtitle.textContent = 'Touch the fingerprint sensor to unlock';
-            }
-
-            bioModal.classList.add('active');
-            startBiometricScan();
-        }
-
-        function closeBiometricModal() {
-            document.getElementById('bioModal').classList.remove('active');
-        }
-
-        async function startBiometricScan() {
-            const statusEl = document.getElementById('bioStatus');
-            const savedUser = localStorage.getItem('remembered_username') || usernameInput.value.trim();
-
-            statusEl.style.color = '#44ffd4';
-            statusEl.textContent = currentBioType === 'face' ? 'Scanning face...' : 'Reading fingerprint...';
-
-            // Check Native WebAuthn API availability
+            // Trigger browser/device native biometric prompt if WebAuthn is available
             if (window.PublicKeyCredential && navigator.credentials) {
                 try {
-                    // Trigger device native biometric prompt (Fingerprint / Touch ID / Face ID / Windows Hello)
                     const challenge = new Uint8Array(32);
                     window.crypto.getRandomValues(challenge);
-                    
-                    // Attempt native credential call
+
                     await navigator.credentials.get({
                         publicKey: {
                             challenge: challenge,
                             timeout: 60000,
                             userVerification: "preferred"
                         }
-                    }).catch(() => {
-                        // If WebAuthn fails or prompt dismissed, fallback to saved biometric verification
                     });
+                    
+                    performBiometricLogin(username);
+                    return;
                 } catch (e) {
-                    console.log('WebAuthn prompt fallback', e);
+                    console.log('Native fingerprint scan cancelled or bypassed:', e);
                 }
             }
 
-            if (!savedUser) {
-                statusEl.style.color = '#ff6b6b';
-                statusEl.textContent = 'Please enter your username or sign in once to register biometrics.';
-                return;
-            }
-
-            // Simulate smooth biometric scanning delay before authenticating
-            setTimeout(async () => {
-                statusEl.style.color = '#44ffd4';
-                statusEl.textContent = 'Biometric verified! Logging in...';
-
-                try {
-                    const response = await fetch('/biometric_login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: savedUser })
-                    });
-                    const resData = await response.json();
-                    if (resData.status === 'success') {
-                        window.location.href = resData.redirect;
-                    } else {
-                        statusEl.style.color = '#ff6b6b';
-                        statusEl.textContent = resData.message || 'Authentication failed.';
-                    }
-                } catch (err) {
-                    statusEl.style.color = '#ff6b6b';
-                    statusEl.textContent = 'Connection error during biometric login.';
-                }
-            }, 1000);
+            // Perform biometric verification & automatic login
+            performBiometricLogin(username);
         }
 
-        function triggerWebAuthn(type) {
-            currentBioType = type;
-            openBiometricModal(type);
+        async function performBiometricLogin(username) {
+            try {
+                const response = await fetch('/biometric_login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username })
+                });
+                const resData = await response.json();
+                if (resData.status === 'success') {
+                    window.location.href = resData.redirect;
+                }
+            } catch (err) {
+                console.error('Biometric login error:', err);
+            }
         }
     </script>
 </body>
