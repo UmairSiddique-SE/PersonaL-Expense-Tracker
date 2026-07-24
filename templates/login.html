@@ -162,11 +162,7 @@
                 <span class="toggle-eye" onclick="togglePassword('password', this)">👁️</span>
             </div>
 
-            <div class="options-row">
-                <label class="remember-label">
-                    <input type="checkbox" id="remember_me" name="remember_me">
-                    <span>Remember me</span>
-                </label>
+            <div class="options-row" style="justify-content: flex-end;">
                 <a href="{{ url_for('forgot') }}" class="forgot-link">Forgot password?</a>
             </div>
 
@@ -179,6 +175,10 @@
     </div>
 
     <script>
+        // Clear any saved passkey or remembered user data
+        localStorage.removeItem('remembered_username');
+        localStorage.removeItem('biometric_enabled');
+
         function togglePassword(id, icon) {
             const input = document.getElementById(id);
             if (input.type === 'password') {
@@ -187,78 +187,6 @@
             } else {
                 input.type = 'password';
                 icon.textContent = '👁️';
-            }
-        }
-
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('username');
-        const rememberCheckbox = document.getElementById('remember_me');
-
-        // On Page Load: Restore remembered username & auto-trigger mobile native fingerprint prompt
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('remembered_username');
-
-            if (savedUser) {
-                usernameInput.value = savedUser;
-                rememberCheckbox.checked = true;
-
-                // Automatically trigger native mobile fingerprint prompt
-                setTimeout(() => {
-                    triggerNativeFingerprint(savedUser);
-                }, 400);
-            }
-        });
-
-        // Save remembered username on form submission if Remember Me is checked
-        loginForm.addEventListener('submit', () => {
-            if (rememberCheckbox.checked) {
-                localStorage.setItem('remembered_username', usernameInput.value.trim());
-            } else {
-                localStorage.removeItem('remembered_username');
-            }
-        });
-
-        async function triggerNativeFingerprint(username) {
-            if (!username) return;
-
-            // Trigger browser/device native biometric prompt if WebAuthn is available
-            if (window.PublicKeyCredential && navigator.credentials) {
-                try {
-                    const challenge = new Uint8Array(32);
-                    window.crypto.getRandomValues(challenge);
-
-                    const credential = await navigator.credentials.get({
-                        publicKey: {
-                            challenge: challenge,
-                            timeout: 60000,
-                            userVerification: "preferred"
-                        }
-                    });
-                    
-                    // Only log in if native fingerprint verification succeeded
-                    if (credential) {
-                        performBiometricLogin(username);
-                    }
-                } catch (e) {
-                    console.log('Native fingerprint scan cancelled, failed, or no passkey:', e);
-                    // Do NOT log in automatically on error/cancel - stay on login form for password entry
-                }
-            }
-        }
-
-        async function performBiometricLogin(username) {
-            try {
-                const response = await fetch('/biometric_login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username })
-                });
-                const resData = await response.json();
-                if (resData.status === 'success') {
-                    window.location.href = resData.redirect;
-                }
-            } catch (err) {
-                console.error('Biometric login error:', err);
             }
         }
     </script>

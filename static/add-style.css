@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -23,6 +27,7 @@ body {
     font-size: 24px;
     font-weight: 700;
     color: #5a84ff;
+    text-decoration: none;
 }
 
 .logo span {
@@ -54,7 +59,8 @@ body {
 .page-shell {
     display: flex;
     justify-content: center;
-    padding: 30px 20px 60px;
+    padding: 20px 14px 40px;
+    width: 100%;
 }
 
 .form-panel {
@@ -62,18 +68,19 @@ body {
     max-width: 480px;
     background: rgba(6, 15, 43, 0.92);
     border-radius: 30px;
-    padding: 32px;
+    padding: 32px 24px;
     border: 1px solid rgba(72, 116, 223, 0.18);
     box-shadow: 0 24px 60px rgba(1, 10, 32, 0.32);
     backdrop-filter: blur(18px);
+    overflow: hidden;
 }
 
 .card-header {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 .card-header h1 {
-    font-size: 32px;
+    font-size: 30px;
     margin: 0;
     line-height: 1.05;
     background: linear-gradient(135deg, #8bbdff, #d0f3ff);
@@ -83,15 +90,17 @@ body {
 }
 
 .subtitle {
-    margin-top: 12px;
+    margin-top: 10px;
     color: #c5d2ff;
-    font-size: 15px;
-    line-height: 1.75;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 .form-card {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 18px;
+    width: 100%;
 }
 
     .flash-container {
@@ -121,9 +130,15 @@ body {
         text-align: left;
     }
 
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
 
 .form-group label {
-    color: #1b75dce8;
+    color: #8bbdff;
     font-size: 14px;
     font-weight: 600;
 }
@@ -131,6 +146,7 @@ body {
 .form-card input,
 .form-card select {
     width: 100%;
+    box-sizing: border-box;
     padding: 14px 16px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.12);

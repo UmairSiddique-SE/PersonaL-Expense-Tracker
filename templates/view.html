@@ -50,9 +50,11 @@
                         <td>{{ expense.category }}</td>
                         <td>{{ expense.date }}</td>
                         <td>{{ expense.description }}</td>
-                        <td>
-                            <a href="{{ url_for('edit', id=expense._id) }}" class="action-btn edit-btn">Edit</a>
-                            <a href="{{ url_for('delete', id=expense._id) }}" class="action-btn delete-btn" onclick="return confirm('Are you sure?')">Delete</a>
+                        <td class="actions-cell">
+                            <div class="action-btn-group">
+                                <a href="{{ url_for('edit', id=expense._id) }}" class="action-btn edit-btn">Edit</a>
+                                <a href="{{ url_for('delete', id=expense._id) }}" class="action-btn delete-btn" onclick="return confirm('Are you sure?')">Delete</a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
