@@ -129,21 +129,119 @@
             width: 100% !important;
         }
 
-        .category-filter-box {
+        /* Professional Category Pill Tags & Dropdown */
+        .category-dropdown-panel {
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            margin-bottom: 24px;
-            padding: 18px 22px;
-            background: var(--input-bg);
-            border-radius: 20px;
-            border: 1.5px solid var(--border-color);
-            transition: all 0.3s ease;
+            gap: 10px;
         }
 
-        .category-checkbox-badge:hover {
-            border-color: var(--accent-primary) !important;
-            background: var(--bg-card-hover) !important;
+        .category-select-menu {
+            width: 100%;
+            max-width: 360px;
+            padding: 11px 16px;
+            border-radius: 14px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .category-select-menu:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .selected-pills-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
+        }
+
+        .pills-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .clear-all-link {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            transition: opacity 0.2s ease;
+        }
+
+        .clear-all-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        .pills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .category-pill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--accent-primary);
+            border-radius: 999px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+            transition: all 0.25s ease;
+        }
+
+        .category-pill-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(56, 189, 248, 0.25);
+        }
+
+        .pill-remove-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .pill-remove-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+            transform: scale(1.15);
         }
     </style>
 
@@ -151,6 +249,20 @@
 
 <body>
     {% set cat_param = selected_categories | join(',') %}
+    
+    <!-- Hidden Form for submitting category filters -->
+    <form action="/summary" method="GET" id="categoryFilterForm">
+        <input type="hidden" name="type" value="{{ view_type }}">
+        {% if view_type == 'daily' %}
+        <input type="hidden" name="date" value="{{ selected_date }}">
+        {% endif %}
+        <div id="hiddenCategoryInputs">
+            {% for cat in selected_categories %}
+            <input type="hidden" name="category" value="{{ cat }}">
+            {% endfor %}
+        </div>
+    </form>
+
     <nav class="navbar">
         <div class="logo">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
@@ -217,50 +329,50 @@
                         class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
                     <a href="/summary?type=daily{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}{% if is_category_filtered %}&category={{ cat_param }}{% endif %}"
                         class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
-                    <button type="button" class="btn{% if is_category_filtered %} active{% endif %}" onclick="toggleCategoryFilter()">
-                        🏷️ Select Categories ▾
+                    <button type="button" class="btn{% if is_category_filtered %} active{% endif %}" onclick="toggleCategoryDropdown()">
+                        🏷️ Select Category ▾
                     </button>
                 </div>
             </div>
 
-            <!-- Multi-Select Category Selection Form -->
-            <form action="/summary" method="GET" class="category-filter-box" id="categoryForm" style="{% if not is_category_filtered %}display: none;{% endif %}">
-                <input type="hidden" name="type" value="{{ view_type }}">
-                {% if view_type == 'daily' %}
-                <input type="hidden" name="date" value="{{ selected_date }}">
-                {% endif %}
-                
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                    <label style="font-weight: 700; font-size: 14px;">Select Categories (Multi-select):</label>
-                    <div>
-                        <button type="button" onclick="selectAllCategories(true)" class="btn" style="padding: 4px 12px; font-size: 12px; margin-right: 6px;">Select All</button>
-                        <button type="button" onclick="selectAllCategories(false)" class="btn" style="padding: 4px 12px; font-size: 12px;">Deselect All</button>
-                    </div>
-                </div>
-
-                <div class="category-checkboxes-grid" style="display: flex; flex-wrap: wrap; gap: 12px; width: 100%; margin-top: 4px;">
+            <!-- Category Selection Dropdown Column -->
+            <div class="category-dropdown-panel" id="categoryDropdownPanel" style="display: none;">
+                <label style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Add Category to Filter:</label>
+                <select class="category-select-menu" onchange="addCategoryPill(this.value)">
+                    <option value="" disabled selected>Select category to add...</option>
                     {% if used_categories %}
                         {% for cat in used_categories %}
-                        <label class="category-checkbox-badge" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 12px; cursor: pointer; user-select: none; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
-                            <input type="checkbox" name="category" value="{{ cat }}" {% if cat in selected_categories %}checked{% endif %} style="width: 16px; height: 16px; accent-color: var(--accent-primary); cursor: pointer;">
-                            <span>
+                            {% if cat not in selected_categories %}
+                            <option value="{{ cat }}">
                                 {% if cat.lower() == 'travel' %}🚗{% elif cat.lower() == 'food' %}🍔{% elif cat.lower() == 'groceries' %}🛒{% elif cat.lower() == 'bills' %}💡{% elif cat.lower() == 'entertainment' %}🎬{% else %}🏷️{% endif %} {{ cat }}
-                            </span>
-                        </label>
+                            </option>
+                            {% endif %}
                         {% endfor %}
                     {% else %}
-                        <p style="color: var(--text-muted); margin: 0; font-size: 14px;">No recorded categories found yet! Add expenses to see your categories here.</p>
+                        <option value="" disabled>No categories used yet!</option>
                     {% endif %}
-                </div>
+                </select>
+            </div>
 
-                <div style="display: flex; gap: 10px; margin-top: 8px;">
-                    <button type="submit" class="btn" style="background: var(--button-gradient); color: var(--button-text); border: none;">Apply Category Filter</button>
-                    {% if is_category_filtered %}
-                    <a href="/summary?type={{ view_type }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}" 
-                       class="btn" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Clear Filter</a>
-                    {% endif %}
+            <!-- Active Selected Category Pills/Tags with Cross (X) Marks -->
+            {% if selected_categories %}
+            <div class="selected-pills-box">
+                <div class="pills-header">
+                    <span>Active Selected Categories:</span>
+                    <button type="button" class="clear-all-link" onclick="removeAllPills()">Clear All ✕</button>
                 </div>
-            </form>
+                <div class="pills-list">
+                    {% for cat in selected_categories %}
+                    <div class="category-pill-tag">
+                        <span>
+                            {% if cat.lower() == 'travel' %}🚗{% elif cat.lower() == 'food' %}🍔{% elif cat.lower() == 'groceries' %}🛒{% elif cat.lower() == 'bills' %}💡{% elif cat.lower() == 'entertainment' %}🎬{% else %}🏷️{% endif %} {{ cat }}
+                        </span>
+                        <button type="button" class="pill-remove-btn" onclick="removeCategoryPill('{{ cat }}')" title="Remove {{ cat }}">✕</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <div class="total-box">
                 <h2>Total{% if is_category_filtered %} ({{ selected_categories | join(', ') }}){% endif %}: Rs {{ totals.get(view_type, 0) }}</h2>
@@ -333,20 +445,53 @@
         </section>
     </main>
 
-    <!-- JavaScript for Vertical Bar Chart & Toggle -->
+    <!-- JavaScript for Interactive Category Tags & Vertical Bar Chart -->
     <script>
-        function toggleCategoryFilter() {
-            const form = document.getElementById('categoryForm');
-            if (form.style.display === 'none' || form.style.display === '') {
-                form.style.display = 'flex';
-            } else {
-                form.style.display = 'none';
+        function toggleCategoryDropdown() {
+            const panel = document.getElementById('categoryDropdownPanel');
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'flex' : 'none';
+        }
+
+        function addCategoryPill(catName) {
+            if (!catName) return;
+            const form = document.getElementById('categoryFilterForm');
+            const container = document.getElementById('hiddenCategoryInputs');
+            
+            let exists = false;
+            const inputs = container.querySelectorAll('input[name="category"]');
+            inputs.forEach(inp => {
+                if (inp.value.toLowerCase() === catName.toLowerCase()) exists = true;
+            });
+
+            if (!exists) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'category';
+                inp.value = catName;
+                container.appendChild(inp);
+                form.submit();
             }
         }
 
-        function selectAllCategories(check) {
-            const checkboxes = document.querySelectorAll('#categoryForm input[type="checkbox"]');
-            checkboxes.forEach(cb => cb.checked = check);
+        function removeCategoryPill(catName) {
+            const form = document.getElementById('categoryFilterForm');
+            const container = document.getElementById('hiddenCategoryInputs');
+            const inputs = container.querySelectorAll('input[name="category"]');
+            
+            inputs.forEach(inp => {
+                if (inp.value.toLowerCase() === catName.toLowerCase()) {
+                    inp.remove();
+                }
+            });
+
+            form.submit();
+        }
+
+        function removeAllPills() {
+            const form = document.getElementById('categoryFilterForm');
+            const container = document.getElementById('hiddenCategoryInputs');
+            container.innerHTML = '';
+            form.submit();
         }
 
         document.addEventListener('DOMContentLoaded', function () {
