@@ -328,10 +328,20 @@ def add():
     user_data = users_collection.find_one({"_id": ObjectId(uid)})
     user_custom_categories = user_data.get("custom_categories", []) if user_data else []
     
+    # Last added expense by this user to set default category
+    latest_expense = expenses_collection.find_one({"user_id": uid}, sort=[("_id", -1)])
+    last_used_category = latest_expense.get("category", "") if latest_expense else ""
+    
     # Aaj ki date YYYY-MM-DD format mein generate kar ke template ko bhej rahe hain
     today_date = datetime.now().strftime('%Y-%m-%d')
     
-    return render_template("add.html", custom_categories=user_custom_categories, today_date=today_date)
+    return render_template(
+        "add.html",
+        custom_categories=user_custom_categories,
+        today_date=today_date,
+        last_used_category=last_used_category
+    )
+
 @app.route("/view")
 @login_required
 def view():
@@ -383,18 +393,19 @@ def summary():
     if view_type not in ['overall', 'weekly', 'monthly', 'daily']:
         view_type = 'overall'
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    selected_category = request.args.get('category', 'all').strip()
-
-    # User custom categories
-    user_data = users_collection.find_one({"_id": ObjectId(uid)})
-    user_custom_categories = user_data.get("custom_categories", []) if user_data else []
     
+    # Get list of categories requested (supports multi-select)
+    raw_cats = request.args.getlist('category')
+    if not raw_cats and request.args.get('category'):
+        raw_cats = request.args.get('category').split(',')
+    
+    selected_categories = [c.strip() for c in raw_cats if c.strip() and c.strip().lower() != 'all']
+    selected_cats_lower = set(c.lower() for c in selected_categories)
+
     expenses = list(expenses_collection.find({"user_id": uid}))
     
-    # Collect all categories
-    default_cats = ['Food', 'Travel', 'Groceries', 'Bills', 'Entertainment']
-    expense_cats = [exp.get('category', 'Other') for exp in expenses if exp.get('category')]
-    all_categories = sorted(list(set(default_cats + user_custom_categories + expense_cats)))
+    # Only categories that the user has ACTUALLY USED in expenses
+    used_categories = sorted(list(set(exp.get('category', 'Other') for exp in expenses if exp.get('category'))))
 
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
@@ -402,7 +413,7 @@ def summary():
     data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
     totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
     
-    is_category_filtered = bool(selected_category and selected_category.lower() != 'all')
+    is_category_filtered = bool(selected_cats_lower)
     category_expenses = []
 
     for exp in expenses:
@@ -419,20 +430,20 @@ def summary():
         is_daily = (exp_date_str == selected_date)
 
         if is_category_filtered:
-            if cat.lower() == selected_category.lower():
-                data["overall"][exp_date_str] = data["overall"].get(exp_date_str, 0) + amt
+            if cat.lower() in selected_cats_lower:
+                data["overall"][cat] = data["overall"].get(cat, 0) + amt
                 totals["overall"] += amt
 
                 if is_weekly:
-                    data["weekly"][exp_date_str] = data["weekly"].get(exp_date_str, 0) + amt
+                    data["weekly"][cat] = data["weekly"].get(cat, 0) + amt
                     totals["weekly"] += amt
 
                 if is_monthly:
-                    data["monthly"][exp_date_str] = data["monthly"].get(exp_date_str, 0) + amt
+                    data["monthly"][cat] = data["monthly"].get(cat, 0) + amt
                     totals["monthly"] += amt
 
                 if is_daily:
-                    data["daily"][exp_date_str] = data["daily"].get(exp_date_str, 0) + amt
+                    data["daily"][cat] = data["daily"].get(cat, 0) + amt
                     totals["daily"] += amt
 
                 if (view_type == 'overall') or \
@@ -465,8 +476,8 @@ def summary():
         totals=totals,
         selected_date=selected_date,
         view_type=view_type,
-        all_categories=all_categories,
-        selected_category=selected_category,
+        used_categories=used_categories,
+        selected_categories=selected_categories,
         category_expenses=category_expenses,
         is_category_filtered=is_category_filtered
     )

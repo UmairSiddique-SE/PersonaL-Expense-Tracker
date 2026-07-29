@@ -54,15 +54,16 @@
                 <div class="form-group">
                     <label for="categorySelect">Category</label>
                     <select name="category" id="categorySelect" onchange="checkCustomCategory(this)">
-                        <option value="Food">Food</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Bills">Bills</option>
-                        <option value="Shopping">Shopping</option>
+                        <option value="Food" {% if last_used_category == 'Food' %}selected{% endif %}>Food</option>
+                        <option value="Travel" {% if last_used_category == 'Travel' %}selected{% endif %}>Travel</option>
+                        <option value="Groceries" {% if last_used_category == 'Groceries' %}selected{% endif %}>Groceries</option>
+                        <option value="Bills" {% if last_used_category == 'Bills' %}selected{% endif %}>Bills</option>
+                        <option value="Shopping" {% if last_used_category == 'Shopping' %}selected{% endif %}>Shopping</option>
                         
                         <!-- Custom Categories with Cross Option -->
                         {% if custom_categories %}
                             {% for cat in custom_categories %}
-                                <option value="{{ cat }}">{{ cat }}</option>
+                                <option value="{{ cat }}" {% if last_used_category == cat %}selected{% endif %}>{{ cat }}</option>
                                 <option value="DELETE:{{ cat }}">{{ cat }}  Delete choice</option>
                             {% endfor %}
                         {% endif %}
