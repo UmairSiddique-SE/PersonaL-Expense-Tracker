@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Summary | Expense Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}"> 
-     <meta name="theme-color" content="#0056b3">  
+    <meta name="theme-color" content="#0056b3">  
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='summary-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
 
- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     <style>
         .card-header {
             display: flex;
@@ -55,7 +55,7 @@
         /* Summary Cards Grid */
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -81,7 +81,6 @@
             box-shadow: 0 14px 32px rgba(56, 189, 248, 0.2);
         }
 
-        /* Category name - MUST be visible in both modes */
         .summary-card h3 {
             display: flex;
             align-items: center;
@@ -92,7 +91,6 @@
             color: var(--text-primary) !important;
         }
 
-        /* Amount - Rs value */
         .summary-card p {
             margin: 0 0 10px;
             font-size: 1.3rem;
@@ -130,6 +128,42 @@
             max-height: 210px;
             width: 100% !important;
         }
+
+        .category-filter-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: var(--input-bg);
+            border-radius: 18px;
+            border: 1.5px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .category-filter-box label {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .category-select-dropdown {
+            padding: 10px 16px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .category-select-dropdown:focus {
+            border-color: var(--accent-primary);
+        }
     </style>
 
 </head>
@@ -151,12 +185,19 @@
             <div class="card-header">
                 <div>
                     <h1>📊 {{ view_type.capitalize() }} Summary</h1>
-                    <p class="subtitle">Explore your spending across categories with clean filters.</p>
+                    <p class="subtitle">
+                        {% if is_category_filtered %}
+                        Showing records for Category: <strong>{{ selected_category }}</strong>
+                        {% else %}
+                        Explore your spending across categories with clean filters.
+                        {% endif %}
+                    </p>
                     <p class="period-label">
+                        {% if is_category_filtered %}
+                        Category: <strong>{{ selected_category }}</strong> &bull; 
+                        {% endif %}
                         {% if view_type == 'daily' %}
                         Date: <strong>{{ selected_date }}</strong>
-                        {% elif view_type == 'range' %}
-                        Range: <strong>{{ from_date }}</strong> to <strong>{{ to_date }}</strong>
                         {% elif view_type == 'monthly' %}
                         Period: <strong>Current Month</strong>
                         {% elif view_type == 'weekly' %}
@@ -167,50 +208,93 @@
                     </p>
                 </div>
                 <div class="report-actions">
-                    <a href="{{ url_for('download_report', type=view_type, date=selected_date, from_date=from_date, to_date=to_date) }}"
+                    <a href="{{ url_for('download_report', type=view_type, date=selected_date, category=selected_category) }}"
                         class="btn report-btn">⬇️ Download PDF Report</a>
                 </div>
             </div>
 
             <div class="controls-row">
+                {% if view_type == 'daily' %}
                 <form action="/summary" method="GET" class="date-form">
                     <input type="hidden" name="type" value="daily">
+                    {% if is_category_filtered %}
+                    <input type="hidden" name="category" value="{{ selected_category }}">
+                    {% endif %}
                     <label>Select Date</label>
                     <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
                 </form>
+                {% else %}
+                <div></div>
+                {% endif %}
                 <div class="summary-buttons">
-                    <a href="/summary?type=overall"
+                    <a href="/summary?type=overall{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
                         class="btn{% if view_type == 'overall' %} active{% endif %}">Overall</a>
-                    <a href="/summary?type=weekly"
+                    <a href="/summary?type=weekly{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
                         class="btn{% if view_type == 'weekly' %} active{% endif %}">Weekly</a>
-                    <a href="/summary?type=monthly"
+                    <a href="/summary?type=monthly{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
                         class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
-                    <a href="/summary?type=daily" class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
-                    <a href="/summary?type=range{% if from_date %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}"
-                        class="btn{% if view_type == 'range' %} active{% endif %}">Custom Range</a>
+                    <a href="/summary?type=daily{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
+                        class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
+                    <button type="button" class="btn{% if is_category_filtered %} active{% endif %}" onclick="toggleCategoryFilter()">
+                        🏷️ Select Category ▾
+                    </button>
                 </div>
             </div>
 
-            {% if view_type == 'range' %}
-            <form action="/summary" method="GET" class="date-form range-form">
-                <input type="hidden" name="type" value="range">
-                <label>From</label>
-                <input type="date" name="from_date" value="{{ from_date }}" required>
-                <label>To</label>
-                <input type="date" name="to_date" value="{{ to_date }}" required>
-                <button type="submit" class="btn">Apply</button>
+            <!-- Category Selection Dropdown Form -->
+            <form action="/summary" method="GET" class="category-filter-box" id="categoryForm" style="{% if not is_category_filtered %}display: none;{% endif %}">
+                <input type="hidden" name="type" value="{{ view_type }}">
+                {% if view_type == 'daily' %}
+                <input type="hidden" name="date" value="{{ selected_date }}">
+                {% endif %}
+                <label for="category-select">Select Category:</label>
+                <select name="category" id="category-select" class="category-select-dropdown" onchange="this.form.submit()">
+                    <option value="all" {% if not selected_category or selected_category == 'all' %}selected{% endif %}>📁 All Categories</option>
+                    {% for cat in all_categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
+                        {% if cat.lower() == 'travel' %}🚗{% elif cat.lower() == 'food' %}🍔{% elif cat.lower() == 'groceries' %}🛒{% elif cat.lower() == 'bills' %}💡{% elif cat.lower() == 'entertainment' %}🎬{% else %}🏷️{% endif %} {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if is_category_filtered %}
+                <a href="/summary?type={{ view_type }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}&category=all" 
+                   class="btn" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); padding: 8px 14px; font-size: 13px;">Clear Category Filter</a>
+                {% endif %}
             </form>
-            {% endif %}
 
             <div class="total-box">
-                <h2>Total: Rs {{ totals.get(view_type, 0) }}</h2>
+                <h2>Total{% if is_category_filtered %} ({{ selected_category }}){% endif %}: Rs {{ totals.get(view_type, 0) }}</h2>
             </div>
 
-            <!-- Chote Category Cards (Upar Grid Format mein) -->
+            {% if is_category_filtered %}
+            <!-- Expense Items for Selected Category -->
+            <div class="summary-cards">
+                {% if category_expenses %}
+                {% for exp in category_expenses %}
+                <div class="summary-card" style="min-height: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h3 style="margin: 0;">
+                            {% if exp.category.lower() == 'travel' %}🚗{% elif exp.category.lower() == 'food' %}🍔{% elif exp.category.lower() == 'groceries' %}🛒{% elif exp.category.lower() == 'bills' %}💡{% elif exp.category.lower() == 'entertainment' %}🎬{% else %}🏷️{% endif %}
+                            {{ exp.category }}
+                        </h3>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">📅 {{ exp.date }}</span>
+                    </div>
+                    <p style="margin: 4px 0 8px; font-size: 1.4rem;">Rs {{ exp.amount }}</p>
+                    {% if exp.description %}
+                    <span style="font-size: 0.88rem; color: var(--text-secondary);">📝 {{ exp.description }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="no-data">No expenses found for {{ selected_category }} in this timeframe!</p>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- Summary Category Cards (All Categories Overview) -->
             <div class="summary-cards">
                 {% if data[view_type] %}
                 {% for cat, total in data[view_type].items() %}
-                <a href="{{ url_for('summary_details') }}?category={{ cat }}&type={{ view_type }}{% if view_type == 'daily' %}&date={{ selected_date }}{% elif view_type == 'range' %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}"
+                <a href="/summary?type={{ view_type }}&category={{ cat }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
                     class="summary-card">
                     <h3>
                         {% if cat.lower() == 'travel' %}
@@ -229,15 +313,16 @@
                         {{ cat }}
                     </h3>
                     <p>Rs {{ total }}</p>
-                    <span class="view-details">View details &rarr;</span>
+                    <span class="view-details">View record &rarr;</span>
                 </a>
                 {% endfor %}
                 {% else %}
                 <p class="no-data">No data found for this selection!</p>
                 {% endif %}
             </div>
+            {% endif %}
 
-            <!-- Compact Vertical Bar Chart Section (Neeche) -->
+            <!-- Compact Vertical Bar Chart Section -->
             <div class="chart-container">
                 <canvas id="categoryBarChart"></canvas>
             </div>
@@ -248,82 +333,85 @@
         </section>
     </main>
 
-    <!-- JavaScript for Vertical Bar Chart Rendering -->
+    <!-- JavaScript for Vertical Bar Chart & Toggle -->
     <script>
+        function toggleCategoryFilter() {
+            const form = document.getElementById('categoryForm');
+            if (form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'flex';
+            } else {
+                form.style.display = 'none';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const ctx = document.getElementById('categoryBarChart').getContext('2d');
 
-            const categories = {{ data[view_type].
-            keys() | list | tojson 
-            if 
-            data[view_type] 
-                else[]
-        }};
-        const totals = {{ data[view_type].values() | list | tojson if data[view_type] else[] }};
+            const categories = {{ data[view_type].keys() | list | tojson if data[view_type] else [] }};
+            const totals = {{ data[view_type].values() | list | tojson if data[view_type] else [] }};
+            const isCategoryFiltered = {{ 'true' if is_category_filtered else 'false' }};
+            const selectedCatName = {{ selected_category | tojson }};
 
-        if (categories.length > 0) {
-            // Theme-aware colors
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-            const textColor = isLight ? '#334155' : '#cbd5e1';
-            const titleColor = isLight ? '#0f172a' : '#f8fafc';
-            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
-            const barColor = isLight ? '#0284c7' : '#38bdf8';
+            if (categories.length > 0) {
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                const textColor = isLight ? '#334155' : '#cbd5e1';
+                const titleColor = isLight ? '#0f172a' : '#f8fafc';
+                const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
+                const barColor = isLight ? '#0284c7' : '#38bdf8';
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: categories,
-                    datasets: [{
-                        label: 'Spending (Rs)',
-                        data: totals,
-                        backgroundColor: barColor,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Spending Overview',
-                            color: titleColor,
-                            font: { size: 14, family: 'Segoe UI', weight: '700' },
-                            padding: { bottom: 14 }
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: categories,
+                        datasets: [{
+                            label: 'Spending (Rs)',
+                            data: totals,
+                            backgroundColor: barColor,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: true,
+                                text: isCategoryFiltered ? (selectedCatName + ' Spending Breakdown') : 'Spending Overview',
+                                color: titleColor,
+                                font: { size: 14, family: 'Segoe UI', weight: '700' },
+                                padding: { bottom: 14 }
+                            },
+                            tooltip: {
+                                backgroundColor: isLight ? '#ffffff' : '#0b1329',
+                                titleColor: isLight ? '#0f172a' : '#f8fafc',
+                                bodyColor: isLight ? '#334155' : '#cbd5e1',
+                                borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(ctx) { return '  Rs ' + ctx.raw; }
+                                }
+                            }
                         },
-                        tooltip: {
-                            backgroundColor: isLight ? '#ffffff' : '#0b1329',
-                            titleColor: isLight ? '#0f172a' : '#f8fafc',
-                            bodyColor: isLight ? '#334155' : '#cbd5e1',
-                            borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
-                            borderWidth: 1,
-                            padding: 12,
-                            callbacks: {
-                                label: function(ctx) { return '  Rs ' + ctx.raw; }
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: textColor, font: { size: 12, family: 'Segoe UI', weight: '600' } }
+                            },
+                            y: {
+                                grid: { color: gridColor },
+                                ticks: { color: textColor, font: { size: 11, family: 'Segoe UI' } }
                             }
                         }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: textColor, font: { size: 12, family: 'Segoe UI', weight: '600' } }
-                        },
-                        y: {
-                            grid: { color: gridColor },
-                            ticks: { color: textColor, font: { size: 11, family: 'Segoe UI' } }
-                        }
                     }
-                }
-            });
-        } else {
-            document.querySelector('.chart-container').style.display = 'none';
-        }
-    });
+                });
+            } else {
+                document.querySelector('.chart-container').style.display = 'none';
+            }
+        });
     </script>
-
-
 </body>
 
 </html>

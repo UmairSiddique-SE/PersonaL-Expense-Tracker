@@ -380,31 +380,31 @@ def edit(id):
 def summary():
     uid = session.get('user_id')
     view_type = request.args.get('type', 'overall')
-    if view_type not in ['overall', 'weekly', 'monthly', 'daily', 'range']:
+    if view_type not in ['overall', 'weekly', 'monthly', 'daily']:
         view_type = 'overall'
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    from_date = request.args.get('from_date', '')
-    to_date = request.args.get('to_date', '')
+    selected_category = request.args.get('category', 'all').strip()
+
+    # User custom categories
+    user_data = users_collection.find_one({"_id": ObjectId(uid)})
+    user_custom_categories = user_data.get("custom_categories", []) if user_data else []
+    
     expenses = list(expenses_collection.find({"user_id": uid}))
     
-    data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}, "range": {}}
-    totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0, "range": 0}
+    # Collect all categories
+    default_cats = ['Food', 'Travel', 'Groceries', 'Bills', 'Entertainment']
+    expense_cats = [exp.get('category', 'Other') for exp in expenses if exp.get('category')]
+    all_categories = sorted(list(set(default_cats + user_custom_categories + expense_cats)))
+
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
 
-    range_start = None
-    range_end = None
-    if from_date:
-        try:
-            range_start = datetime.strptime(from_date, '%Y-%m-%d')
-        except ValueError:
-            range_start = None
-    if to_date:
-        try:
-            range_end = datetime.strptime(to_date, '%Y-%m-%d')
-        except ValueError:
-            range_end = None
+    data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
+    totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
     
+    is_category_filtered = bool(selected_category and selected_category.lower() != 'all')
+    category_expenses = []
+
     for exp in expenses:
         amt = float(exp.get('amount', 0))
         cat = exp.get('category', 'Other')
@@ -414,30 +414,63 @@ def summary():
         except:
             continue
         
-        data["overall"][cat] = data["overall"].get(cat, 0) + amt
-        totals["overall"] += amt
-        if exp_date >= one_week_ago:
-            data["weekly"][cat] = data["weekly"].get(cat, 0) + amt
-            totals["weekly"] += amt
-        if exp_date.month == now.month and exp_date.year == now.year:
-            data["monthly"][cat] = data["monthly"].get(cat, 0) + amt
-            totals["monthly"] += amt
-        if exp_date_str == selected_date:
-            data["daily"][cat] = data["daily"].get(cat, 0) + amt
-            totals["daily"] += amt
-        if range_start and range_end and range_start <= exp_date <= range_end:
-            data["range"][cat] = data["range"].get(cat, 0) + amt
-            totals["range"] += amt
-            
+        is_weekly = (exp_date >= one_week_ago)
+        is_monthly = (exp_date.month == now.month and exp_date.year == now.year)
+        is_daily = (exp_date_str == selected_date)
+
+        if is_category_filtered:
+            if cat.lower() == selected_category.lower():
+                data["overall"][exp_date_str] = data["overall"].get(exp_date_str, 0) + amt
+                totals["overall"] += amt
+
+                if is_weekly:
+                    data["weekly"][exp_date_str] = data["weekly"].get(exp_date_str, 0) + amt
+                    totals["weekly"] += amt
+
+                if is_monthly:
+                    data["monthly"][exp_date_str] = data["monthly"].get(exp_date_str, 0) + amt
+                    totals["monthly"] += amt
+
+                if is_daily:
+                    data["daily"][exp_date_str] = data["daily"].get(exp_date_str, 0) + amt
+                    totals["daily"] += amt
+
+                if (view_type == 'overall') or \
+                   (view_type == 'weekly' and is_weekly) or \
+                   (view_type == 'monthly' and is_monthly) or \
+                   (view_type == 'daily' and is_daily):
+                    category_expenses.append(exp)
+        else:
+            data["overall"][cat] = data["overall"].get(cat, 0) + amt
+            totals["overall"] += amt
+
+            if is_weekly:
+                data["weekly"][cat] = data["weekly"].get(cat, 0) + amt
+                totals["weekly"] += amt
+
+            if is_monthly:
+                data["monthly"][cat] = data["monthly"].get(cat, 0) + amt
+                totals["monthly"] += amt
+
+            if is_daily:
+                data["daily"][cat] = data["daily"].get(cat, 0) + amt
+                totals["daily"] += amt
+
+    # Sort category_expenses by date descending
+    category_expenses.sort(key=lambda x: x.get('date', ''), reverse=True)
+
     return render_template(
         "summary.html",
         data=data,
         totals=totals,
         selected_date=selected_date,
-        from_date=from_date,
-        to_date=to_date,
-        view_type=view_type
+        view_type=view_type,
+        all_categories=all_categories,
+        selected_category=selected_category,
+        category_expenses=category_expenses,
+        is_category_filtered=is_category_filtered
     )
+
 
 @app.route("/summary/details")
 @login_required
@@ -515,26 +548,14 @@ def download_report():
     uid = session.get('user_id')
     view_type = request.args.get('type', 'overall')
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    from_date = request.args.get('from_date', '')
-    to_date = request.args.get('to_date', '')
+    selected_category = request.args.get('category', 'all').strip()
 
     expenses = list(expenses_collection.find({"user_id": uid}))
 
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
 
-    range_start = None
-    range_end = None
-    if from_date:
-        try:
-            range_start = datetime.strptime(from_date, '%Y-%m-%d')
-        except ValueError:
-            range_start = None
-    if to_date:
-        try:
-            range_end = datetime.strptime(to_date, '%Y-%m-%d')
-        except ValueError:
-            range_end = None
+    is_cat_filtered = bool(selected_category and selected_category.lower() != 'all')
 
     # ---------------- Row-wise filtering ----------------
     filtered = []
@@ -542,9 +563,13 @@ def download_report():
 
     for exp in expenses:
         exp_date_str = exp.get('date')
+        cat = exp.get('category', 'Other')
         try:
             exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
         except (TypeError, ValueError):
+            continue
+
+        if is_cat_filtered and cat.lower() != selected_category.lower():
             continue
 
         include = False
@@ -556,8 +581,6 @@ def download_report():
             include = exp_date.month == now.month and exp_date.year == now.year
         elif view_type == 'daily':
             include = exp_date_str == selected_date
-        elif view_type == 'range':
-            include = bool(range_start and range_end and range_start <= exp_date <= range_end)
 
         if include:
             filtered.append(exp)
