@@ -393,19 +393,9 @@ def summary():
     if view_type not in ['overall', 'weekly', 'monthly', 'daily']:
         view_type = 'overall'
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    
-    # Get list of categories requested (supports multi-select)
-    raw_cats = request.args.getlist('category')
-    if not raw_cats and request.args.get('category'):
-        raw_cats = request.args.get('category').split(',')
-    
-    selected_categories = [c.strip() for c in raw_cats if c.strip() and c.strip().lower() != 'all']
-    selected_cats_lower = set(c.lower() for c in selected_categories)
+    selected_category = request.args.get('category', '').strip()
 
     expenses = list(expenses_collection.find({"user_id": uid}))
-    
-    # Only categories that the user has ACTUALLY USED in expenses
-    used_categories = sorted(list(set(exp.get('category', 'Other') for exp in expenses if exp.get('category'))))
 
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
@@ -413,7 +403,7 @@ def summary():
     data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
     totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
     
-    is_category_filtered = bool(selected_cats_lower)
+    is_category_filtered = bool(selected_category and selected_category.lower() != 'all')
     category_expenses = []
 
     for exp in expenses:
@@ -430,20 +420,20 @@ def summary():
         is_daily = (exp_date_str == selected_date)
 
         if is_category_filtered:
-            if cat.lower() in selected_cats_lower:
-                data["overall"][cat] = data["overall"].get(cat, 0) + amt
+            if cat.lower() == selected_category.lower():
+                data["overall"][exp_date_str] = data["overall"].get(exp_date_str, 0) + amt
                 totals["overall"] += amt
 
                 if is_weekly:
-                    data["weekly"][cat] = data["weekly"].get(cat, 0) + amt
+                    data["weekly"][exp_date_str] = data["weekly"].get(exp_date_str, 0) + amt
                     totals["weekly"] += amt
 
                 if is_monthly:
-                    data["monthly"][cat] = data["monthly"].get(cat, 0) + amt
+                    data["monthly"][exp_date_str] = data["monthly"].get(exp_date_str, 0) + amt
                     totals["monthly"] += amt
 
                 if is_daily:
-                    data["daily"][cat] = data["daily"].get(cat, 0) + amt
+                    data["daily"][exp_date_str] = data["daily"].get(exp_date_str, 0) + amt
                     totals["daily"] += amt
 
                 if (view_type == 'overall') or \
@@ -476,8 +466,7 @@ def summary():
         totals=totals,
         selected_date=selected_date,
         view_type=view_type,
-        used_categories=used_categories,
-        selected_categories=selected_categories,
+        selected_category=selected_category,
         category_expenses=category_expenses,
         is_category_filtered=is_category_filtered
     )

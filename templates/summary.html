@@ -72,6 +72,7 @@
             flex-direction: column;
             justify-content: space-between;
             min-height: 125px;
+            cursor: pointer;
         }
 
         .summary-card:hover {
@@ -128,141 +129,11 @@
             max-height: 210px;
             width: 100% !important;
         }
-
-        /* Professional Category Pill Tags & Dropdown */
-        .category-dropdown-panel {
-            margin-bottom: 20px;
-            padding: 16px 20px;
-            background: var(--input-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .category-select-menu {
-            width: 100%;
-            max-width: 360px;
-            padding: 11px 16px;
-            border-radius: 14px;
-            background: var(--bg-card);
-            border: 1.5px solid var(--border-color);
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            transition: border-color 0.2s ease;
-        }
-
-        .category-select-menu:focus {
-            border-color: var(--accent-primary);
-        }
-
-        .selected-pills-box {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 24px;
-            padding: 16px 20px;
-            background: var(--input-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: 20px;
-        }
-
-        .pills-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-secondary);
-        }
-
-        .clear-all-link {
-            background: none;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 12px;
-            transition: opacity 0.2s ease;
-        }
-
-        .clear-all-link:hover {
-            opacity: 0.8;
-            text-decoration: underline;
-        }
-
-        .pills-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .category-pill-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            background: var(--bg-card);
-            border: 1.5px solid var(--accent-primary);
-            border-radius: 999px;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
-            transition: all 0.25s ease;
-        }
-
-        .category-pill-tag:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(56, 189, 248, 0.25);
-        }
-
-        .pill-remove-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            line-height: 1;
-        }
-
-        .pill-remove-btn:hover {
-            background: #ef4444;
-            color: #ffffff;
-            transform: scale(1.15);
-        }
     </style>
 
 </head>
 
 <body>
-    {% set cat_param = selected_categories | join(',') %}
-    
-    <!-- Hidden Form for submitting category filters -->
-    <form action="/summary" method="GET" id="categoryFilterForm">
-        <input type="hidden" name="type" value="{{ view_type }}">
-        {% if view_type == 'daily' %}
-        <input type="hidden" name="date" value="{{ selected_date }}">
-        {% endif %}
-        <div id="hiddenCategoryInputs">
-            {% for cat in selected_categories %}
-            <input type="hidden" name="category" value="{{ cat }}">
-            {% endfor %}
-        </div>
-    </form>
-
     <nav class="navbar">
         <div class="logo">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
@@ -278,17 +149,17 @@
         <section class="form-panel">
             <div class="card-header">
                 <div>
-                    <h1>📊 {{ view_type.capitalize() }} Summary</h1>
+                    <h1>📊 {% if is_category_filtered %}{{ selected_category }}{% else %}{{ view_type.capitalize() }}{% endif %} Summary</h1>
                     <p class="subtitle">
                         {% if is_category_filtered %}
-                        Showing records for Categories: <strong>{{ selected_categories | join(', ') }}</strong>
+                        Showing all recorded expenses for <strong>{{ selected_category }}</strong>.
                         {% else %}
-                        Explore your spending across categories with clean filters.
+                        Click on any category card below to view its detailed breakdown.
                         {% endif %}
                     </p>
                     <p class="period-label">
                         {% if is_category_filtered %}
-                        Categories: <strong>{{ selected_categories | join(', ') }}</strong> &bull; 
+                        Category: <strong>{{ selected_category }}</strong> &bull; 
                         {% endif %}
                         {% if view_type == 'daily' %}
                         Date: <strong>{{ selected_date }}</strong>
@@ -302,7 +173,10 @@
                     </p>
                 </div>
                 <div class="report-actions">
-                    <a href="{{ url_for('download_report', type=view_type, date=selected_date, category=cat_param) }}"
+                    {% if is_category_filtered %}
+                    <a href="/summary?type={{ view_type }}" class="btn" style="background: var(--input-bg); border-color: var(--border-color);">⬅️ All Categories</a>
+                    {% endif %}
+                    <a href="{{ url_for('download_report', type=view_type, date=selected_date, category=selected_category) }}"
                         class="btn report-btn">⬇️ Download PDF Report</a>
                 </div>
             </div>
@@ -312,7 +186,7 @@
                 <form action="/summary" method="GET" class="date-form">
                     <input type="hidden" name="type" value="daily">
                     {% if is_category_filtered %}
-                    <input type="hidden" name="category" value="{{ cat_param }}">
+                    <input type="hidden" name="category" value="{{ selected_category }}">
                     {% endif %}
                     <label>Select Date</label>
                     <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
@@ -321,65 +195,23 @@
                 <div></div>
                 {% endif %}
                 <div class="summary-buttons">
-                    <a href="/summary?type=overall{% if is_category_filtered %}&category={{ cat_param }}{% endif %}"
+                    <a href="/summary?type=overall{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
                         class="btn{% if view_type == 'overall' %} active{% endif %}">Overall</a>
-                    <a href="/summary?type=weekly{% if is_category_filtered %}&category={{ cat_param }}{% endif %}"
+                    <a href="/summary?type=weekly{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
                         class="btn{% if view_type == 'weekly' %} active{% endif %}">Weekly</a>
-                    <a href="/summary?type=monthly{% if is_category_filtered %}&category={{ cat_param }}{% endif %}"
+                    <a href="/summary?type=monthly{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
                         class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
-                    <a href="/summary?type=daily{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}{% if is_category_filtered %}&category={{ cat_param }}{% endif %}"
+                    <a href="/summary?type=daily{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
                         class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
-                    <button type="button" class="btn{% if is_category_filtered %} active{% endif %}" onclick="toggleCategoryDropdown()">
-                        🏷️ Select Category ▾
-                    </button>
                 </div>
             </div>
-
-            <!-- Category Selection Dropdown Column -->
-            <div class="category-dropdown-panel" id="categoryDropdownPanel" style="display: none;">
-                <label style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Add Category to Filter:</label>
-                <select class="category-select-menu" onchange="addCategoryPill(this.value)">
-                    <option value="" disabled selected>Select category to add...</option>
-                    {% if used_categories %}
-                        {% for cat in used_categories %}
-                            {% if cat not in selected_categories %}
-                            <option value="{{ cat }}">
-                                {% if cat.lower() == 'travel' %}🚗{% elif cat.lower() == 'food' %}🍔{% elif cat.lower() == 'groceries' %}🛒{% elif cat.lower() == 'bills' %}💡{% elif cat.lower() == 'entertainment' %}🎬{% else %}🏷️{% endif %} {{ cat }}
-                            </option>
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <option value="" disabled>No categories used yet!</option>
-                    {% endif %}
-                </select>
-            </div>
-
-            <!-- Active Selected Category Pills/Tags with Cross (X) Marks -->
-            {% if selected_categories %}
-            <div class="selected-pills-box">
-                <div class="pills-header">
-                    <span>Active Selected Categories:</span>
-                    <button type="button" class="clear-all-link" onclick="removeAllPills()">Clear All ✕</button>
-                </div>
-                <div class="pills-list">
-                    {% for cat in selected_categories %}
-                    <div class="category-pill-tag">
-                        <span>
-                            {% if cat.lower() == 'travel' %}🚗{% elif cat.lower() == 'food' %}🍔{% elif cat.lower() == 'groceries' %}🛒{% elif cat.lower() == 'bills' %}💡{% elif cat.lower() == 'entertainment' %}🎬{% else %}🏷️{% endif %} {{ cat }}
-                        </span>
-                        <button type="button" class="pill-remove-btn" onclick="removeCategoryPill('{{ cat }}')" title="Remove {{ cat }}">✕</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
 
             <div class="total-box">
-                <h2>Total{% if is_category_filtered %} ({{ selected_categories | join(', ') }}){% endif %}: Rs {{ totals.get(view_type, 0) }}</h2>
+                <h2>Total{% if is_category_filtered %} ({{ selected_category }}){% endif %}: Rs {{ totals.get(view_type, 0) }}</h2>
             </div>
 
             {% if is_category_filtered %}
-            <!-- Detailed Expense Cards for Selected Categories -->
+            <!-- Detailed Expense Cards for Selected Category -->
             <div class="summary-cards">
                 {% if category_expenses %}
                 {% for exp in category_expenses %}
@@ -398,11 +230,11 @@
                 </div>
                 {% endfor %}
                 {% else %}
-                <p class="no-data">No expenses found for {{ selected_categories | join(', ') }} in this timeframe!</p>
+                <p class="no-data">No expenses found for {{ selected_category }} in this timeframe!</p>
                 {% endif %}
             </div>
             {% else %}
-            <!-- Summary Category Cards (All Used Categories Overview) -->
+            <!-- Summary Category Cards (Clicking any card views details for that Category) -->
             <div class="summary-cards">
                 {% if data[view_type] %}
                 {% for cat, total in data[view_type].items() %}
@@ -425,7 +257,7 @@
                         {{ cat }}
                     </h3>
                     <p>Rs {{ total }}</p>
-                    <span class="view-details">View record &rarr;</span>
+                    <span class="view-details">View category record &rarr;</span>
                 </a>
                 {% endfor %}
                 {% else %}
@@ -445,61 +277,15 @@
         </section>
     </main>
 
-    <!-- JavaScript for Interactive Category Tags & Vertical Bar Chart -->
+    <!-- JavaScript for Vertical Bar Chart -->
     <script>
-        function toggleCategoryDropdown() {
-            const panel = document.getElementById('categoryDropdownPanel');
-            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'flex' : 'none';
-        }
-
-        function addCategoryPill(catName) {
-            if (!catName) return;
-            const form = document.getElementById('categoryFilterForm');
-            const container = document.getElementById('hiddenCategoryInputs');
-            
-            let exists = false;
-            const inputs = container.querySelectorAll('input[name="category"]');
-            inputs.forEach(inp => {
-                if (inp.value.toLowerCase() === catName.toLowerCase()) exists = true;
-            });
-
-            if (!exists) {
-                const inp = document.createElement('input');
-                inp.type = 'hidden';
-                inp.name = 'category';
-                inp.value = catName;
-                container.appendChild(inp);
-                form.submit();
-            }
-        }
-
-        function removeCategoryPill(catName) {
-            const form = document.getElementById('categoryFilterForm');
-            const container = document.getElementById('hiddenCategoryInputs');
-            const inputs = container.querySelectorAll('input[name="category"]');
-            
-            inputs.forEach(inp => {
-                if (inp.value.toLowerCase() === catName.toLowerCase()) {
-                    inp.remove();
-                }
-            });
-
-            form.submit();
-        }
-
-        function removeAllPills() {
-            const form = document.getElementById('categoryFilterForm');
-            const container = document.getElementById('hiddenCategoryInputs');
-            container.innerHTML = '';
-            form.submit();
-        }
-
         document.addEventListener('DOMContentLoaded', function () {
             const ctx = document.getElementById('categoryBarChart').getContext('2d');
 
             const categories = {{ data[view_type].keys() | list | tojson if data[view_type] else [] }};
             const totals = {{ data[view_type].values() | list | tojson if data[view_type] else [] }};
             const isCategoryFiltered = {{ 'true' if is_category_filtered else 'false' }};
+            const selectedCatName = {{ selected_category | tojson }};
 
             if (categories.length > 0) {
                 const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -527,7 +313,7 @@
                             legend: { display: false },
                             title: {
                                 display: true,
-                                text: isCategoryFiltered ? 'Filtered Spending Comparison' : 'Spending Overview',
+                                text: isCategoryFiltered ? (selectedCatName + ' Spending Breakdown') : 'Spending Overview',
                                 color: titleColor,
                                 font: { size: 14, family: 'Segoe UI', weight: '700' },
                                 padding: { bottom: 14 }
