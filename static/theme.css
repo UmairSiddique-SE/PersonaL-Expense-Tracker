@@ -1,0 +1,536 @@
+ :root, [data-theme="dark"] {
+    color-scheme: dark;
+    --bg-page: #060b1f;
+    --bg-gradient: radial-gradient(circle at 20% 20%, #0d1a40 0%, #080f26 45%, #030611 100%);
+    --bg-surface: rgba(15, 25, 55, 0.85);
+    --bg-card: rgba(13, 22, 48, 0.88);
+    --bg-card-hover: rgba(20, 34, 72, 0.95);
+    --navbar-bg: rgba(6, 11, 31, 0.85);
+    
+    --border-color: rgba(255, 255, 255, 0.12);
+    --border-glow: rgba(56, 189, 248, 0.3);
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    
+    --accent-primary: #38bdf8;
+    --accent-hover: #0284c7;
+    --accent-purple: #818cf8;
+    --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+    --button-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+    --button-text: #050816;
+
+    /* Financial & Currency Colors */
+    --currency-income: #34d399;
+    --currency-expense: #a78bfa;
+    --currency-balance: #38bdf8;
+    --currency-neutral: #f8fafc;
+    --currency-amount: #a78bfa;
+
+    /* Inputs & Forms */
+    --input-bg: rgba(15, 23, 42, 0.75);
+    --input-border: rgba(255, 255, 255, 0.18);
+    --input-text: #ffffff;
+    --input-placeholder: rgba(255, 255, 255, 0.45);
+    --input-focus-border: #38bdf8;
+    --input-focus-glow: rgba(56, 189, 248, 0.25);
+    --select-option-bg: #0f172a;
+    --select-option-text: #ffffff;
+
+    /* Tables & Cards */
+    --table-header-bg: rgba(20, 34, 72, 0.9);
+    --table-header-text: #e2e8f0;
+    --table-row-hover: rgba(255, 255, 255, 0.05);
+    --shadow-card: 0 15px 35px rgba(0, 0, 0, 0.45);
+    --shadow-hover: 0 20px 45px rgba(56, 189, 248, 0.2);
+    --modal-bg: #0b1329;
+    
+    /* Links & Buttons */
+    --link-color: #38bdf8;
+    --link-hover: #7dd3fc;
+}
+
+[data-theme="light"] {
+    color-scheme: light;
+    --bg-page: #f1f5f9;
+    --bg-gradient: radial-gradient(circle at top left, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%);
+    --bg-surface: rgba(255, 255, 255, 0.95);
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    --navbar-bg: rgba(255, 255, 255, 0.92);
+    
+    --border-color: rgba(15, 23, 42, 0.12);
+    --border-glow: rgba(2, 132, 199, 0.35);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    
+    --accent-primary: #0284c7;
+    --accent-hover: #0369a1;
+    --accent-purple: #4f46e5;
+    --accent-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+    --button-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+    --button-text: #ffffff;
+
+    /* Financial & Currency Colors (High contrast in Light Mode) */
+    --currency-income: #059669;
+    --currency-expense: #6366f1;
+    --currency-balance: #0284c7;
+    --currency-neutral: #0f172a;
+    --currency-amount: #6366f1;
+
+    /* Inputs & Forms */
+    --input-bg: #f8fafc;
+    --input-border: #cbd5e1;
+    --input-text: #0f172a;
+    --input-placeholder: #94a3b8;
+    --input-focus-border: #0284c7;
+    --input-focus-glow: rgba(2, 132, 199, 0.18);
+    --select-option-bg: #ffffff;
+    --select-option-text: #0f172a;
+
+    /* Tables & Cards */
+    --table-header-bg: #e2e8f0;
+    --table-header-text: #0f172a;
+    --table-row-hover: rgba(15, 23, 42, 0.04);
+    --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+    --shadow-hover: 0 15px 35px rgba(2, 132, 199, 0.15);
+    --modal-bg: #ffffff;
+    
+    /* Links & Buttons */
+    --link-color: #0284c7;
+    --link-hover: #0369a1;
+}
+
+body {
+    background: var(--bg-gradient) !important;
+    color: var(--text-primary) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+}
+
+p, span, label, div {
+    color: inherit;
+}
+
+/* Links */
+a {
+    color: var(--link-color);
+}
+a:hover {
+    color: var(--link-hover);
+}
+
+.rupee, .amount, .currency-amount {
+    font-weight: 700;
+    letter-spacing: -0.2px;
+}
+
+.amount-income, .rupee-income, .stat-income {
+    color: var(--currency-income) !important;
+}
+
+.amount-expense, .rupee-expense, .stat-expense {
+    color: var(--currency-expense) !important;
+}
+
+.amount-balance, .rupee-balance, .stat-balance {
+    color: var(--currency-balance) !important;
+}
+
+/* Sleek Segmented Capsule Theme Switch Switch (Sun | Moon) */
+.theme-toggle-btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    cursor: pointer;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: none !important;
+}
+
+.theme-toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px;
+    border-radius: 30px;
+    background: #090e24;
+    border: 1.5px solid rgba(56, 189, 248, 0.4);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6), 0 3px 10px rgba(0, 0, 0, 0.3);
+    gap: 3px;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+[data-theme="light"] .theme-toggle-switch {
+    background: #cbd5e1;
+    border-color: rgba(2, 132, 199, 0.5);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle-switch .switch-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity: 0.4;
+}
+
+.theme-toggle-switch .switch-icon.active {
+    opacity: 1;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.7);
+    transform: scale(1.12);
+}
+
+[data-theme="light"] .theme-toggle-switch .switch-icon.sun-icon.active {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+    border: 1px solid var(--input-border) !important;
+    border-radius: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--input-placeholder) !important;
+    opacity: 1;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--input-focus-border) !important;
+    box-shadow: 0 0 0 4px var(--input-focus-glow) !important;
+}
+
+/* Dropdown Option Styling for both Dark & Light themes */
+select option {
+    background-color: var(--select-option-bg) !important;
+    color: var(--select-option-text) !important;
+    padding: 10px;
+}
+
+/* Datepicker Indicator */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+}
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.9);
+}
+
+/* Universal Cards & Containers Base */
+.card, 
+.form-panel,
+.auth-card,
+.glass,
+.stat-card,
+.chart-card,
+.chart-container,
+.vip-card,
+.module-card,
+.dashboard-card,
+.summary-card,
+.detail-card,
+.table-card,
+.total-box,
+.stat-pill {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1.5px solid var(--border-color) !important;
+    box-shadow: var(--shadow-card) !important;
+    transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Universal Card Hover Borders (Glowing border on hover for Dashboard, Add, View, Summary) */
+.card:hover,
+.form-panel:hover,
+.auth-card:hover,
+.glass:hover,
+.stat-card:hover,
+.chart-card:hover,
+.chart-container:hover,
+.vip-card:hover,
+.module-card:hover,
+.summary-card:hover,
+.detail-card:hover,
+.table-card:hover,
+.total-box:hover,
+.stat-pill:hover {
+    background: var(--bg-card-hover) !important;
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25), 0 0 15px rgba(56, 189, 248, 0.15) !important;
+    transform: translateY(-4px);
+}
+
+
+/* Navbar */
+.navbar {
+    background: var(--navbar-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    backdrop-filter: blur(16px);
+}
+
+.navbar .logo,
+.navbar .logo strong,
+.navbar .logo span {
+    color: var(--text-primary) !important;
+}
+
+.user-name {
+    color: var(--text-secondary) !important;
+}
+
+.settings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid var(--border-glow);
+    color: var(--accent-primary) !important;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-btn:hover,
+.settings-btn.active {
+    background: var(--button-gradient) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+}
+
+/* Tables */
+table {
+    color: var(--text-primary) !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+th {
+    background-color: var(--table-header-bg) !important;
+    color: var(--table-header-text) !important;
+    border-bottom: 2px solid var(--border-color) !important;
+    font-weight: 700;
+}
+
+td {
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+tr:hover td {
+    background-color: var(--table-row-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+/* App-Style Centered Toast Popup Notification Modal with Spinning Animated Checkmark */
+.flash-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(3, 6, 17, 0.78);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    padding: 20px;
+    opacity: 1;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flash-container.toast-hiding {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.flash-message {
+    background: linear-gradient(145deg, rgba(15, 25, 55, 0.96) 0%, rgba(9, 14, 34, 0.98) 100%) !important;
+    border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 45px rgba(56, 189, 248, 0.35) !important;
+    border-radius: 28px;
+    padding: 36px 36px 30px 36px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    color: #ffffff !important;
+    animation: toastCardPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.flash-message.delete-type {
+    border-color: rgba(239, 68, 68, 0.45) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 45px rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Spinning SVG Checkmark & Circle Animation */
+.toast-svg-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkmark-svg {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 3.5;
+    stroke: #34d399;
+    stroke-miterlimit: 10;
+    box-shadow: inset 0px 0px 0px #34d399;
+    animation: spinRotate 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, fillSuccess 0.4s ease-in-out 0.4s forwards;
+}
+
+.checkmark-svg.delete {
+    stroke: #ef4444;
+    animation: spinRotate 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, fillDelete 0.4s ease-in-out 0.4s forwards;
+}
+
+.checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 3.5;
+    stroke-miterlimit: 10;
+    stroke: #34d399;
+    fill: none;
+    animation: strokeCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-circle.delete {
+    stroke: #ef4444;
+}
+
+.checkmark-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: strokeCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.45s forwards;
+}
+
+/* Toast Text Styling */
+.toast-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: #ffffff;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.toast-body {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    margin-bottom: 22px;
+    line-height: 1.45;
+}
+
+.toast-close-btn {
+    background: var(--button-gradient) !important;
+    color: #ffffff !important;
+    border: none;
+    padding: 10px 32px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);
+}
+
+.toast-close-btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
+}
+
+.toast-progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, #38bdf8 0%, #34d399 100%);
+    animation: toastProgress 2.8s linear forwards;
+}
+
+.flash-message.delete-type .toast-progress-bar {
+    background: linear-gradient(90deg, #f87171 0%, #dc2626 100%);
+}
+
+/* Keyframe Animations */
+@keyframes spinRotate {
+    0% { transform: rotate(0deg) scale(0.2); opacity: 0; }
+    65% { transform: rotate(380deg) scale(1.15); opacity: 1; }
+    100% { transform: rotate(360deg) scale(1); opacity: 1; }
+}
+
+@keyframes strokeCircle {
+    100% { stroke-dashoffset: 0; }
+}
+
+@keyframes strokeCheck {
+    100% { stroke-dashoffset: 0; }
+}
+
+@keyframes fillSuccess {
+    100% { box-shadow: inset 0px 0px 0px 40px rgba(52, 211, 153, 0.15); }
+}
+
+@keyframes fillDelete {
+    100% { box-shadow: inset 0px 0px 0px 40px rgba(239, 68, 68, 0.15); }
+}
+
+@keyframes toastCardPop {
+    0% { opacity: 0; transform: scale(0.7) translateY(30px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes toastProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* Footer */
+footer, .footer {
+    background: rgba(0, 0, 0, 0.05);
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-muted) !important;
+}

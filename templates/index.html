@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker | Smart Financial Management</title>
+    <meta name="description" content="Personal Expense Tracker is a smart web application to manage daily expenses, track spending history, monitor budgets, and take control of your personal finances easily.">
+    <meta name="keywords" content="expense tracker, budget planner, personal finance, savings app">
+    <meta property="title" content="Expense Tracker | Smart Financial Management">
+    <meta property="description" content="Track your daily expenses and master your savings with this smart tool.">
+    <meta property="url" content="https://personal-expensive-tracker.vercel.app/">
+    <meta name="google-site-verification" content="D85c7FMYkuf61YkpDtafyVYobRPdB2hR4Cm24iEPKrg" />
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <!-- theme.css first, then index-style.css to inherit variables -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index-style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="lazy">
+            <strong>Expense Tracker</strong>
+        </a>
+        <div class="nav-links" style="display: flex; align-items: center; gap: 12px;">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button">
+                <span class="theme-icon">🌙</span>
+                <span class="theme-label">Dark</span>
+            </button>
+            <a href="/login">Login</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>Track Your Expenses, <span>Master Your Savings.</span></h1>
+        <p>Simple, secure, and smart way to manage your daily expenses and reach your financial goals faster.</p>
+        <a href="/signup" class="btn-hero">Start Tracking for Free</a>
+    </header>
+
+    <section class="features">
+        <h2>Why Choose Our Tracker?</h2>
+        <div class="feature-grid">
+            <div class="card">
+                <h3>⚡ Instant Tracking</h3>
+                <p>Add your daily expenses in seconds with our user-friendly interface.</p>
+            </div>
+            <div class="card">
+                <h3>📊 Smart Analysis</h3>
+                <p>Visualize your spending habits with clean and simple charts.</p>
+            </div>
+            <div class="card">
+                <h3>🔒 Secure &amp; Private</h3>
+                <p>Your financial data stays protected and accessible only to you.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer style="text-align: center; padding: 32px 20px; font-size: 14px; border-top: 1px solid var(--border-color); margin-top: 60px; background: var(--navbar-bg);">
+        <p style="margin: 0; font-weight: 500; color: var(--text-secondary);">
+            Developed with ❤️ by <span style="color: var(--accent-primary); font-weight: 700;">Umair Siddique</span>
+        </p>
+        <p style="margin: 8px 0 0 0; font-size: 12px; color: var(--text-muted);">© 2026 Expense Tracker. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

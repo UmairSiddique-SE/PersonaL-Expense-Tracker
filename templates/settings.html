@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <style>
+        .settings-grid {
+            display: grid;
+            gap: 24px;
+        }
+        .settings-card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+        }
+        .settings-card h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .danger-zone {
+            border-color: rgba(239, 68, 68, 0.4) !important;
+            background: rgba(239, 68, 68, 0.04) !important;
+        }
+        .danger-zone h2 {
+            color: #ef4444;
+        }
+        .danger-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            color: white !important;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s ease;
+        }
+        .danger-btn:hover {
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            transform: translateY(-2px);
+        }
+        .user-username-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-primary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/dashboard" class="logo" style="text-decoration:none;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="lazy" style="height:32px; width:auto; vertical-align:middle; margin-right:8px;">
+            Expense<span>Tracker</span>
+        </a>
+        <div class="user-info">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
+            <a href="{{ url_for('settings') }}" class="settings-btn active">⚙️ Settings</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main class="page-shell">
+        <section class="form-panel" style="max-width: 650px; margin: 0 auto;">
+            <div class="card-header">
+                <div>
+                    <h1>⚙️ Account Settings</h1>
+                    <p class="subtitle">Manage your profile name, security password, and account settings.</p>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flash-container">
+                  {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <div class="settings-grid">
+                <!-- Profile Settings -->
+                <div class="settings-card">
+                    <h2>👤 Change Name</h2>
+                    <div class="user-username-badge">Username: @{{ user.username }}</div>
+                    <form action="/update_name" method="POST">
+                        <div class="form-group">
+                            <label for="first_name">Display Name</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required placeholder="Enter your display name">
+                        </div>
+                        <button type="submit" class="primary-btn">Update Name</button>
+                    </form>
+                </div>
+
+                <!-- Password Settings -->
+                <div class="settings-card">
+                    <h2>🔒 Change Password</h2>
+                    <form action="/change_password" method="POST">
+                        <div class="form-group">
+                            <label for="current_password">Current Password</label>
+                            <input type="password" id="current_password" name="current_password" required placeholder="Enter current password">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New Password</label>
+                            <input type="password" id="new_password" name="new_password" required minlength="8" placeholder="At least 8 characters">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm New Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password" required minlength="8" placeholder="Repeat new password">
+                        </div>
+                        <button type="submit" class="primary-btn">Change Password</button>
+                    </form>
+                </div>
+
+                <!-- Delete Account (Danger Zone) -->
+                <div class="settings-card danger-zone">
+                    <h2>🗑️ Delete Account Permanently</h2>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+                        Warning: Deleting your account will <strong>permanently erase</strong> your account profile and all recorded expenses from the database. This action cannot be undone.
+                    </p>
+                    <form action="/delete_account" method="POST" onsubmit="return confirmAccountDeletion(event, this);">
+                        <div class="form-group">
+                            <label for="confirm_delete_password" style="color: #ef4444; font-weight: 600;">Confirm Password to Delete</label>
+                            <input type="password" id="confirm_delete_password" name="confirm_delete_password" required placeholder="Enter password to confirm deletion">
+                        </div>
+                        <button type="submit" class="danger-btn">Permanently Delete My Account</button>
+                    </form>
+                </div>
+            </div>
+
+            <a class="back-link" href="{{ url_for('dashboard') }}" style="margin-top:24px; display:inline-block;">← Back to Dashboard</a>
+        </section>
+    </main>
+
+    <script>
+    function confirmAccountDeletion(event, form) {
+        if (!confirm("Are you ABSOLUTELY sure you want to permanently delete your account? All your expense records will be deleted forever!")) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+    </script>
+</body>
+</html>

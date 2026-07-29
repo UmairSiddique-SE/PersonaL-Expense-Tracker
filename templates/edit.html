@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Expense | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='edit-style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/dashboard" class="logo" style="text-decoration:none;">Expense<span>Tracker</span></a>
+        <div class="user-info">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
+            <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main class="page-shell">
+        <section class="form-panel">
+            <div class="card-header">
+                <div>
+                    <h1>Edit Expense</h1>
+                    <p class="subtitle">Update your expense details cleanly with a consistent app layout.</p>
+                </div>
+            </div>
+
+            <form class="form-card" method="POST">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="text" name="amount" placeholder="Amount" value="{{ expense.amount }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" name="category" placeholder="Category" value="{{ expense.category }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="date" value="{{ expense.date }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="Description" value="{{ expense.description }}">
+                </div>
+                <button type="submit" class="primary-btn">Update Expense</button>
+            </form>
+
+            <a class="back-link" href="{{ url_for('view') }}">← Back to Records</a>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
+</body>
+</html>

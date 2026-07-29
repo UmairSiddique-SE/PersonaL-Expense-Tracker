@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/dashboard" class="logo">Expense<span>Tracker</span></a>
+        <div class="user-info">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
+            <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main class="page-shell">
+        <section class="form-panel">
+            <div class="card-header">
+                <div>
+                    <h1>Add New Expense</h1>
+                    <p class="subtitle">Enter your latest spending and keep your dashboard up to date.</p>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flash-container">
+                  {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <form class="form-card" action="/add" method="POST">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" name="amount" step="0.01" required placeholder="0.00">
+                </div>
+               
+                <!-- Category Dropdown -->
+                <div class="form-group">
+                    <label for="categorySelect">Category</label>
+                    <select name="category" id="categorySelect" onchange="checkCustomCategory(this)">
+                        <option value="Food">Food</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Bills">Bills</option>
+                        <option value="Shopping">Shopping</option>
+                        
+                        <!-- Custom Categories with Cross Option -->
+                        {% if custom_categories %}
+                            {% for cat in custom_categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                                <option value="DELETE:{{ cat }}">{{ cat }}  Delete choice</option>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <option value="custom">Add choice</option>
+                    </select>
+                </div>
+
+                <!-- Custom Category Input Box -->
+                <div class="form-group" id="customCategoryDiv" style="display: none;">
+                    <label for="customCategoryInput">Enter Custom Category</label>
+                    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym">
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="date" value="{{ today_date }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="Optional notes...">
+                </div>
+                
+                <button type="submit" class="primary-btn">Add Expense</button>
+            </form>
+
+            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
+        </section>
+    </main>
+
+    <script>
+    function checkCustomCategory(select) {
+        const customDiv = document.getElementById('customCategoryDiv');
+        const customInput = document.getElementById('customCategoryInput');
+        
+        if (select.value.startsWith('DELETE:')) {
+            const catName = select.value.replace('DELETE:', '');
+            if (confirm(`Kya aap '${catName}' category ko delete karna chahte hain?`)) {
+                window.location.href = `/delete_custom_category?name=${encodeURIComponent(catName)}`;
+            } else {
+                select.value = "Food";
+            }
+            return;
+        }
+
+        if (select.value === 'custom') {
+            customDiv.style.display = 'block';
+            customInput.required = true;
+        } else {
+            customDiv.style.display = 'none';
+            customInput.required = false;
+            customInput.value = '';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const select = document.getElementById('categorySelect');
+        checkCustomCategory(select);
+    });
+    </script>
+</body>
+</html>

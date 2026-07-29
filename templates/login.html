@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}" />
+    <meta name="theme-color" content="#0056b3" />
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker" />
+    <title>Login - Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow-x: hidden;
+        background: var(--bg-gradient);
+        color: var(--text-primary);
+        padding: 70px 16px 30px;
+        position: relative;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      .app-header {
+        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        padding: 14px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+        background: var(--navbar-bg);
+        border-bottom: 1px solid var(--border-color);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand-link {
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand-link img {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+      }
+
+      .header-section {
+        text-align: center;
+        margin-bottom: 22px;
+      }
+
+      .header-section img {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        border: 3px solid var(--accent-primary);
+        display: block;
+        margin: 0 auto 12px;
+        object-fit: cover;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .header-section img:hover {
+        box-shadow: 0 0 25px var(--accent-primary);
+        transform: scale(1.06);
+      }
+
+      .header-section h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.3px;
+        margin-bottom: 4px;
+      }
+
+      .header-section p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+
+      .auth-card {
+        background: var(--bg-card);
+        padding: 38px 32px;
+        border-radius: 28px;
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        width: 100%;
+        max-width: 420px;
+        box-shadow: var(--shadow-card);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .auth-card:hover {
+        box-shadow: var(--shadow-hover);
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .input-group {
+        position: relative;
+        width: 100%;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 16px 20px;
+        border-radius: 18px;
+        background: var(--input-bg);
+        border: 1.5px solid var(--input-border);
+        color: var(--input-text);
+        font-size: 15px;
+        outline: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      input[type="text"]::placeholder,
+      input[type="password"]::placeholder {
+        color: var(--input-placeholder);
+      }
+
+      input[type="text"]:hover,
+      input[type="password"]:hover {
+        border-color: var(--border-glow);
+      }
+
+      input[type="text"]:focus,
+      input[type="password"]:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 4px var(--input-focus-glow);
+        transform: translateY(-1px);
+      }
+
+      .password-wrapper {
+        position: relative;
+        width: 100%;
+      }
+
+      .password-wrapper input {
+        padding-right: 50px;
+      }
+
+      .toggle-eye {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        user-select: none;
+        font-size: 18px;
+        opacity: 0.75;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+
+      .toggle-eye:hover {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.1);
+      }
+
+      .options-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: -4px;
+        font-size: 14px;
+      }
+
+      .forgot-link {
+        color: var(--link-color);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s ease;
+      }
+
+      .forgot-link:hover {
+        color: var(--link-hover);
+        text-decoration: underline;
+      }
+
+      .btn-signin {
+        width: 100%;
+        padding: 16px;
+        border-radius: 18px;
+        border: none;
+        background: var(--button-gradient);
+        color: var(--button-text);
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: 0.8px;
+        cursor: pointer;
+        text-transform: uppercase;
+        margin-top: 8px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 8px 20px rgba(56, 189, 248, 0.25);
+      }
+
+      .btn-signin:hover {
+        box-shadow: 0 12px 28px rgba(56, 189, 248, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .btn-signin:active {
+        transform: translateY(0);
+      }
+
+      .flash-container {
+        margin-bottom: 18px;
+      }
+
+      .footer-link {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 14.5px;
+        color: var(--text-secondary);
+      }
+
+      .footer-link a {
+        color: var(--link-color);
+        text-decoration: none;
+        font-weight: 700;
+        transition: color 0.2s ease;
+      }
+
+      .footer-link a:hover {
+        color: var(--link-hover);
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="{{ url_for('index') }}" class="brand-link">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+        Expense Tracker
+      </a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" type="button">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-label">Dark</span>
+      </button>
+    </header>
+
+    <div class="header-section">
+      <a href="{{ url_for('index') }}">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo" loading="eager" />
+      </a>
+      <h1>Expense Tracker</h1>
+      <p>Elegant & Smart Finance Management</p>
+    </div>
+
+    <div class="auth-card">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-container">
+            {% for category, message in messages %}
+              <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" id="loginForm" autocomplete="on">
+        <div class="input-group">
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="👤 Username"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="password-wrapper">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="🔒 Password"
+            autocomplete="current-password"
+            required
+          />
+          <span class="toggle-eye" onclick="togglePassword('password', this)" title="Show/Hide Password">👁️</span>
+        </div>
+
+        <div class="options-row">
+          <a href="{{ url_for('forgot') }}" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn-signin">SIGN IN</button>
+      </form>
+
+      <div class="footer-link">
+        New here? <a href="{{ url_for('signup') }}">Create an account</a>
+      </div>
+    </div>
+
+    <script>
+      // Reset stale items
+      localStorage.removeItem("remembered_username");
+      localStorage.removeItem("biometric_enabled");
+
+      function togglePassword(id, icon) {
+        const input = document.getElementById(id);
+        if (input.type === "password") {
+          input.type = "text";
+          icon.textContent = "🙈";
+        } else {
+          input.type = "password";
+          icon.textContent = "👁️";
+        }
+      }
+    </script>
+  </body>
+</html>

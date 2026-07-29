@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            padding: 70px 16px 30px;
+            position: relative;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .app-header {
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: var(--navbar-bg);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(16px);
+        }
+
+        .brand-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-link img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 430px;
+            padding: 38px 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-card);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .auth-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        h2 {
+            margin-bottom: 8px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .note {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 18px;
+            border-radius: 16px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--input-border);
+            color: var(--input-text);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder {
+            color: var(--input-placeholder);
+        }
+
+        input:hover {
+            border-color: var(--border-glow);
+        }
+
+        input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--input-focus-glow);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 18px;
+            border: none;
+            background: var(--button-gradient);
+            color: var(--button-text);
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: 0.8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.25);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(56, 189, 248, 0.4);
+        }
+
+        .footer-link {
+            margin-top: 22px;
+            font-size: 14.5px;
+        }
+
+        .footer-link a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .footer-link a:hover {
+            color: var(--link-hover);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+      <a href="{{ url_for('index') }}" class="brand-link">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+        Expense Tracker
+      </a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" type="button">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-label">Dark</span>
+      </button>
+    </header>
+
+    <div class="auth-card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-container">
+              {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if step == 'question' %}
+            <h2>Reset Password</h2>
+            <p class="note">Answer the security question you set during signup.</p>
+            <form method="POST" autocomplete="off">
+                <input type="hidden" name="step" value="question">
+                <input type="hidden" name="username" value="{{ username }}" autocomplete="off">
+                <input type="text" value="{{ question }}" readonly style="opacity:0.85; cursor:not-allowed;">
+                <input type="password" name="security_answer" placeholder="Security Answer" autocomplete="off" required>
+                <input type="password" name="new_password" placeholder="New Password (min 8 chars)" autocomplete="new-password" required>
+                <button type="submit">Reset Password</button>
+            </form>
+        {% else %}
+            <h2>Forgot Password</h2>
+            <p class="note">Enter your registered username to continue.</p>
+            <form method="POST" autocomplete="off">
+                <input type="hidden" name="step" value="lookup">
+                <input type="text" name="username" placeholder="Username@gmail.com" autocomplete="off" required>
+                <button type="submit">Continue</button>
+            </form>
+        {% endif %}
+
+        <div class="footer-link">
+            <a href="/login">← Back to Login</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
+</body>
+</html>

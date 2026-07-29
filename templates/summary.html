@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Summary | Expense Tracker</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}"> 
+     <meta name="theme-color" content="#0056b3">  
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='summary-style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    <style>
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 24px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .report-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: none;
+            font: inherit;
+        }
+
+        .period-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .period-label strong {
+            color: var(--accent-primary);
+        }
+
+        /* Summary Cards Grid */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            padding: 20px;
+            border-radius: 18px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.35s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 125px;
+        }
+
+        .summary-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-primary);
+            transform: translateY(-5px);
+            box-shadow: 0 14px 32px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Category name - MUST be visible in both modes */
+        .summary-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary) !important;
+        }
+
+        /* Amount - Rs value */
+        .summary-card p {
+            margin: 0 0 10px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--currency-expense) !important;
+        }
+
+        .summary-card .view-details {
+            font-size: 0.84rem;
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .summary-card .view-details:hover {
+            color: var(--link-hover);
+            text-decoration: underline;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            max-width: 640px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .chart-container canvas {
+            max-height: 210px;
+            width: 100% !important;
+        }
+    </style>
+
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
+            <span>Expense Tracker</span>
+        </div>
+        <div class="user-info">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
+            <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+    <main class="page-shell">
+        <section class="form-panel">
+            <div class="card-header">
+                <div>
+                    <h1>📊 {{ view_type.capitalize() }} Summary</h1>
+                    <p class="subtitle">Explore your spending across categories with clean filters.</p>
+                    <p class="period-label">
+                        {% if view_type == 'daily' %}
+                        Date: <strong>{{ selected_date }}</strong>
+                        {% elif view_type == 'range' %}
+                        Range: <strong>{{ from_date }}</strong> to <strong>{{ to_date }}</strong>
+                        {% elif view_type == 'monthly' %}
+                        Period: <strong>Current Month</strong>
+                        {% elif view_type == 'weekly' %}
+                        Period: <strong>Current Week</strong>
+                        {% else %}
+                        Period: <strong>All Time</strong>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="report-actions">
+                    <a href="{{ url_for('download_report', type=view_type, date=selected_date, from_date=from_date, to_date=to_date) }}"
+                        class="btn report-btn">⬇️ Download PDF Report</a>
+                </div>
+            </div>
+
+            <div class="controls-row">
+                <form action="/summary" method="GET" class="date-form">
+                    <input type="hidden" name="type" value="daily">
+                    <label>Select Date</label>
+                    <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
+                </form>
+                <div class="summary-buttons">
+                    <a href="/summary?type=overall"
+                        class="btn{% if view_type == 'overall' %} active{% endif %}">Overall</a>
+                    <a href="/summary?type=weekly"
+                        class="btn{% if view_type == 'weekly' %} active{% endif %}">Weekly</a>
+                    <a href="/summary?type=monthly"
+                        class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
+                    <a href="/summary?type=daily" class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
+                    <a href="/summary?type=range{% if from_date %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}"
+                        class="btn{% if view_type == 'range' %} active{% endif %}">Custom Range</a>
+                </div>
+            </div>
+
+            {% if view_type == 'range' %}
+            <form action="/summary" method="GET" class="date-form range-form">
+                <input type="hidden" name="type" value="range">
+                <label>From</label>
+                <input type="date" name="from_date" value="{{ from_date }}" required>
+                <label>To</label>
+                <input type="date" name="to_date" value="{{ to_date }}" required>
+                <button type="submit" class="btn">Apply</button>
+            </form>
+            {% endif %}
+
+            <div class="total-box">
+                <h2>Total: Rs {{ totals.get(view_type, 0) }}</h2>
+            </div>
+
+            <!-- Chote Category Cards (Upar Grid Format mein) -->
+            <div class="summary-cards">
+                {% if data[view_type] %}
+                {% for cat, total in data[view_type].items() %}
+                <a href="{{ url_for('summary_details') }}?category={{ cat }}&type={{ view_type }}{% if view_type == 'daily' %}&date={{ selected_date }}{% elif view_type == 'range' %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}"
+                    class="summary-card">
+                    <h3>
+                        {% if cat.lower() == 'travel' %}
+                        🚗
+                        {% elif cat.lower() == 'food' %}
+                        🍔
+                        {% elif cat.lower() == 'groceries' %}
+                        🛒
+                        {% elif cat.lower() == 'bills' %}
+                        💡
+                        {% elif cat.lower() == 'entertainment' %}
+                        🎬
+                        {% else %}
+                        🏷️
+                        {% endif %}
+                        {{ cat }}
+                    </h3>
+                    <p>Rs {{ total }}</p>
+                    <span class="view-details">View details &rarr;</span>
+                </a>
+                {% endfor %}
+                {% else %}
+                <p class="no-data">No data found for this selection!</p>
+                {% endif %}
+            </div>
+
+            <!-- Compact Vertical Bar Chart Section (Neeche) -->
+            <div class="chart-container">
+                <canvas id="categoryBarChart"></canvas>
+            </div>
+
+            <div class="footer-actions" style="margin-top: 30px;">
+                <a class="back-link" href="/dashboard">Back to Home</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript for Vertical Bar Chart Rendering -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('categoryBarChart').getContext('2d');
+
+            const categories = {{ data[view_type].
+            keys() | list | tojson 
+            if 
+            data[view_type] 
+                else[]
+        }};
+        const totals = {{ data[view_type].values() | list | tojson if data[view_type] else[] }};
+
+        if (categories.length > 0) {
+            // Theme-aware colors
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const textColor = isLight ? '#334155' : '#cbd5e1';
+            const titleColor = isLight ? '#0f172a' : '#f8fafc';
+            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
+            const barColor = isLight ? '#0284c7' : '#38bdf8';
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Spending (Rs)',
+                        data: totals,
+                        backgroundColor: barColor,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Spending Overview',
+                            color: titleColor,
+                            font: { size: 14, family: 'Segoe UI', weight: '700' },
+                            padding: { bottom: 14 }
+                        },
+                        tooltip: {
+                            backgroundColor: isLight ? '#ffffff' : '#0b1329',
+                            titleColor: isLight ? '#0f172a' : '#f8fafc',
+                            bodyColor: isLight ? '#334155' : '#cbd5e1',
+                            borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(ctx) { return '  Rs ' + ctx.raw; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { size: 12, family: 'Segoe UI', weight: '600' } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: textColor, font: { size: 11, family: 'Segoe UI' } }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.querySelector('.chart-container').style.display = 'none';
+        }
+    });
+    </script>
+
+
+</body>
+
+</html>
