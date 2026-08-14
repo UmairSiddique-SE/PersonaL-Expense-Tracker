@@ -271,10 +271,74 @@
             color: var(--accent-primary);
         }
 
-        @media (max-width: 1024px) {
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        /* Big Balance next to name */
+        .greeting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .balance-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .balance-hero .balance-amount {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        .balance-hero .balance-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        /* Card-top stat */
+        .card-stat {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        .card-stat.income-stat {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+        .card-stat.expense-stat {
+            background: rgba(248, 113, 113, 0.12);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+        }
+        .card-stat.saving-stat {
+            background: rgba(129, 140, 248, 0.12);
+            border: 1px solid rgba(129, 140, 248, 0.25);
+        }
+        .card-stat .cs-amount {
+            display: block;
+            font-size: 1.4rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .card-stat.income-stat .cs-amount  { color: #10b981; }
+        .card-stat.expense-stat .cs-amount { color: #f87171; }
+        .card-stat.saving-stat .cs-amount  { color: #818cf8; }
+        .card-stat .cs-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-top: 2px;
+            display: block;
         }
 
         @media (max-width: 760px) {
@@ -321,47 +385,47 @@
         {% endwith %}
 
         <section class="dashboard-card">
-            <div class="hero">
-                <div class="hero-top">
+            <div class="hero" style="margin-bottom:32px;">
+                <div class="greeting-row">
                     <div>
                         <h1 class="dashboard-greeting"><span class="greeting-prefix">Good Evening,</span> <span class="user-greeting-name">{{ session.get('first_name', 'User') }}</span>!</h1>
-                        <p>Manage your finances with a premium dashboard designed to help you stay on top of your spending.</p>
+                        <p>Manage your finances with a premium dashboard.</p>
                     </div>
-                </div>
-                <div class="stats">
-                    <div class="stat-pill">
-                        <strong class="rupee-balance" style="color: {% if total_balance >= 0 %}#34d399{% else %}#f87171{% endif %}">
+                    <div class="balance-hero">
+                        <span class="balance-amount" style="color: {{ '#34d399' if total_balance >= 0 else '#f87171' }}">
                             Rs {{ "%.0f"|format(total_balance) }}
-                        </strong>
-                        <span>Total Balance</span>
-                    </div>
-                    <div class="stat-pill">
-                        <strong class="rupee-balance" style="color:#34d399;">Rs {{ "%.0f"|format(total_income) }}</strong>
-                        <span>Total Income</span>
-                    </div>
-                    <div class="stat-pill">
-                        <strong class="rupee-balance" style="color: {% if total_saving >= 0 %}#818cf8{% else %}#f87171{% endif %}">
-                            Rs {{ "%.0f"|format(total_saving) }}
-                        </strong>
-                        <span>Total Saving</span>
+                        </span>
+                        <span class="balance-label">Total Balance</span>
                     </div>
                 </div>
             </div>
 
             <div class="cards-grid">
                 <a href="/add" class="module-card">
+                    <div class="card-stat income-stat">
+                        <span class="cs-amount">Rs {{ "%.0f"|format(total_income) }}</span>
+                        <span class="cs-label">⬆️ Total Income</span>
+                    </div>
                     <div class="icon">📝</div>
                     <h2>Add Record</h2>
                     <p>Log income or spending quickly with a polished entry form.</p>
                     <span class="badge">Quick Add</span>
                 </a>
                 <a href="/view" class="module-card">
+                    <div class="card-stat expense-stat">
+                        <span class="cs-amount">Rs {{ "%.0f"|format(total_expense) }}</span>
+                        <span class="cs-label">⬇️ Total Expense</span>
+                    </div>
                     <div class="icon">📋</div>
                     <h2>View Records</h2>
-                    <p>See your full expense history in a neat responsive table.</p>
+                    <p>See your full income & expense history in one place.</p>
                     <span class="badge">Detailed List</span>
                 </a>
                 <a href="/summary" class="module-card">
+                    <div class="card-stat saving-stat">
+                        <span class="cs-amount">Rs {{ "%.0f"|format(total_saving) }}</span>
+                        <span class="cs-label">💰 Total Saving</span>
+                    </div>
                     <div class="icon">📊</div>
                     <h2>Summary</h2>
                     <p>Analyze spending by category, week, month, or day.</p>
