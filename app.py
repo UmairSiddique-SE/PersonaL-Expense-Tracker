@@ -278,6 +278,9 @@ def dashboard():
     total_balance = total_income - total_expense
     total_saving = total_balance
     top_category = max(category_totals, key=category_totals.get) if category_totals else "N/A"
+    total_balance = total_income - total_expense
+    total_saving = total_balance
+    saving_pct = round((total_saving / total_income * 100), 1) if total_income > 0 else 0
 
     return render_template(
         "dashboard.html",
@@ -285,6 +288,7 @@ def dashboard():
         total_income=total_income,
         total_balance=total_balance,
         total_saving=total_saving,
+        saving_pct=saving_pct,
         top_category=top_category
     )
     
@@ -412,75 +416,101 @@ def summary():
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     selected_category = request.args.get('category', '').strip()
 
-    expenses = list(expenses_collection.find({"user_id": uid}))
+    all_records = list(expenses_collection.find({"user_id": uid}))
 
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
 
+    # Expense data (for category breakdown)
     data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
     totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
-    
+
+    # Income data (separate)
+    income_data = {"overall": {}, "weekly": {}, "monthly": {}, "daily": {}}
+    income_totals = {"overall": 0, "weekly": 0, "monthly": 0, "daily": 0}
+
     is_category_filtered = bool(selected_category and selected_category.lower() != 'all')
     category_expenses = []
 
-    for exp in expenses:
-        amt = float(exp.get('amount', 0))
-        cat = exp.get('category', 'Other')
-        exp_date_str = exp.get('date')
+    for rec in all_records:
+        amt = float(rec.get('amount', 0))
+        cat = rec.get('category', 'Other')
+        rec_type = rec.get('type', 'expense')
+        exp_date_str = rec.get('date')
         try:
             exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
         except:
             continue
-        
-        is_weekly = (exp_date >= one_week_ago)
+
+        is_weekly  = (exp_date >= one_week_ago)
         is_monthly = (exp_date.month == now.month and exp_date.year == now.year)
-        is_daily = (exp_date_str == selected_date)
+        is_daily   = (exp_date_str == selected_date)
 
-        if is_category_filtered:
-            if cat.lower() == selected_category.lower():
-                data["overall"][exp_date_str] = data["overall"].get(exp_date_str, 0) + amt
+        if rec_type == 'income':
+            # Track income separately
+            income_data["overall"][cat] = income_data["overall"].get(cat, 0) + amt
+            income_totals["overall"] += amt
+            if is_weekly:
+                income_data["weekly"][cat] = income_data["weekly"].get(cat, 0) + amt
+                income_totals["weekly"] += amt
+            if is_monthly:
+                income_data["monthly"][cat] = income_data["monthly"].get(cat, 0) + amt
+                income_totals["monthly"] += amt
+            if is_daily:
+                income_data["daily"][cat] = income_data["daily"].get(cat, 0) + amt
+                income_totals["daily"] += amt
+        else:
+            # Expense record
+            if is_category_filtered:
+                if cat.lower() == selected_category.lower():
+                    data["overall"][exp_date_str] = data["overall"].get(exp_date_str, 0) + amt
+                    totals["overall"] += amt
+                    if is_weekly:
+                        data["weekly"][exp_date_str]  = data["weekly"].get(exp_date_str, 0) + amt
+                        totals["weekly"] += amt
+                    if is_monthly:
+                        data["monthly"][exp_date_str] = data["monthly"].get(exp_date_str, 0) + amt
+                        totals["monthly"] += amt
+                    if is_daily:
+                        data["daily"][exp_date_str]   = data["daily"].get(exp_date_str, 0) + amt
+                        totals["daily"] += amt
+                    if (view_type == 'overall') or \
+                       (view_type == 'weekly'  and is_weekly) or \
+                       (view_type == 'monthly' and is_monthly) or \
+                       (view_type == 'daily'   and is_daily):
+                        category_expenses.append(rec)
+            else:
+                data["overall"][cat] = data["overall"].get(cat, 0) + amt
                 totals["overall"] += amt
-
                 if is_weekly:
-                    data["weekly"][exp_date_str] = data["weekly"].get(exp_date_str, 0) + amt
+                    data["weekly"][cat]  = data["weekly"].get(cat, 0) + amt
                     totals["weekly"] += amt
-
                 if is_monthly:
-                    data["monthly"][exp_date_str] = data["monthly"].get(exp_date_str, 0) + amt
+                    data["monthly"][cat] = data["monthly"].get(cat, 0) + amt
                     totals["monthly"] += amt
-
                 if is_daily:
-                    data["daily"][exp_date_str] = data["daily"].get(exp_date_str, 0) + amt
+                    data["daily"][cat]   = data["daily"].get(cat, 0) + amt
                     totals["daily"] += amt
 
-                if (view_type == 'overall') or \
-                   (view_type == 'weekly' and is_weekly) or \
-                   (view_type == 'monthly' and is_monthly) or \
-                   (view_type == 'daily' and is_daily):
-                    category_expenses.append(exp)
-        else:
-            data["overall"][cat] = data["overall"].get(cat, 0) + amt
-            totals["overall"] += amt
-
-            if is_weekly:
-                data["weekly"][cat] = data["weekly"].get(cat, 0) + amt
-                totals["weekly"] += amt
-
-            if is_monthly:
-                data["monthly"][cat] = data["monthly"].get(cat, 0) + amt
-                totals["monthly"] += amt
-
-            if is_daily:
-                data["daily"][cat] = data["daily"].get(cat, 0) + amt
-                totals["daily"] += amt
-
-    # Sort category_expenses by date descending
     category_expenses.sort(key=lambda x: x.get('date', ''), reverse=True)
+
+    # Saving percentage
+    total_inc = income_totals[view_type]
+    total_exp = totals[view_type]
+    total_saving = total_inc - total_exp
+    saving_pct = round((total_saving / total_inc * 100), 1) if total_inc > 0 else 0
+    expense_pct = round((total_exp / total_inc * 100), 1) if total_inc > 0 else 0
+    income_pct  = 100
 
     return render_template(
         "summary.html",
         data=data,
         totals=totals,
+        income_data=income_data,
+        income_totals=income_totals,
+        total_saving=total_saving,
+        saving_pct=saving_pct,
+        expense_pct=expense_pct,
         selected_date=selected_date,
         view_type=view_type,
         selected_category=selected_category,

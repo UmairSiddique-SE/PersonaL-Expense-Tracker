@@ -424,7 +424,9 @@
                 <a href="/summary" class="module-card">
                     <div class="card-stat saving-stat">
                         <span class="cs-amount">Rs {{ "%.0f"|format(total_saving) }}</span>
-                        <span class="cs-label">💰 Total Saving</span>
+                        <span class="cs-label">💰 Total Saving &nbsp;
+                            <span style="font-size:1rem; font-weight:900; color:#818cf8;">{{ saving_pct }}%</span>
+                        </span>
                     </div>
                     <div class="icon">📊</div>
                     <h2>Summary</h2>
