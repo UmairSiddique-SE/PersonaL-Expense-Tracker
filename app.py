@@ -256,36 +256,35 @@ def delete_account():
 # --- DASHBOARD & EXPENSE ROUTes ---
 @app.route("/dashboard")
 @login_required
-def dashboard(): 
+def dashboard():
     uid = session.get('user_id')
-    expenses = list(expenses_collection.find({"user_id": uid}))
+    records = list(expenses_collection.find({"user_id": uid}))
 
-    now = datetime.now()
     total_expense = 0.0
-    month_expense = 0.0
+    total_income = 0.0
     category_totals = {}
 
-    for exp in expenses:
-        amt = float(exp.get('amount', 0))
-        cat = exp.get('category', 'Other')
-        total_expense += amt
-        category_totals[cat] = category_totals.get(cat, 0) + amt
+    for rec in records:
+        amt = float(rec.get('amount', 0))
+        rec_type = rec.get('type', 'expense')
+        cat = rec.get('category', 'Other')
 
-        exp_date_str = exp.get('date')
-        try:
-            exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
-        except (TypeError, ValueError):
-            continue
-        if exp_date.month == now.month and exp_date.year == now.year:
-            month_expense += amt
+        if rec_type == 'income':
+            total_income += amt
+        else:
+            total_expense += amt
+            category_totals[cat] = category_totals.get(cat, 0) + amt
 
+    total_balance = total_income - total_expense
+    total_saving = total_balance
     top_category = max(category_totals, key=category_totals.get) if category_totals else "N/A"
 
     return render_template(
         "dashboard.html",
         total_expense=total_expense,
-        month_expense=month_expense,
-        total_records=len(expenses),
+        total_income=total_income,
+        total_balance=total_balance,
+        total_saving=total_saving,
         top_category=top_category
     )
     
@@ -293,60 +292,78 @@ def dashboard():
 @login_required
 def add():
     uid = session.get('user_id')
-    
+
     if request.method == "POST":
+        record_type = request.form.get("record_type", "expense")  # 'income' or 'expense'
         amount = request.form.get("amount")
-        category = request.form.get("category")
-        
-        # Agar user ne 'custom' select kiya hai
-        if category == 'custom':
-            custom_cat = request.form.get("custom_category", "").strip().capitalize()
-            if custom_cat:
-                category = custom_cat
-                # User ke document mein ye custom category permanently add kar dein (agar pehle se nahi hai)
-                users_collection.update_one(
-                    {"_id": ObjectId(uid)},
-                    {"$addToSet": {"custom_categories": category}}
-                )
-            else:
-                category = "Other"
-        
         date = request.form.get("date")
         description = request.form.get("description", "")
-        
-        expenses_collection.insert_one({
-            "user_id": uid,
-            "amount": float(amount) if amount else 0.0,
-            "category": category,
-            "date": date,
-            "description": description
-        })
-        flash("Expense added successfully!", "success")
+
+        if record_type == "income":
+            # Income record - category fixed as 'Income'
+            expenses_collection.insert_one({
+                "user_id": uid,
+                "amount": float(amount) if amount else 0.0,
+                "category": "Income",
+                "date": date,
+                "description": description,
+                "type": "income"
+            })
+            flash("Income added successfully!", "success")
+        else:
+            # Expense record
+            category = request.form.get("category")
+            if category == 'custom':
+                custom_cat = request.form.get("custom_category", "").strip().capitalize()
+                if custom_cat:
+                    category = custom_cat
+                    users_collection.update_one(
+                        {"_id": ObjectId(uid)},
+                        {"$addToSet": {"custom_categories": category}}
+                    )
+                else:
+                    category = "Other"
+
+            expenses_collection.insert_one({
+                "user_id": uid,
+                "amount": float(amount) if amount else 0.0,
+                "category": category,
+                "date": date,
+                "description": description,
+                "type": "expense"
+            })
+            flash("Expense added successfully!", "success")
+
         return redirect(url_for("add"))
-    
-    # Sirf is current user ki custom categories database se nikalein
+
+    # GET request
     user_data = users_collection.find_one({"_id": ObjectId(uid)})
     user_custom_categories = user_data.get("custom_categories", []) if user_data else []
-    
-    # Last added expense by this user to set default category
-    latest_expense = expenses_collection.find_one({"user_id": uid}, sort=[("_id", -1)])
+
+    latest_expense = expenses_collection.find_one(
+        {"user_id": uid, "type": {"$ne": "income"}}, sort=[("_id", -1)]
+    )
     last_used_category = latest_expense.get("category", "") if latest_expense else ""
-    
-    # Aaj ki date YYYY-MM-DD format mein generate kar ke template ko bhej rahe hain
+
     today_date = datetime.now().strftime('%Y-%m-%d')
-    
+    # Check if we should open income tab by default
+    active_tab = request.args.get('tab', 'expense')
+
     return render_template(
         "add.html",
         custom_categories=user_custom_categories,
         today_date=today_date,
-        last_used_category=last_used_category
+        last_used_category=last_used_category,
+        active_tab=active_tab
     )
 
 @app.route("/view")
 @login_required
 def view():
-    expenses = list(expenses_collection.find({"user_id": session.get('user_id')}))
-    return render_template("view.html", expenses=expenses)
+    uid = session.get('user_id')
+    # All records (income + expense) sorted by date descending
+    records = list(expenses_collection.find({"user_id": uid}).sort("date", -1))
+    return render_template("view.html", expenses=records)
 
 @app.route("/delete_custom_category")
 @login_required

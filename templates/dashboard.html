@@ -330,25 +330,29 @@
                 </div>
                 <div class="stats">
                     <div class="stat-pill">
-                        <strong class="rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</strong>
-                        <span>Total Expense</span>
+                        <strong class="rupee-balance" style="color: {% if total_balance >= 0 %}#34d399{% else %}#f87171{% endif %}">
+                            Rs {{ "%.0f"|format(total_balance) }}
+                        </strong>
+                        <span>Total Balance</span>
                     </div>
                     <div class="stat-pill">
-                        <strong class="rupee-balance">Rs {{ "%.0f"|format(month_expense) }}</strong>
-                        <span>This Month</span>
+                        <strong class="rupee-balance" style="color:#34d399;">Rs {{ "%.0f"|format(total_income) }}</strong>
+                        <span>Total Income</span>
                     </div>
                     <div class="stat-pill">
-                        <strong>{{ top_category }}</strong>
-                        <span>Top Category</span>
+                        <strong class="rupee-balance" style="color: {% if total_saving >= 0 %}#818cf8{% else %}#f87171{% endif %}">
+                            Rs {{ "%.0f"|format(total_saving) }}
+                        </strong>
+                        <span>Total Saving</span>
                     </div>
                 </div>
             </div>
 
             <div class="cards-grid">
                 <a href="/add" class="module-card">
-                    <div class="icon">➕</div>
-                    <h2>Add Expense</h2>
-                    <p>Log new spending quickly with a polished entry form.</p>
+                    <div class="icon">📝</div>
+                    <h2>Add Record</h2>
+                    <p>Log income or spending quickly with a polished entry form.</p>
                     <span class="badge">Quick Add</span>
                 </a>
                 <a href="/view" class="module-card">
