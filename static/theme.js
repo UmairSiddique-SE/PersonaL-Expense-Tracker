@@ -41,7 +41,7 @@ function setupDoubleSubmissionProtection() {
             const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
             if (submitBtn) {
                 const isAddForm = form.getAttribute('action') === '/add';
-                const labelText = isAddForm ? '⏳ Adding Expense...' : '⏳ Processing...';
+                const labelText = isAddForm ? '⏳ Saving...' : '⏳ Processing...';
                 if (submitBtn.tagName === 'BUTTON') {
                     submitBtn.innerHTML = labelText;
                 } else {
@@ -60,10 +60,19 @@ function setupToastModal() {
     const container = document.querySelector('.flash-container');
     if (!container) return;
 
+    // Attach directly to body so no parent transform or backdrop-filter offsets it
+    if (container.parentElement !== document.body) {
+        document.body.appendChild(container);
+    }
+
     const messages = container.querySelectorAll('.flash-message');
     messages.forEach(msg => {
         const text = msg.innerText.trim();
-        const isDelete = text.toLowerCase().includes('delete');
+        const lowerText = text.toLowerCase();
+        const isDelete = lowerText.includes('delete');
+        const isDanger = msg.classList.contains('danger') || msg.classList.contains('error') || lowerText.includes('invalid') || lowerText.includes('error');
+        const isUpdate = lowerText.includes('update') || lowerText.includes('edit') || lowerText.includes('reset');
+
         let title = 'Success!';
         let svgHtml = '';
 
@@ -74,31 +83,46 @@ function setupToastModal() {
                 <div class="toast-svg-wrapper">
                     <svg class="checkmark-svg delete" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                         <circle class="checkmark-circle delete" cx="26" cy="26" r="23" fill="none"/>
-                        <path class="checkmark-check" fill="none" d="M16 16L36 36M36 16L16 36"/>
+                        <path class="checkmark-check delete" fill="none" d="M17 17 L35 35 M35 17 L17 35" stroke-linecap="round"/>
                     </svg>
                 </div>
             `;
-        } else if (text.toLowerCase().includes('update') || text.toLowerCase().includes('edit')) {
+        } else if (isDanger) {
+            title = 'Attention!';
+            msg.classList.add('danger-type');
+            svgHtml = `
+                <div class="toast-svg-wrapper">
+                    <svg class="checkmark-svg danger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark-circle danger" cx="26" cy="26" r="23" fill="none"/>
+                        <path class="checkmark-check danger" fill="none" d="M26 15 v14 M26 35 v2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            `;
+        } else if (isUpdate) {
             title = 'Updated Successfully!';
             svgHtml = `
                 <div class="toast-svg-wrapper">
-                    <svg class="checkmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                        <circle class="checkmark-circle" cx="26" cy="26" r="23" fill="none"/>
-                        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    <svg class="checkmark-svg success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/>
+                        <path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
             `;
         } else {
-            if (text.toLowerCase().includes('add')) {
-                title = 'Added Successfully!';
-            } else if (msg.classList.contains('danger') || msg.classList.contains('error')) {
-                title = 'Notice';
+            if (lowerText.includes('income')) {
+                title = 'Income Added!';
+            } else if (lowerText.includes('expense')) {
+                title = 'Expense Added!';
+            } else if (lowerText.includes('login') || lowerText.includes('welcome')) {
+                title = 'Welcome Back!';
+            } else if (lowerText.includes('signup')) {
+                title = 'Account Created!';
             }
             svgHtml = `
                 <div class="toast-svg-wrapper">
-                    <svg class="checkmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                        <circle class="checkmark-circle" cx="26" cy="26" r="23" fill="none"/>
-                        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    <svg class="checkmark-svg success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/>
+                        <path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
             `;
@@ -128,7 +152,7 @@ function setupToastModal() {
             }
         });
 
-        setTimeout(dismissToast, 2800);
+        setTimeout(dismissToast, 3200);
     });
 }
 

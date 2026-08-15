@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Expense | Expense Tracker</title>
+    <title>Edit Entry | Expense & Income Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
@@ -17,7 +17,10 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/dashboard" class="logo" style="text-decoration:none;">Expense<span>Tracker</span></a>
+        <a href="/dashboard" class="logo" style="text-decoration:none;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="width: 38px; height: 38px; border-radius: 50%;">
+            Expense<span>Tracker</span>
+        </a>
         <div class="user-info">
             <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
             <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
@@ -29,15 +32,27 @@
         <section class="form-panel">
             <div class="card-header">
                 <div>
-                    <h1>Edit Expense</h1>
-                    <p class="subtitle">Update your expense details cleanly with a consistent app layout.</p>
+                    <h1>Edit Transaction</h1>
+                    <p class="subtitle">Update transaction details and maintain accurate financial records.</p>
                 </div>
             </div>
 
             <form class="form-card" method="POST">
+                <div class="type-toggle-group">
+                    <input type="radio" name="type" id="editExpense" value="expense" class="type-toggle-input" {% if expense.get('type') != 'income' %}checked{% endif %}>
+                    <label for="editExpense" class="type-toggle-label">
+                        <span>🔴</span> Expense
+                    </label>
+
+                    <input type="radio" name="type" id="editIncome" value="income" class="type-toggle-input" {% if expense.get('type') == 'income' %}checked{% endif %}>
+                    <label for="editIncome" class="type-toggle-label">
+                        <span>🟢</span> Income
+                    </label>
+                </div>
+
                 <div class="form-group">
-                    <label>Amount</label>
-                    <input type="text" name="amount" placeholder="Amount" value="{{ expense.amount }}" required>
+                    <label>Amount (Rs)</label>
+                    <input type="number" step="0.01" name="amount" placeholder="Amount" value="{{ expense.amount }}" required style="font-size: 1.2rem; font-weight: 700;">
                 </div>
                 <div class="form-group">
                     <label>Category</label>
@@ -48,10 +63,10 @@
                     <input type="date" name="date" value="{{ expense.date }}" required>
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
+                    <label>Description / Notes</label>
                     <input type="text" name="description" placeholder="Description" value="{{ expense.description }}">
                 </div>
-                <button type="submit" class="primary-btn">Update Expense</button>
+                <button type="submit" class="primary-btn">Update Transaction</button>
             </form>
 
             <a class="back-link" href="{{ url_for('view') }}">← Back to Records</a>

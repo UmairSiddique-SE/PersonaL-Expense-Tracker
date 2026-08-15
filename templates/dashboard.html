@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Expense Tracker</title>
+    <title>Dashboard | Expense & Income Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
@@ -13,6 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="Expense Tracker"> 
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style> 
         * {
@@ -32,7 +33,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 36px;
+            padding: 14px 36px;
             background: var(--navbar-bg);
             border-bottom: 1px solid var(--border-color);
             backdrop-filter: blur(16px);
@@ -45,19 +46,20 @@
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: 0.5px;
             color: var(--text-primary);
+            text-decoration: none;
         }
 
         .logo img {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--accent-primary);
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
         }
 
         .logo strong {
@@ -68,21 +70,16 @@
 
         .user-info {
             display: flex;
-            gap: 18px;
+            gap: 16px;
             align-items: center;
-        }
-
-        .user-name {
-            font-size: 14px;
-            color: var(--text-secondary);
-            font-weight: 600;
         }
 
         .logout-btn {
             color: var(--currency-expense);
             text-decoration: none;
             font-weight: 700;
-            transition: color 0.25s ease;
+            font-size: 0.95rem;
+            transition: opacity 0.25s ease;
         }
 
         .logout-btn:hover {
@@ -92,40 +89,28 @@
 
         .page-shell {
             display: flex;
-            justify-content: center;
-            padding: 40px 24px 60px;
-            gap: 24px;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 24px 60px;
+            width: 100%;
+            max-width: 1240px;
+            margin: 0 auto;
             color: var(--text-primary);
         }
 
-        .dashboard-card {
-            width: min(1200px, 100%);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 32px;
-            padding: 40px;
-            box-shadow: var(--shadow-card);
-            backdrop-filter: blur(18px);
-            transition: background 0.3s ease, border 0.3s ease;
-        }
-
-        .hero {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            margin-bottom: 40px;
-        }
-
-        .hero-top {
+        .hero-banner {
+            width: 100%;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 26px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .dashboard-greeting { 
-            font-size: clamp(2.2rem, 3.5vw, 3.2rem);
-            line-height: 1.1;
+            font-size: clamp(2rem, 3.2vw, 2.9rem);
+            line-height: 1.15;
             margin: 0;
             font-weight: 800;
         }
@@ -145,94 +130,314 @@
             letter-spacing: 0.5px;
         }
 
-        .hero p {
-            max-width: 720px;
-            margin: 12px 0 0;
+        .hero-subtext {
             color: var(--text-secondary);
             font-size: 1rem;
-            line-height: 1.7;
+            margin: 8px 0 0;
         }
 
-        .hero .stats {
+        .quick-actions-bar {
+            display: flex;
+            gap: 12px;
+        }
+
+        .quick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .quick-btn-income {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--currency-income);
+            border: 1.5px solid rgba(16, 185, 129, 0.35);
+        }
+        .quick-btn-income:hover {
+            background: var(--currency-income);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .quick-btn-expense {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--currency-expense);
+            border: 1.5px solid rgba(244, 63, 94, 0.35);
+        }
+        .quick-btn-expense:hover {
+            background: var(--currency-expense);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
+        }
+
+        /* Top Financial KPI Cards Grid */
+        .top-overview-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(130px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
             width: 100%;
+            margin-bottom: 30px;
         }
 
-        .stat-pill {
-            padding: 18px 20px;
+        .top-kpi-card {
+            position: relative;
+            padding: 24px;
+            border-radius: 24px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(18px);
+            transition: all 0.35s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .top-kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .top-kpi-card.income-card {
+            border-color: rgba(16, 185, 129, 0.35);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, var(--bg-card) 100%);
+        }
+        .top-kpi-card.income-card:hover {
+            border-color: var(--currency-income);
+            box-shadow: 0 16px 36px var(--currency-income-glow);
+        }
+
+        .top-kpi-card.expense-card {
+            border-color: rgba(244, 63, 94, 0.35);
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, var(--bg-card) 100%);
+        }
+        .top-kpi-card.expense-card:hover {
+            border-color: var(--currency-expense);
+            box-shadow: 0 16px 36px var(--currency-expense-glow);
+        }
+
+        .top-kpi-card.savings-card {
+            border-color: rgba(14, 165, 233, 0.35);
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, var(--bg-card) 100%);
+        }
+        .top-kpi-card.savings-card:hover {
+            border-color: var(--currency-balance);
+            box-shadow: 0 16px 36px var(--currency-savings-glow);
+        }
+
+        .kpi-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .kpi-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+        }
+
+        .kpi-icon-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 1.3rem;
+            color: #ffffff;
+        }
+
+        .income-card .kpi-icon-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+        }
+
+        .expense-card .kpi-icon-badge {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            box-shadow: 0 6px 16px rgba(244, 63, 94, 0.35);
+        }
+
+        .savings-card .kpi-icon-badge {
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.35);
+        }
+
+        .kpi-val {
+            font-size: clamp(1.8rem, 2.5vw, 2.3rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin: 0 0 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .income-card .kpi-val { color: var(--currency-income); }
+        .expense-card .kpi-val { color: var(--currency-expense); }
+        .savings-card .kpi-val { color: var(--currency-balance); }
+
+        .kpi-footer-tags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .kpi-sub-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 10px;
             border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .income-card .kpi-sub-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--currency-income);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .expense-card .kpi-sub-badge {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--currency-expense);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .savings-card .kpi-sub-badge {
+            background: rgba(14, 165, 233, 0.15);
+            color: var(--currency-balance);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+        }
+
+        /* Main Section Container */
+        .dashboard-main-card {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 36px;
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(18px);
+            margin-bottom: 30px;
+        }
+
+        /* Comparison Chart Card */
+        .chart-section {
+            width: 100%;
+            margin-bottom: 34px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .chart-title-wrap h2 {
+            margin: 0;
+            font-size: 1.45rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title-wrap p {
+            margin: 4px 0 0;
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+        }
+
+        .chart-legend-custom {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-dot.income { background: var(--currency-income); }
+        .legend-dot.expense { background: var(--currency-expense); }
+
+        .chart-canvas-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
             background: var(--input-bg);
             border: 1px solid var(--border-color);
-            text-align: center;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+            border-radius: 20px;
+            padding: 20px 16px;
         }
 
-        .stat-pill:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent-primary);
-            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.15);
-        }
-
-        .stat-pill strong {
-            display: block;
-            color: var(--text-primary);
-            font-size: 1.35rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-
-        .stat-pill span {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
-        }
-
+        /* Module Navigation Cards */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 24px;
+            gap: 20px;
+            width: 100%;
         }
 
         .module-card {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 18px;
-            padding: 34px 24px;
-            border-radius: 28px;
+            gap: 14px;
+            padding: 30px 20px;
+            border-radius: 24px;
             background: var(--input-bg);
             border: 1.5px solid var(--border-color);
             text-decoration: none;
             color: var(--text-primary);
-            transition: transform 0.35s ease, border-color 0.35s ease, background 0.35s ease, box-shadow 0.35s ease;
+            transition: all 0.35s ease;
+            text-align: center;
         }
 
         .module-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-6px);
             background: var(--bg-card-hover);
             border-color: var(--accent-primary);
             box-shadow: var(--shadow-hover);
         }
 
         .module-card .icon {
-            width: 76px;
-            height: 76px;
+            width: 64px;
+            height: 64px;
             display: grid;
             place-items: center;
-            border-radius: 24px;
+            border-radius: 20px;
             background: var(--accent-gradient);
             color: #ffffff;
-            font-size: 2.2rem;
-            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.25);
+            font-size: 1.9rem;
+            box-shadow: 0 8px 18px rgba(56, 189, 248, 0.25);
         }
 
-        .module-card h2 {
-            font-size: 1.45rem;
+        .module-card h3 {
+            font-size: 1.3rem;
             margin: 0;
             color: var(--text-primary);
             font-weight: 700;
@@ -241,56 +446,46 @@
         .module-card p {
             margin: 0;
             color: var(--text-secondary);
-            line-height: 1.6;
-            text-align: center;
-            font-size: 0.95rem;
+            line-height: 1.5;
+            font-size: 0.9rem;
         }
 
         .module-card .badge {
-            margin-top: 6px;
+            margin-top: 4px;
             display: inline-flex;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 999px;
             background: rgba(56, 189, 248, 0.14);
             color: var(--accent-primary);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 700;
-            letter-spacing: 0.02em;
         }
 
         .footer {
-            margin-top: 36px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding: 16px;
             border-top: 1px solid var(--border-color);
             color: var(--text-muted);
             text-align: center;
             font-size: 0.95rem;
+            width: 100%;
         }
 
         .footer strong {
             color: var(--accent-primary);
         }
 
-        @media (max-width: 1024px) {
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 760px) {
-            .page-shell {
-                padding: 20px 14px 40px;
-            }
-            .hero-top {
-                flex-direction: column;
-            }
-            .hero .stats {
+        @media (max-width: 960px) {
+            .top-overview-grid {
                 grid-template-columns: 1fr;
             }
             .cards-grid {
                 grid-template-columns: 1fr;
             }
-            .dashboard-card {
+            .chart-canvas-wrapper {
+                height: 250px;
+            }
+            .dashboard-main-card {
                 padding: 24px 18px;
             }
         }
@@ -298,7 +493,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="{{ url_for('index') }}" class="logo" style="text-decoration:none;">
+        <a href="{{ url_for('index') }}" class="logo">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="lazy">
             <strong>Expense Tracker</strong>
         </a>
@@ -320,48 +515,114 @@
           {% endif %}
         {% endwith %}
 
-        <section class="dashboard-card">
-            <div class="hero">
-                <div class="hero-top">
-                    <div>
-                        <h1 class="dashboard-greeting"><span class="greeting-prefix">Good Evening,</span> <span class="user-greeting-name">{{ session.get('first_name', 'User') }}</span>!</h1>
-                        <p>Manage your finances with a premium dashboard designed to help you stay on top of your spending.</p>
-                    </div>
+        <!-- Hero Greeting & Quick Action Buttons -->
+        <div class="hero-banner">
+            <div>
+                <h1 class="dashboard-greeting">
+                    <span class="greeting-prefix">Hello,</span> 
+                    <span class="user-greeting-name">{{ session.get('first_name', 'User') }}</span>!
+                </h1>
+                <p class="hero-subtext">Here is your financial pulse with clear income, expense & savings insights.</p>
+            </div>
+            <div class="quick-actions-bar">
+                <a href="/add?type=income" class="quick-btn quick-btn-income">
+                    <span>➕</span> Log Income
+                </a>
+                <a href="/add?type=expense" class="quick-btn quick-btn-expense">
+                    <span>➕</span> Log Expense
+                </a>
+            </div>
+        </div>
+
+        <!-- Top Overview Financial Cards (Prominently outside and above) -->
+        <section class="top-overview-grid">
+            <!-- 1. Total Income Card -->
+            <div class="top-kpi-card income-card">
+                <div class="kpi-head">
+                    <span class="kpi-label">🟢 Total Income</span>
+                    <div class="kpi-icon-badge">↗️</div>
                 </div>
-                <div class="stats">
-                    <div class="stat-pill">
-                        <strong class="rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</strong>
-                        <span>Total Expense</span>
-                    </div>
-                    <div class="stat-pill">
-                        <strong class="rupee-balance">Rs {{ "%.0f"|format(month_expense) }}</strong>
-                        <span>This Month</span>
-                    </div>
-                    <div class="stat-pill">
-                        <strong>{{ top_category }}</strong>
-                        <span>Top Category</span>
-                    </div>
+                <div class="kpi-val rupee-balance">Rs {{ "{:,.0f}".format(total_income) }}</div>
+                <div class="kpi-footer-tags">
+                    <span class="kpi-sub-badge">📅 This Month: Rs {{ "{:,.0f}".format(month_income) }}</span>
+                    {% if top_income_source != "None" %}
+                    <span class="kpi-sub-badge">🏷️ Top: {{ top_income_source }}</span>
+                    {% endif %}
                 </div>
             </div>
 
+            <!-- 2. Total Expense Card -->
+            <div class="top-kpi-card expense-card">
+                <div class="kpi-head">
+                    <span class="kpi-label">🔴 Total Expense</span>
+                    <div class="kpi-icon-badge">↘️</div>
+                </div>
+                <div class="kpi-val rupee-balance">Rs {{ "{:,.0f}".format(total_expense) }}</div>
+                <div class="kpi-footer-tags">
+                    <span class="kpi-sub-badge">📅 This Month: Rs {{ "{:,.0f}".format(month_expense) }}</span>
+                    {% if top_expense_category != "None" %}
+                    <span class="kpi-sub-badge">🏷️ Top: {{ top_expense_category }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 3. Total Savings / Net Balance Card -->
+            <div class="top-kpi-card savings-card">
+                <div class="kpi-head">
+                    <span class="kpi-label">💎 Total Savings (Net)</span>
+                    <div class="kpi-icon-badge">🏦</div>
+                </div>
+                <div class="kpi-val rupee-balance" style="color: {% if total_savings >= 0 %}var(--currency-balance){% else %}var(--currency-expense){% endif %};">
+                    Rs {{ "{:,.0f}".format(total_savings) }}
+                </div>
+                <div class="kpi-footer-tags">
+                    <span class="kpi-sub-badge">
+                        {% if total_savings >= 0 %}📈 Savings Rate: {{ savings_rate }}%{% else %}⚠️ Deficit: -Rs {{ "{:,.0f}".format(total_savings|abs) }}{% endif %}
+                    </span>
+                    <span class="kpi-sub-badge">📊 {{ total_records }} Transactions</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Section with Graph & Modules -->
+        <section class="dashboard-main-card">
+            <!-- Main Page Comparison Graph -->
+            <div class="chart-section">
+                <div class="chart-header">
+                    <div class="chart-title-wrap">
+                        <h2>📊 Cash Flow Analysis: Income vs Expense</h2>
+                        <p>Visual comparison of your monthly earnings versus spending</p>
+                    </div>
+                    <div class="chart-legend-custom">
+                        <div class="legend-item"><span class="legend-dot income"></span> Income</div>
+                        <div class="legend-item"><span class="legend-dot expense"></span> Expense</div>
+                    </div>
+                </div>
+
+                <div class="chart-canvas-wrapper">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Quick Navigation Module Cards -->
             <div class="cards-grid">
                 <a href="/add" class="module-card">
                     <div class="icon">➕</div>
-                    <h2>Add Expense</h2>
-                    <p>Log new spending quickly with a polished entry form.</p>
-                    <span class="badge">Quick Add</span>
+                    <h3>Add Entry</h3>
+                    <p>Log a new income or expense with category and notes.</p>
+                    <span class="badge">Quick Entry</span>
                 </a>
                 <a href="/view" class="module-card">
                     <div class="icon">📋</div>
-                    <h2>View Records</h2>
-                    <p>See your full expense history in a neat responsive table.</p>
-                    <span class="badge">Detailed List</span>
+                    <h3>View History</h3>
+                    <p>Search, filter, edit, or delete transactions in a clean table.</p>
+                    <span class="badge">All Records</span>
                 </a>
                 <a href="/summary" class="module-card">
                     <div class="icon">📊</div>
-                    <h2>Summary</h2>
-                    <p>Analyze spending by category, week, month, or day.</p>
-                    <span class="badge">Smart Insights</span>
+                    <h3>Smart Summary</h3>
+                    <p>Category breakdowns, filters, and PDF statement download.</p>
+                    <span class="badge">Reports & Export</span>
                 </a>
             </div>
 
@@ -370,5 +631,96 @@
             </div>
         </section>
     </main>
+
+    <!-- Interactive Income vs Expense Comparison Chart Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            const labels = {{ chart_labels | tojson }};
+            const incomeData = {{ chart_income_data | tojson }};
+            const expenseData = {{ chart_expense_data | tojson }};
+
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const textColor = isLight ? '#334155' : '#cbd5e1';
+            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+
+            // Gradients
+            const incomeGradient = ctx.createLinearGradient(0, 0, 0, 260);
+            incomeGradient.addColorStop(0, '#10b981');
+            incomeGradient.addColorStop(1, '#059669');
+
+            const expenseGradient = ctx.createLinearGradient(0, 0, 0, 260);
+            expenseGradient.addColorStop(0, '#f43f5e');
+            expenseGradient.addColorStop(1, '#e11d48');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Income (Rs)',
+                            data: incomeData,
+                            backgroundColor: incomeGradient,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.6
+                        },
+                        {
+                            label: 'Expense (Rs)',
+                            data: expenseData,
+                            backgroundColor: expenseGradient,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isLight ? '#ffffff' : '#0b1329',
+                            titleColor: isLight ? '#0f172a' : '#f8fafc',
+                            bodyColor: isLight ? '#334155' : '#cbd5e1',
+                            borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': Rs ' + Number(context.raw).toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 12, family: 'Segoe UI', weight: '600' }
+                            }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 11, family: 'Segoe UI' },
+                                callback: function(value) {
+                                    return 'Rs ' + (value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>

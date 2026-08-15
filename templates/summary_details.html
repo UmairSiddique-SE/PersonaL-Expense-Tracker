@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Category Details | Expense Tracker</title>
+    <title>{{ category }} Details | Expense Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
@@ -19,7 +19,7 @@
 <nav class="navbar">
     <div class="logo">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
-        <span>Expense Tracker</span>
+        <a href="/dashboard" class="logo" style="text-decoration: none; color: inherit;">Expense<span>Tracker</span></a>
     </div>
     <div class="user-info">
         <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
@@ -32,11 +32,11 @@
         <div class="card-header">
             <div>
                 <h1>{{ category }} Details</h1>
-                <p class="subtitle">Showing all expenses for this category.</p>
+                <p class="subtitle">Showing all transactions recorded under {{ category }}.</p>
             </div>
         </div>
         <div class="total-box">
-            <h2>Total: Rs {{ total }}</h2>
+            <h2>Total: Rs {{ "{:,.2f}".format(total) }}</h2>
             {% if filter_text %}
             <p class="range-label">{{ filter_text }}</p>
             {% endif %}
@@ -44,20 +44,23 @@
         <div class="summary-cards details-list">
             {% if expenses %}
                 {% for exp in expenses %}
-                <div class="detail-card">
+                {% set is_inc = (exp.get('type') == 'income') %}
+                <div class="detail-card" style="border-left: 4px solid {% if is_inc %}var(--currency-income){% else %}var(--currency-expense){% endif %};">
                     <div>
-                        <strong>Rs {{ exp.amount }}</strong>
-                        <span>{{ exp.date }}</span>
+                        <strong style="color: {% if is_inc %}var(--currency-income){% else %}var(--currency-expense){% endif %}; font-size: 1.15rem;">
+                            {% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(exp.amount|float) }}
+                        </strong>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">📅 {{ exp.date }}</span>
                     </div>
-                    <p>{{ exp.description or 'No description provided.' }}</p>
+                    <p>{{ exp.description or 'No notes provided.' }}</p>
                 </div>
                 {% endfor %}
             {% else %}
-                <p class="no-data">No expenses found for this category.</p>
+                <p class="no-data">No transactions found for this category.</p>
             {% endif %}
         </div>
         <div class="footer-actions">
-            <a class="back-link" href="{{ url_for('summary', type=view_type, date=selected_date, from_date=from_date, to_date=to_date) }}">Back to Summary</a>
+            <a class="back-link" href="{{ url_for('summary', type=view_type, date=selected_date) }}">← Back to Summary</a>
         </div>
     </section>
 </main>
