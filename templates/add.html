@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Transaction | Expense & Income Tracker</title>
+    <title>Add Expense | Expense Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
@@ -14,6 +14,97 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <style>
+        .record-tabs {
+            display: flex;
+            background: var(--input-bg);
+            border-radius: 16px;
+            padding: 6px;
+            gap: 6px;
+            margin-bottom: 28px;
+            border: 1px solid var(--border-color);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tab-btn.income-tab.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.35);
+        }
+        .tab-btn.expense-tab.active {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(248,113,113,0.35);
+        }
+        .tab-btn:not(.active):hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .income-category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 12px;
+            color: #10b981;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .income-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+            margin-top: 8px;
+        }
+        .income-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16,185,129,0.45);
+        }
+        .expense-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(248,113,113,0.3);
+            margin-top: 8px;
+        }
+        .expense-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(248,113,113,0.45);
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -32,8 +123,8 @@
         <section class="form-panel">
             <div class="card-header">
                 <div>
-                    <h1 id="pageHeading">Add Transaction</h1>
-                    <p class="subtitle">Log your income or spending to update your financial dashboard.</p>
+                    <h1>Add New Expense</h1>
+                    <p class="subtitle">Enter your latest spending and keep your dashboard up to date.</p>
                 </div>
             </div>
 
@@ -48,36 +139,37 @@
             {% endwith %}
 
             <form class="form-card" action="/add" method="POST">
-                <!-- Transaction Type Toggle (Expense vs Income) -->
-                <div class="type-toggle-group">
-                    <input type="radio" name="type" id="typeExpense" value="expense" class="type-toggle-input" onchange="onTypeChanged('expense')">
-                    <label for="typeExpense" class="type-toggle-label">
-                        <span>🔴</span> Expense
-                    </label>
-
-                    <input type="radio" name="type" id="typeIncome" value="income" class="type-toggle-input" onchange="onTypeChanged('income')">
-                    <label for="typeIncome" class="type-toggle-label">
-                        <span>🟢</span> Income
-                    </label>
-                </div>
-
                 <div class="form-group">
-                    <label>Amount (Rs)</label>
-                    <input type="number" name="amount" step="0.01" required placeholder="0.00" style="font-size: 1.25rem; font-weight: 700;">
+                    <label>Amount</label>
+                    <input type="number" name="amount" step="0.01" required placeholder="0.00">
                 </div>
                
                 <!-- Category Dropdown -->
                 <div class="form-group">
                     <label for="categorySelect">Category</label>
                     <select name="category" id="categorySelect" onchange="checkCustomCategory(this)">
-                        <!-- Populated dynamically via JS based on Expense/Income -->
+                        <option value="Food" {% if last_used_category == 'Food' %}selected{% endif %}>Food</option>
+                        <option value="Travel" {% if last_used_category == 'Travel' %}selected{% endif %}>Travel</option>
+                        <option value="Groceries" {% if last_used_category == 'Groceries' %}selected{% endif %}>Groceries</option>
+                        <option value="Bills" {% if last_used_category == 'Bills' %}selected{% endif %}>Bills</option>
+                        <option value="Shopping" {% if last_used_category == 'Shopping' %}selected{% endif %}>Shopping</option>
+                        
+                        <!-- Custom Categories with Cross Option -->
+                        {% if custom_categories %}
+                            {% for cat in custom_categories %}
+                                <option value="{{ cat }}" {% if last_used_category == cat %}selected{% endif %}>{{ cat }}</option>
+                                <option value="DELETE:{{ cat }}">{{ cat }}  Delete choice</option>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <option value="custom">Add choice</option>
                     </select>
                 </div>
 
                 <!-- Custom Category Input Box -->
                 <div class="form-group" id="customCategoryDiv" style="display: none;">
                     <label for="customCategoryInput">Enter Custom Category</label>
-                    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Freelancing, Gym">
+                    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym">
                 </div>
 
                 <div class="form-group">
@@ -86,92 +178,30 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Description / Notes</label>
-                    <input type="text" name="description" placeholder="Optional notes (e.g. Grocery store, Monthly stipend)">
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="Optional notes...">
                 </div>
                 
-                <button type="submit" class="primary-btn" id="submitBtn">Save Entry</button>
+                <button type="submit" class="primary-btn">Add Expense</button>
             </form>
 
-            <a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
         </section>
     </main>
 
     <script>
-    const expenseCategories = ["Food", "Travel", "Groceries", "Bills", "Shopping", "Entertainment", "Healthcare", "Education", "Other"];
-    const incomeCategories = ["Salary", "Freelance", "Business", "Investment", "Bonus", "Gift", "Rental", "Other"];
-    const userCustomCats = {{ custom_categories | tojson }};
-    const initialLastCat = {{ last_used_category | tojson }};
-    
-    // Check url parameter or last used
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialTypeParam = urlParams.get('type') || {{ last_used_type | tojson }} || 'expense';
-
-    function onTypeChanged(type) {
-        const select = document.getElementById('categorySelect');
-        const submitBtn = document.getElementById('submitBtn');
-        const pageHeading = document.getElementById('pageHeading');
-        select.innerHTML = '';
-
-        const catList = (type === 'income') ? incomeCategories : expenseCategories;
-        
-        if (type === 'income') {
-            submitBtn.textContent = 'Save Income';
-            submitBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-            pageHeading.textContent = 'Add New Income';
-        } else {
-            submitBtn.textContent = 'Save Expense';
-            submitBtn.style.background = 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)';
-            pageHeading.textContent = 'Add New Expense';
-        }
-
-        catList.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.textContent = cat;
-            if (cat === initialLastCat) opt.selected = true;
-            select.appendChild(opt);
-        });
-
-        // User custom categories
-        if (userCustomCats && userCustomCats.length > 0) {
-            userCustomCats.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat + ' (Custom)';
-                if (cat === initialLastCat) opt.selected = true;
-                select.appendChild(opt);
-
-                const delOpt = document.createElement('option');
-                delOpt.value = 'DELETE:' + cat;
-                delOpt.textContent = '🗑️ Delete: ' + cat;
-                select.appendChild(delOpt);
-            });
-        }
-
-        // Custom Add Choice
-        const customOpt = document.createElement('option');
-        customOpt.value = 'custom';
-        customOpt.textContent = '➕ Add Custom Category...';
-        select.appendChild(customOpt);
-
-        checkCustomCategory(select);
-    }
-
     function checkCustomCategory(select) {
         const customDiv = document.getElementById('customCategoryDiv');
         const customInput = document.getElementById('customCategoryInput');
-        
         if (select.value.startsWith('DELETE:')) {
             const catName = select.value.replace('DELETE:', '');
-            if (confirm(`Do you want to delete category '${catName}'?`)) {
+            if (confirm(`Kya aap '${catName}' category ko delete karna chahte hain?`)) {
                 window.location.href = `/delete_custom_category?name=${encodeURIComponent(catName)}`;
             } else {
                 select.value = "Food";
             }
             return;
         }
-
         if (select.value === 'custom') {
             customDiv.style.display = 'block';
             customInput.required = true;
@@ -184,14 +214,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        const isIncome = (initialTypeParam.toLowerCase() === 'income');
-        if (isIncome) {
-            document.getElementById('typeIncome').checked = true;
-            onTypeChanged('income');
-        } else {
-            document.getElementById('typeExpense').checked = true;
-            onTypeChanged('expense');
-        }
+        const select = document.getElementById('categorySelect');
+        checkCustomCategory(select);
     });
     </script>
 </body>

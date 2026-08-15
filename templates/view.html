@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction Records | Expense & Income Tracker</title>
+    <title>View Expenses | Expense Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
@@ -14,59 +14,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='view-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
-    <style>
-        .filter-pills-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .filter-pill {
-            padding: 8px 18px;
-            border-radius: 999px;
-            font-size: 0.88rem;
-            font-weight: 700;
-            text-decoration: none;
-            color: var(--text-secondary);
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-        }
-
-        .filter-pill:hover {
-            color: var(--text-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .filter-pill.active-all {
-            background: var(--accent-gradient);
-            color: #ffffff;
-            border-color: transparent;
-        }
-
-        .filter-pill.active-expense {
-            background: var(--currency-expense);
-            color: #ffffff;
-            border-color: transparent;
-        }
-
-        .filter-pill.active-income {
-            background: var(--currency-income);
-            color: #ffffff;
-            border-color: transparent;
-        }
-
-        .amount-income {
-            color: var(--currency-income) !important;
-            font-weight: 800;
-        }
-
-        .amount-expense {
-            color: var(--currency-expense) !important;
-            font-weight: 800;
-        }
-    </style>
 </head>
 <body>
 <nav class="navbar">
@@ -95,11 +42,8 @@
     <section class="form-panel">
         <div class="card-header">
             <div>
-                <h1>Transaction History</h1>
-                <p class="subtitle">Review and manage your complete income and spending transactions.</p>
-            </div>
-            <div>
-                <a href="/add" class="btn" style="background: var(--accent-gradient); color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.9rem;">➕ Add New</a>
+                <h1>All Expenses</h1>
+                <p class="subtitle">Review and manage your spending history in one place.</p>
             </div>
         </div>
 
@@ -123,21 +67,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% if expenses %}
-                    {% for item in expenses %}
-                    {% set is_inc = (item.get('type') == 'income') %}
+                    {% for expense in expenses %}
                     <tr>
-                        <td>
-                            <span class="{% if is_inc %}tag-type-income{% else %}tag-type-expense{% endif %}">
-                                {% if is_inc %}🟢 Income{% else %}🔴 Expense{% endif %}
-                            </span>
-                        </td>
-                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">
-                            {% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.amount|float) }}
-                        </td>
-                        <td><strong>{{ item.category }}</strong></td>
-                        <td>{{ item.date }}</td>
-                        <td>{{ item.description or '-' }}</td>
+                        <td>Rs {{ expense.amount }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.date }}</td>
+                        <td>{{ expense.description }}</td>
                         <td class="actions-cell">
                             <div class="action-btn-group">
                                 <a href="{{ url_for('edit', id=item._id) }}" class="action-btn edit-btn">Edit</a>
@@ -157,7 +92,7 @@
             </table>
         </div>
         <div class="footer-actions">
-            <a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
         </div>
     </section>
 </main>
