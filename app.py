@@ -21,11 +21,83 @@ app.secret_key = "expense_secret_key"
 app.permanent_session_lifetime = timedelta(days=30)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000
 
-# MongoDB Connection
-client = MongoClient(os.environ.get("MONGO_URI", "mongodb://localhost:27017/"))
+# MongoDB Connection with automatic local fallback
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+is_mock_db = False
+try:
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=1200, connectTimeoutMS=1200)
+    client.admin.command('ping')
+    print("Connected to MongoDB successfully!")
+except Exception:
+    print("MongoDB server not reachable locally. Initializing local database engine...")
+    try:
+        import mongomock
+        client = mongomock.MongoClient()
+        is_mock_db = True
+    except Exception:
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=1200, connectTimeoutMS=1200)
+
 db = client['expense_db']
 expenses_collection = db['expenses']
 users_collection = db['users']
+
+USERS_FILE = os.path.join(app.root_path, "users.json")
+EXPENSES_FILE = os.path.join(app.root_path, "expenses.json")
+
+def sync_local_db():
+    if not is_mock_db:
+        return
+    try:
+        import json
+        users = list(users_collection.find())
+        user_list = []
+        for u in users:
+            item = dict(u)
+            item['_id'] = str(item['_id'])
+            user_list.append(item)
+        with open(USERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(user_list, f, indent=2)
+
+        expenses = list(expenses_collection.find())
+        exp_list = []
+        for e in expenses:
+            item = dict(e)
+            item['_id'] = str(item['_id'])
+            exp_list.append(item)
+        with open(EXPENSES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(exp_list, f, indent=2)
+    except Exception as e:
+        print(f"Local storage sync note: {e}")
+
+# Load initial data if using mock DB
+if is_mock_db:
+    import json
+    if os.path.exists(USERS_FILE):
+        try:
+            with open(USERS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                for item in data:
+                    if '_id' in item:
+                        item['_id'] = ObjectId(item['_id'])
+                    users_collection.insert_one(item)
+        except Exception:
+            pass
+    if os.path.exists(EXPENSES_FILE):
+        try:
+            with open(EXPENSES_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                for item in data:
+                    if '_id' in item:
+                        item['_id'] = ObjectId(item['_id'])
+                    expenses_collection.insert_one(item)
+        except Exception:
+            pass
+
+@app.after_request
+def after_request_handler(response):
+    if request.method in ["POST", "PUT", "DELETE"]:
+        sync_local_db()
+    return response
 
 # Create database indexes for maximum speed & query performance
 try:
@@ -73,7 +145,11 @@ def login():
         password = request.form.get("password")
         remember = request.form.get("remember_me")
         
-        user = users_collection.find_one({"username": username})
+        try:
+            user = users_collection.find_one({"username": username})
+        except Exception:
+            flash("Database connection error. Please ensure MongoDB is running.", "danger")
+            return render_template("login.html")
         
         if user and check_password_hash(user['password'], password):
             if remember:
@@ -94,7 +170,10 @@ def biometric_login():
     username = data.get("username", "").lower().strip()
     if not username:
         return {"status": "error", "message": "Username required"}, 400
-    user = users_collection.find_one({"username": username})
+    try:
+        user = users_collection.find_one({"username": username})
+    except Exception:
+        return {"status": "error", "message": "Database connection error"}, 500
     if user:
         session.permanent = True
         session['user_id'] = str(user['_id'])
@@ -117,18 +196,22 @@ def signup():
             flash("All fields are required!", "danger")
             return redirect(url_for("signup"))
         
-        if users_collection.find_one({"username": username}):
-            flash("User already exists! Please login.", "danger")
+        try:
+            if users_collection.find_one({"username": username}):
+                flash("User already exists! Please login.", "danger")
+                return redirect(url_for("signup"))
+            
+            hashed_pw = generate_password_hash(password)
+            users_collection.insert_one({
+                "first_name": first_name,
+                "username": username,
+                "password": hashed_pw,
+                "security_question": security_question,
+                "security_answer": security_answer.lower()
+            })
+        except Exception:
+            flash("Database error during registration. Please try again.", "danger")
             return redirect(url_for("signup"))
-        
-        hashed_pw = generate_password_hash(password)
-        users_collection.insert_one({
-            "first_name": first_name,
-            "username": username,
-            "password": hashed_pw,
-            "security_question": security_question,
-            "security_answer": security_answer.lower()
-        })
         
         flash("Signup successful! Please login.", "success")
         return redirect(url_for("login"))
@@ -146,7 +229,12 @@ def forgot():
             flash("Please enter your registered username.", "danger")
             return render_template("forgot.html")
 
-        user = users_collection.find_one({"username": username})
+        try:
+            user = users_collection.find_one({"username": username})
+        except Exception:
+            flash("Database connection error.", "danger")
+            return render_template("forgot.html")
+
         if not user:
             flash("Invalid username.", "danger")
             return render_template("forgot.html")
@@ -189,7 +277,10 @@ def logout():
 @login_required
 def settings():
     uid = session.get('user_id')
-    user = users_collection.find_one({"_id": ObjectId(uid)})
+    try:
+        user = users_collection.find_one({"_id": ObjectId(uid)})
+    except Exception:
+        user = None
     if not user:
         session.clear()
         return redirect(url_for('login'))
@@ -204,9 +295,12 @@ def update_name():
         flash("Name cannot be empty!", "danger")
         return redirect(url_for("settings"))
     
-    users_collection.update_one({"_id": ObjectId(uid)}, {"$set": {"first_name": first_name}})
-    session['first_name'] = first_name
-    flash("Name updated successfully!", "success")
+    try:
+        users_collection.update_one({"_id": ObjectId(uid)}, {"$set": {"first_name": first_name}})
+        session['first_name'] = first_name
+        flash("Name updated successfully!", "success")
+    except Exception:
+        flash("Error updating name.", "danger")
     return redirect(url_for("settings"))
 
 @app.route("/change_password", methods=["POST"])
@@ -217,7 +311,11 @@ def change_password():
     new_pw = request.form.get("new_password", "")
     confirm_pw = request.form.get("confirm_password", "")
 
-    user = users_collection.find_one({"_id": ObjectId(uid)})
+    try:
+        user = users_collection.find_one({"_id": ObjectId(uid)})
+    except Exception:
+        user = None
+
     if not user or not check_password_hash(user['password'], current_pw):
         flash("Incorrect current password!", "danger")
         return redirect(url_for("settings"))
@@ -240,14 +338,21 @@ def delete_account():
     uid = session.get('user_id')
     password = request.form.get("confirm_delete_password", "")
 
-    user = users_collection.find_one({"_id": ObjectId(uid)})
+    try:
+        user = users_collection.find_one({"_id": ObjectId(uid)})
+    except Exception:
+        user = None
+
     if not user or not check_password_hash(user['password'], password):
         flash("Incorrect password! Account deletion cancelled.", "danger")
         return redirect(url_for("settings"))
 
     # Permanently delete user expenses and user profile from database
-    expenses_collection.delete_many({"user_id": uid})
-    users_collection.delete_one({"_id": ObjectId(uid)})
+    try:
+        expenses_collection.delete_many({"user_id": uid})
+        users_collection.delete_one({"_id": ObjectId(uid)})
+    except Exception:
+        pass
 
     session.clear()
     flash("Your account and all associated expenses have been permanently deleted.", "success")
@@ -258,7 +363,10 @@ def delete_account():
 @login_required
 def dashboard():
     uid = session.get('user_id')
-    transactions = list(expenses_collection.find({"user_id": uid}))
+    try:
+        transactions = list(expenses_collection.find({"user_id": uid}))
+    except Exception:
+        transactions = []
 
     now = datetime.now()
     total_income = 0.0
@@ -268,6 +376,21 @@ def dashboard():
     expense_category_totals = {}
     income_category_totals = {}
 
+    # Build monthly tracking for the last 6 months for the chart
+    month_keys = []
+    month_labels = []
+    for i in range(5, -1, -1):
+        # Calculate date for roughly i months ago
+        # Approx 30 days per month
+        d = now - timedelta(days=i * 30)
+        m_key = d.strftime('%Y-%m')
+        if m_key not in month_keys:
+            month_keys.append(m_key)
+            month_labels.append(d.strftime('%b %Y'))
+
+    chart_income_map = {k: 0.0 for k in month_keys}
+    chart_expense_map = {k: 0.0 for k in month_keys}
+
     for item in transactions:
         amt = float(item.get('amount', 0))
         item_type = item.get('type', 'expense').lower()
@@ -276,10 +399,10 @@ def dashboard():
 
         if item_type == 'income':
             total_income += amt
-            income_category_totals[cat] = income_category_totals.get(cat, 0) + amt
+            income_category_totals[cat] = income_category_totals.get(cat, 0.0) + amt
         else:
             total_expense += amt
-            expense_category_totals[cat] = expense_category_totals.get(cat, 0) + amt
+            expense_category_totals[cat] = expense_category_totals.get(cat, 0.0) + amt
 
         try:
             exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
@@ -288,25 +411,48 @@ def dashboard():
                     month_income += amt
                 else:
                     month_expense += amt
+
+            exp_m_key = exp_date.strftime('%Y-%m')
+            if exp_m_key in chart_income_map:
+                if item_type == 'income':
+                    chart_income_map[exp_m_key] += amt
+                else:
+                    chart_expense_map[exp_m_key] += amt
         except (TypeError, ValueError):
             continue
 
     total_savings = total_income - total_expense
     month_savings = month_income - month_expense
+    saving_pct = round((total_savings / total_income * 100), 1) if total_income > 0 else 0.0
+    expense_pct = round((total_expense / total_income * 100), 1) if total_income > 0 else 0.0
     top_expense_category = max(expense_category_totals, key=expense_category_totals.get) if expense_category_totals else "None"
     top_income_source = max(income_category_totals, key=income_category_totals.get) if income_category_totals else "None"
+
+    chart_labels = month_labels
+    chart_income_data = [chart_income_map[k] for k in month_keys]
+    chart_expense_data = [chart_expense_map[k] for k in month_keys]
 
     return render_template(
         "dashboard.html",
         total_income=total_income,
         total_expense=total_expense,
         total_savings=total_savings,
+        total_saving=total_savings,
+        total_balance=total_savings,
         month_income=month_income,
         month_expense=month_expense,
         month_savings=month_savings,
+        month_saving=month_savings,
+        month_balance=month_savings,
         total_records=len(transactions),
+        top_category=top_expense_category,
         top_expense_category=top_expense_category,
-        top_income_source=top_income_source
+        top_income_source=top_income_source,
+        saving_pct=saving_pct,
+        expense_pct=expense_pct,
+        chart_labels=chart_labels,
+        chart_income_data=chart_income_data,
+        chart_expense_data=chart_expense_data
     )
     
 @app.route("/add", methods=["GET", "POST"])
@@ -320,59 +466,60 @@ def add():
         date = request.form.get("date")
         description = request.form.get("description", "")
         
-        if record_type == "income":
-            # Income record - category fixed as 'Income'
-            expenses_collection.insert_one({
-                "user_id": uid,
-                "type": "income",
-                "amount": float(amount) if amount else 0.0,
-                "category": "Income",
-                "date": date,
-                "description": description
-            })
-            flash("Income added successfully!", "success")
-        else:
-            # Expense record
-            category = request.form.get("category")
-            
-            # Agar user ne 'custom' select kiya hai
-            if category == 'custom':
-                custom_cat = request.form.get("custom_category", "").strip().capitalize()
-                if custom_cat:
-                    category = custom_cat
-                    # User ke document mein ye custom category permanently add kar dein (agar pehle se nahi hai)
-                    users_collection.update_one(
-                        {"_id": ObjectId(uid)},
-                        {"$addToSet": {"custom_categories": category}}
-                    )
-                else:
-                    category = "Other"
-            
-            expenses_collection.insert_one({
-                "user_id": uid,
-                "type": "expense",
-                "amount": float(amount) if amount else 0.0,
-                "category": category,
-                "date": date,
-                "description": description
-            })
-            flash("Expense added successfully!", "success")
+        try:
+            if record_type == "income":
+                expenses_collection.insert_one({
+                    "user_id": uid,
+                    "type": "income",
+                    "amount": float(amount) if amount else 0.0,
+                    "category": "Income",
+                    "date": date,
+                    "description": description
+                })
+                flash("Income added successfully!", "success")
+            else:
+                category = request.form.get("category")
+                if category == 'custom':
+                    custom_cat = request.form.get("custom_category", "").strip().capitalize()
+                    if custom_cat:
+                        category = custom_cat
+                        users_collection.update_one(
+                            {"_id": ObjectId(uid)},
+                            {"$addToSet": {"custom_categories": category}}
+                        )
+                    else:
+                        category = "Other"
+                
+                expenses_collection.insert_one({
+                    "user_id": uid,
+                    "type": "expense",
+                    "amount": float(amount) if amount else 0.0,
+                    "category": category,
+                    "date": date,
+                    "description": description
+                })
+                flash("Expense added successfully!", "success")
+        except Exception:
+            flash("Database error saving record.", "danger")
         
         return redirect(url_for("add"))
     
     # GET request - show form with previous categories
-    user_data = users_collection.find_one({"_id": ObjectId(uid)})
+    try:
+        user_data = users_collection.find_one({"_id": ObjectId(uid)})
+    except Exception:
+        user_data = None
     user_custom_categories = user_data.get("custom_categories", []) if user_data else []
     
-    # Last added expense by this user to set default category
-    latest_expense = expenses_collection.find_one(
-        {"user_id": uid, "type": "expense"}, sort=[("_id", -1)]
-    )
+    try:
+        latest_expense = expenses_collection.find_one(
+            {"user_id": uid, "type": "expense"}, sort=[("_id", -1)]
+        )
+    except Exception:
+        latest_expense = None
     last_used_category = latest_expense.get("category", "") if latest_expense else ""
     
-    # Aaj ki date YYYY-MM-DD format mein generate kar ke template ko bhej rahe hain
     today_date = datetime.now().strftime('%Y-%m-%d')
-    # Check if we should open income tab by default
     active_tab = request.args.get('tab', 'expense')
 
     return render_template(
@@ -386,8 +533,21 @@ def add():
 @app.route("/view")
 @login_required
 def view():
-    expenses = list(expenses_collection.find({"user_id": session.get('user_id')}))
-    return render_template("view.html", expenses=expenses)
+    uid = session.get('user_id')
+    filter_type = request.args.get('type', 'all').lower()
+
+    query = {"user_id": uid}
+    if filter_type in ['expense', 'income']:
+        query["type"] = filter_type
+    else:
+        filter_type = 'all'
+
+    try:
+        expenses = list(expenses_collection.find(query).sort("date", -1))
+    except Exception:
+        expenses = []
+
+    return render_template("view.html", expenses=expenses, filter_type=filter_type)
 
 @app.route("/delete_custom_category")
 @login_required
@@ -396,39 +556,60 @@ def delete_custom_category():
     cat_name = request.args.get('name')
     
     if cat_name:
-        users_collection.update_one(
-            {"_id": ObjectId(uid)},
-            {"$pull": {"custom_categories": cat_name}}
-        )
-        flash(f"Category '{cat_name}' deleted successfully!", "success")
+        try:
+            users_collection.update_one(
+                {"_id": ObjectId(uid)},
+                {"$pull": {"custom_categories": cat_name}}
+            )
+            sync_local_db()
+            flash(f"Category '{cat_name}' deleted successfully!", "success")
+        except Exception:
+            flash("Error deleting category.", "danger")
     
     return redirect(url_for("add"))
 
 @app.route("/delete/<id>")
 @login_required
 def delete(id):
-    expenses_collection.delete_one({"_id": ObjectId(id)})
-    flash("Record deleted successfully!", "success")
+    try:
+        expenses_collection.delete_one({"_id": ObjectId(id)})
+        sync_local_db()
+        flash("Record deleted successfully!", "success")
+    except Exception:
+        flash("Error deleting record.", "danger")
     return redirect(url_for("view"))
 
 @app.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 def edit(id):
+    try:
+        oid = ObjectId(id)
+    except Exception:
+        flash("Invalid record ID!", "danger")
+        return redirect(url_for("view"))
+
     if request.method == "POST":
         trans_type = request.form.get("type", "expense").lower()
         if trans_type not in ["expense", "income"]:
             trans_type = "expense"
 
-        expenses_collection.update_one({"_id": ObjectId(id)}, {"$set": {
-            "type": trans_type,
-            "amount": float(request.form.get("amount", 0)),
-            "category": request.form.get("category", "Other"),
-            "date": request.form.get("date"),
-            "description": request.form.get("description", "")
-        }})
-        flash("Record updated successfully!", "success")
+        try:
+            expenses_collection.update_one({"_id": oid}, {"$set": {
+                "type": trans_type,
+                "amount": float(request.form.get("amount", 0)),
+                "category": request.form.get("category", "Other"),
+                "date": request.form.get("date"),
+                "description": request.form.get("description", "")
+            }})
+            flash("Record updated successfully!", "success")
+        except Exception:
+            flash("Error updating record.", "danger")
         return redirect(url_for("view"))
-    expense = expenses_collection.find_one({"_id": ObjectId(id)})
+
+    try:
+        expense = expenses_collection.find_one({"_id": oid})
+    except Exception:
+        expense = None
     return render_template("edit.html", expense=expense)
 
 @app.route("/summary")
@@ -442,85 +623,78 @@ def summary():
     selected_category = request.args.get('category', '').strip()
     active_tab = request.args.get('tab', 'all').lower()  # 'all', 'expense', 'income'
 
-    transactions = list(expenses_collection.find({"user_id": uid}))
+    try:
+        transactions = list(expenses_collection.find({"user_id": uid}))
+    except Exception:
+        transactions = []
 
     now = datetime.now()
     one_week_ago = now - timedelta(days=7)
 
-    # Initialize tracking dicts
-    expense_data = {}
-    income_data = {}
-    expense_category_totals = {}
-    income_category_totals = {}
-    
-    total_income = 0.0
-    total_expense = 0.0
+    # Initialize tracking structures for overall, weekly, monthly, daily
+    timeframes = ['overall', 'weekly', 'monthly', 'daily']
+    expense_data = {tf: {} for tf in timeframes}
+    income_data = {tf: {} for tf in timeframes}
+    income_totals = {tf: 0.0 for tf in timeframes}
+    expense_totals = {tf: 0.0 for tf in timeframes}
+    savings_totals = {tf: 0.0 for tf in timeframes}
+
+    category_items = []
+    is_cat_filtered = bool(selected_category and selected_category.lower() != 'all')
 
     for trans in transactions:
         amt = float(trans.get('amount', 0))
         cat = trans.get('category', 'Other')
         trans_type = trans.get('type', 'expense').lower()
         trans_date_str = trans.get('date', '')
-        
+
         try:
             trans_date = datetime.strptime(trans_date_str, '%Y-%m-%d')
         except (TypeError, ValueError):
             continue
 
-        is_weekly = (trans_date >= one_week_ago)
-        is_monthly = (trans_date.month == now.month and trans_date.year == now.year)
-        is_daily = (trans_date_str == selected_date)
+        tf_matches = {
+            'overall': True,
+            'weekly': (trans_date >= one_week_ago),
+            'monthly': (trans_date.month == now.month and trans_date.year == now.year),
+            'daily': (trans_date_str == selected_date)
+        }
 
-        if trans_type == 'income':
-            total_income += amt
-            income_category_totals[cat] = income_category_totals.get(cat, 0) + amt
-            income_data[cat] = income_data.get(cat, 0) + amt
-        else:
-            total_expense += amt
-            expense_category_totals[cat] = expense_category_totals.get(cat, 0) + amt
-            expense_data[cat] = expense_data.get(cat, 0) + amt
+        for tf, matches in tf_matches.items():
+            if matches:
+                if trans_type == 'income':
+                    income_totals[tf] += amt
+                    income_data[tf][cat] = income_data[tf].get(cat, 0.0) + amt
+                else:
+                    expense_totals[tf] += amt
+                    expense_data[tf][cat] = expense_data[tf].get(cat, 0.0) + amt
 
-    total_saving = total_income - total_expense
+        if is_cat_filtered and cat.lower() == selected_category.lower():
+            if tf_matches.get(view_type, False):
+                category_items.append(trans)
+
+    for tf in timeframes:
+        savings_totals[tf] = income_totals[tf] - expense_totals[tf]
+
+    total_income = income_totals['overall']
+    total_expense = expense_totals['overall']
+    total_saving = savings_totals['overall']
     saving_pct = round((total_saving / total_income * 100), 1) if total_income > 0 else 0.0
     expense_pct = round((total_expense / total_income * 100), 1) if total_income > 0 else 0.0
 
-    income_totals = {"overall": total_income, "weekly": 0, "monthly": 0, "daily": 0}
-    expense_totals = {"overall": total_expense, "weekly": 0, "monthly": 0, "daily": 0}
+    totals = {
+        'income': income_totals,
+        'expense': expense_totals,
+        'savings': savings_totals
+    }
 
-    for trans in transactions:
-        amt = float(trans.get('amount', 0))
-        trans_type = trans.get('type', 'expense').lower()
-        trans_date_str = trans.get('date', '')
-        
-        try:
-            trans_date = datetime.strptime(trans_date_str, '%Y-%m-%d')
-        except (TypeError, ValueError):
-            continue
+    category_items.sort(key=lambda x: x.get('date', ''), reverse=True)
 
-        is_weekly = (trans_date >= one_week_ago)
-        is_monthly = (trans_date.month == now.month and trans_date.year == now.year)
-        is_daily = (trans_date_str == selected_date)
-
-        if trans_type == 'income':
-            if is_weekly:
-                income_totals['weekly'] += amt
-            if is_monthly:
-                income_totals['monthly'] += amt
-            if is_daily:
-                income_totals['daily'] += amt
-        else:
-            if is_weekly:
-                expense_totals['weekly'] += amt
-            if is_monthly:
-                expense_totals['monthly'] += amt
-            if is_daily:
-                expense_totals['daily'] += amt
-
-    category_items = []
     return render_template(
         "summary.html",
         expense_data=expense_data,
         income_data=income_data,
+        totals=totals,
         income_totals=income_totals,
         expense_totals=expense_totals,
         total_income=total_income,
@@ -533,7 +707,7 @@ def summary():
         active_tab=active_tab,
         selected_category=selected_category,
         category_items=category_items,
-        is_category_filtered=bool(selected_category and selected_category.lower() != 'all')
+        is_category_filtered=is_cat_filtered
     )
 
 @app.route("/summary/details")
@@ -751,7 +925,16 @@ def download_report():
 
 @app.route('/sitemap.xml')
 def sitemap():
-    return send_from_directory('.', 'sitemap.xml')
+    return send_from_directory(app.root_path, 'sitemap.xml')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return redirect(url_for('dashboard' if 'user_id' in session else 'index'))
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    flash("An internal server error occurred. Please try again.", "danger")
+    return redirect(url_for('dashboard' if 'user_id' in session else 'index'))
 
 if __name__ == "__main__":
     app.run(debug=True)

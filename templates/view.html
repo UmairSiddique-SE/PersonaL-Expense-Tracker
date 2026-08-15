@@ -67,12 +67,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for expense in expenses %}
+                    {% if expenses %}
+                    {% for item in expenses %}
+                    {% set is_inc = (item.get('type', 'expense') == 'income') %}
                     <tr>
-                        <td>Rs {{ expense.amount }}</td>
-                        <td>{{ expense.category }}</td>
-                        <td>{{ expense.date }}</td>
-                        <td>{{ expense.description }}</td>
+                        <td>
+                            <span class="{% if is_inc %}tag-type-income{% else %}tag-type-expense{% endif %}">
+                                {% if is_inc %}🟢 Income{% else %}🔴 Expense{% endif %}
+                            </span>
+                        </td>
+                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">
+                            {% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.amount|float) }}
+                        </td>
+                        <td><strong>{{ item.category }}</strong></td>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.description or '-' }}</td>
                         <td class="actions-cell">
                             <div class="action-btn-group">
                                 <a href="{{ url_for('edit', id=item._id) }}" class="action-btn edit-btn">Edit</a>
