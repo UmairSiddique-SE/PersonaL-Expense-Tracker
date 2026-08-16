@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,7 +16,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         *{box-sizing:border-box;font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif}
         body{margin:0;min-height:100vh;background:var(--bg-gradient);color:var(--text-primary);transition:background .3s ease,color .3s ease}
@@ -32,18 +31,24 @@
         .flash-message{padding:12px 18px;border-radius:12px;margin-bottom:8px;font-weight:600;font-size:.9rem}
         .flash-message.success{background:rgba(16,185,129,.15);color:var(--currency-income);border:1px solid rgba(16,185,129,.3)}
         .flash-message.danger{background:rgba(244,63,94,.15);color:var(--currency-expense);border:1px solid rgba(244,63,94,.3)}
-        .hero-banner{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:16px}
-        .hero-text h1{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:900;margin:0 0 6px;line-height:1.15}
+
+        /* ── Hero Card with Name + Balance ── */
+        .hero-card{width:100%;background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:24px;padding:28px 32px;box-shadow:var(--shadow-card);backdrop-filter:blur(18px);margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;animation:fadeUp .45s ease both;position:relative;overflow:hidden}
+        .hero-card::before{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(129,140,248,.12));pointer-events:none}
+        .hero-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(99,102,241,.08));pointer-events:none}
+        .hero-left{display:flex;flex-direction:column;gap:6px;position:relative;z-index:1}
+        .hero-left h1{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;margin:0;line-height:1.15}
         .greeting-prefix{color:var(--text-primary)}
         .user-name{background:linear-gradient(135deg,#38bdf8,#818cf8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-        .hero-text p{margin:0;color:var(--text-secondary);font-size:.95rem}
-        .quick-actions{display:flex;gap:10px;flex-wrap:wrap}
-        .quick-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:14px;font-weight:700;font-size:.88rem;text-decoration:none;transition:all .25s ease}
-        .quick-btn-income{background:rgba(16,185,129,.12);color:var(--currency-income);border:1.5px solid rgba(16,185,129,.3)}
-        .quick-btn-income:hover{background:var(--currency-income);color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,185,129,.3)}
-        .quick-btn-expense{background:rgba(244,63,94,.12);color:var(--currency-expense);border:1.5px solid rgba(244,63,94,.3)}
-        .quick-btn-expense:hover{background:var(--currency-expense);color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(244,63,94,.3)}
-        .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;margin-bottom:24px;animation:fadeUp .5s ease .05s both}
+        .hero-left p{margin:0;color:var(--text-secondary);font-size:.9rem}
+        .hero-balance{position:relative;z-index:1;text-align:right;display:flex;flex-direction:column;gap:4px}
+        .hero-balance .balance-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary)}
+        .hero-balance .balance-value{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:900;letter-spacing:-.5px;line-height:1}
+        .hero-balance .balance-positive{color:#10b981}
+        .hero-balance .balance-negative{color:#f43f5e}
+
+        /* ── KPI Row ── */
+        .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;margin-bottom:24px;animation:fadeUp .5s ease .08s both}
         .kpi-card{position:relative;padding:22px 24px;border-radius:22px;background:var(--bg-card);border:1.5px solid var(--border-color);box-shadow:var(--shadow-card);backdrop-filter:blur(18px);transition:all .3s ease;overflow:hidden;display:flex;flex-direction:column;gap:10px}
         .kpi-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;border-radius:50%;opacity:.06;transform:translate(30%,-30%)}
         .kpi-card:hover{transform:translateY(-5px)}
@@ -71,58 +76,38 @@
         .income-kpi .kpi-badge{background:rgba(16,185,129,.12);color:var(--currency-income);border:1px solid rgba(16,185,129,.25)}
         .expense-kpi .kpi-badge{background:rgba(244,63,94,.12);color:var(--currency-expense);border:1px solid rgba(244,63,94,.25)}
         .savings-kpi .kpi-badge{background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25)}
-        .main-card{width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:28px;padding:32px;box-shadow:var(--shadow-card);backdrop-filter:blur(18px);margin-bottom:24px;animation:fadeUp .5s ease .15s both}
-        .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-        .chart-title h2{margin:0;font-size:1.3rem;font-weight:800}
-        .chart-title p{margin:4px 0 0;font-size:.87rem;color:var(--text-secondary)}
-        .chart-legend{display:flex;gap:14px}
-        .leg-item{display:flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700}
-        .leg-dot{width:11px;height:11px;border-radius:4px}
-        .leg-dot.inc{background:#10b981}
-        .leg-dot.exp{background:#f43f5e}
-        .chart-wrap{position:relative;height:270px;width:100%;background:var(--input-bg);border:1px solid var(--border-color);border-radius:18px;padding:18px 14px;margin-bottom:32px}
-        .section-title{font-size:.82rem;font-weight:800;margin:0 0 18px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.09em;display:flex;align-items:center;gap:8px}
-        .section-title::after{content:'';flex:1;height:1px;background:var(--border-color)}
-        .module-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-        .module-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;padding:26px 20px 22px;border-radius:22px;background:var(--input-bg);border:1.5px solid var(--border-color);text-decoration:none;color:var(--text-primary);transition:all .3s ease;text-align:center;overflow:hidden}
-        .module-card::after{content:'';position:absolute;bottom:-22px;right:-22px;width:80px;height:80px;border-radius:50%;opacity:.05;transition:opacity .3s}
+
+        /* ── Action Module Cards ── */
+        .module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;margin-bottom:24px;animation:fadeUp .5s ease .16s both}
+        .module-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 22px 26px;border-radius:22px;background:var(--bg-card);border:1.5px solid var(--border-color);box-shadow:var(--shadow-card);backdrop-filter:blur(18px);text-decoration:none;color:var(--text-primary);transition:all .3s ease;text-align:center;overflow:hidden}
+        .module-card::after{content:'';position:absolute;bottom:-22px;right:-22px;width:90px;height:90px;border-radius:50%;opacity:.05;transition:opacity .3s}
         .module-card:hover{transform:translateY(-6px)}
         .module-card:hover::after{opacity:.12}
-        .add-expense-card{border-color:rgba(244,63,94,.25)}
-        .add-expense-card::after{background:#f43f5e}
-        .add-expense-card:hover{border-color:#f43f5e;box-shadow:0 14px 34px rgba(244,63,94,.2)}
-        .add-income-card{border-color:rgba(16,185,129,.25)}
-        .add-income-card::after{background:#10b981}
-        .add-income-card:hover{border-color:#10b981;box-shadow:0 14px 34px rgba(16,185,129,.2)}
-        .view-card{border-color:rgba(56,189,248,.25)}
+        .add-record-card{border-color:rgba(16,185,129,.3)}
+        .add-record-card::after{background:#10b981}
+        .add-record-card:hover{border-color:#10b981;box-shadow:0 16px 38px rgba(16,185,129,.2)}
+        .view-card{border-color:rgba(56,189,248,.3)}
         .view-card::after{background:#38bdf8}
-        .view-card:hover{border-color:#38bdf8;box-shadow:0 14px 34px rgba(56,189,248,.2)}
-        .summary-mod-card{border-color:rgba(129,140,248,.25)}
+        .view-card:hover{border-color:#38bdf8;box-shadow:0 16px 38px rgba(56,189,248,.2)}
+        .summary-mod-card{border-color:rgba(129,140,248,.3)}
         .summary-mod-card::after{background:#818cf8}
-        .summary-mod-card:hover{border-color:#818cf8;box-shadow:0 14px 34px rgba(129,140,248,.2)}
-        .mod-icon{width:62px;height:62px;display:grid;place-items:center;border-radius:19px;font-size:1.8rem;color:#fff}
-        .add-expense-card .mod-icon{background:linear-gradient(135deg,#f43f5e,#e11d48);box-shadow:0 8px 18px rgba(244,63,94,.3)}
-        .add-income-card .mod-icon{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 18px rgba(16,185,129,.3)}
-        .view-card .mod-icon{background:linear-gradient(135deg,#38bdf8,#0ea5e9);box-shadow:0 8px 18px rgba(56,189,248,.3)}
-        .summary-mod-card .mod-icon{background:linear-gradient(135deg,#818cf8,#6366f1);box-shadow:0 8px 18px rgba(129,140,248,.3)}
+        .summary-mod-card:hover{border-color:#818cf8;box-shadow:0 16px 38px rgba(129,140,248,.2)}
+        .mod-icon{width:64px;height:64px;display:grid;place-items:center;border-radius:19px;font-size:1.8rem;color:#fff}
+        .add-record-card .mod-icon{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 20px rgba(16,185,129,.3)}
+        .view-card .mod-icon{background:linear-gradient(135deg,#38bdf8,#0ea5e9);box-shadow:0 8px 20px rgba(56,189,248,.3)}
+        .summary-mod-card .mod-icon{background:linear-gradient(135deg,#818cf8,#6366f1);box-shadow:0 8px 20px rgba(129,140,248,.3)}
         .module-card h3{font-size:1.15rem;margin:0;font-weight:800}
-        .module-card p{margin:0;color:var(--text-secondary);font-size:.85rem;line-height:1.5}
-        .card-mini-stat{width:100%;background:var(--bg-card);border-radius:12px;padding:8px 14px;border:1px solid var(--border-color);text-align:center}
-        .card-mini-stat .cs-val{display:block;font-size:1.1rem;font-weight:800}
-        .card-mini-stat .cs-lbl{font-size:.73rem;color:var(--text-secondary);font-weight:600}
-        .income-stat .cs-val{color:var(--currency-income)}
-        .expense-stat .cs-val{color:var(--currency-expense)}
-        .saving-stat .cs-val{color:#818cf8}
-        .mod-badge{padding:4px 12px;border-radius:999px;font-size:.77rem;font-weight:700}
-        .add-expense-card .mod-badge{background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.25)}
-        .add-income-card .mod-badge{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25)}
+        .module-card p{margin:0;color:var(--text-secondary);font-size:.84rem;line-height:1.5}
+        .mod-badge{padding:5px 14px;border-radius:999px;font-size:.78rem;font-weight:700}
+        .add-record-card .mod-badge{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25)}
         .view-card .mod-badge{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
         .summary-mod-card .mod-badge{background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.25)}
+
         .page-footer{margin-top:16px;padding:14px;border-top:1px solid var(--border-color);color:var(--text-muted);text-align:center;font-size:.9rem;width:100%}
         .page-footer strong{color:var(--accent-primary)}
         @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-        @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-row .savings-kpi{grid-column:1/-1}}
-        @media(max-width:640px){.page-shell{padding:16px 14px 40px}.navbar{padding:12px 16px}.main-card{padding:20px 14px}.kpi-row{grid-template-columns:1fr}.kpi-row .savings-kpi{grid-column:auto}.module-grid{grid-template-columns:1fr}.hero-banner{flex-direction:column;align-items:flex-start}.chart-wrap{height:210px}}
+        @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-row .savings-kpi{grid-column:1/-1}.module-grid{grid-template-columns:repeat(2,1fr)}.module-grid .summary-mod-card{grid-column:1/-1}}
+        @media(max-width:640px){.page-shell{padding:16px 14px 40px}.navbar{padding:12px 16px}.hero-card{padding:20px 18px;flex-direction:column;align-items:flex-start}.hero-balance{text-align:left}.kpi-row{grid-template-columns:1fr}.kpi-row .savings-kpi{grid-column:auto}.module-grid{grid-template-columns:1fr}.module-grid .summary-mod-card{grid-column:auto}}
     </style>
 </head>
 <body>
@@ -149,47 +134,24 @@
           {% endif %}
         {% endwith %}
 
-        <div class="hero-banner">
-            <div class="hero-text">
+        <!-- ── Hero Card: Name + Balance ── -->
+        <div class="hero-card">
+            <div class="hero-left">
                 <h1>
                     <span class="greeting-prefix" id="greetingText">Good Day,</span>
                     <span class="user-name"> {{ session.get('first_name', 'User') }}</span>!
                 </h1>
-                <p>Manage your finances with a premium dashboard. Stay on top of your spending.</p>
+                <p>{{ session.get('first_name', 'User') }} {{ session.get('last_name', '') }} &bull; Personal Finance Dashboard</p>
+            </div>
+            <div class="hero-balance">
+                <span class="balance-label">Current Balance</span>
+                <div class="balance-value {% if total_savings >= 0 %}balance-positive{% else %}balance-negative{% endif %}">
+                    Rs {{ "%.0f"|format(total_savings) }}
+                </div>
             </div>
         </div>
 
-        <div class="summary-panel">
-            <div class="panel-top">
-                <div class="user-meta">
-                    <p class="eyebrow">Account</p>
-                    <h2>{{ session.get('first_name', 'User') }} {{ session.get('last_name', '') }}</h2>
-                </div>
-                <div class="balance-box">
-                    <span class="balance-label">Balance</span>
-                    <strong>Rs {{ "%.0f"|format(total_savings) }}</strong>
-                </div>
-            </div>
-
-            <div class="action-grid">
-                <a href="/add?tab=income" class="action-card income" id="btn-add-income">
-                    <div class="action-icon">+</div>
-                    <div class="action-text">
-                        <span class="action-name">Add Income</span>
-                        <small>Total: Rs {{ "%.0f"|format(total_income) }}</small>
-                    </div>
-                </a>
-
-                <a href="/add?tab=expense" class="action-card expense" id="btn-add-expense">
-                    <div class="action-icon">−</div>
-                    <div class="action-text">
-                        <span class="action-name">Add Expense</span>
-                        <small>Total: Rs {{ "%.0f"|format(total_expense) }}</small>
-                    </div>
-                </a>
-            </div>
-        </div>
-
+        <!-- ── KPI Row: Total Income | Total Expense | Savings ── -->
         <div class="kpi-row">
             <div class="kpi-card income-kpi">
                 <div class="kpi-top">
@@ -226,6 +188,28 @@
             </div>
         </div>
 
+        <!-- ── Action Module Cards: Add Record | View Records | View Summary ── -->
+        <div class="module-grid">
+            <a href="/add" class="module-card add-record-card" id="btn-add-record">
+                <div class="mod-icon">📝</div>
+                <h3>Add Record</h3>
+                <p>Add new income or expense entries to your tracker</p>
+                <span class="mod-badge">{{ total_records }} Records</span>
+            </a>
+            <a href="/view" class="module-card view-card" id="btn-view-records">
+                <div class="mod-icon">📋</div>
+                <h3>View Records</h3>
+                <p>Browse, search and manage all your transactions</p>
+                <span class="mod-badge">View All →</span>
+            </a>
+            <a href="/summary" class="module-card summary-mod-card" id="btn-view-summary">
+                <div class="mod-icon">📊</div>
+                <h3>View Summary</h3>
+                <p>Category breakdowns, charts and financial reports</p>
+                <span class="mod-badge">Analytics →</span>
+            </a>
+        </div>
+
         <div class="page-footer">Made by: <strong>Umair Siddique</strong></div>
     </main>
 
@@ -242,3 +226,4 @@
     </script>
 </body>
 </html>
+
