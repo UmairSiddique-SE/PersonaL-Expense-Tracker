@@ -468,15 +468,19 @@ def add():
         
         try:
             if record_type == "income":
+                income_cat = request.form.get("category", "Salary").strip()
+                if not income_cat:
+                    income_cat = "Salary"
                 expenses_collection.insert_one({
                     "user_id": uid,
                     "type": "income",
                     "amount": float(amount) if amount else 0.0,
-                    "category": "Income",
+                    "category": income_cat,
                     "date": date,
                     "description": description
                 })
                 flash("Income added successfully!", "success")
+                return redirect(url_for("add") + "?tab=income")
             else:
                 category = request.form.get("category")
                 if category == 'custom':
@@ -502,7 +506,8 @@ def add():
         except Exception:
             flash("Database error saving record.", "danger")
         
-        return redirect(url_for("add"))
+        return redirect(url_for("add") + "?tab=expense")
+
     
     # GET request - show form with previous categories
     try:
@@ -621,7 +626,7 @@ def summary():
         view_type = 'overall'
     selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     selected_category = request.args.get('category', '').strip()
-    active_tab = request.args.get('tab', 'all').lower()  # 'all', 'expense', 'income'
+    active_tab = request.args.get('tab', 'expense').lower()  # 'all', 'expense', 'income'
 
     try:
         transactions = list(expenses_collection.find({"user_id": uid}))

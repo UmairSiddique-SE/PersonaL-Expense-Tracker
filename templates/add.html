@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Expense | Expense Tracker</title>
+    <title>Add Record | Expense Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
@@ -11,22 +12,53 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <style>
-        .record-tabs {
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            color: var(--text-primary)
+        }
+
+        /* ── TYPE TOGGLE (Email/Phone style) ── */
+        .type-toggle-wrap {
+            margin-bottom: 28px;
+        }
+
+        .type-toggle-wrap label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .type-toggle {
             display: flex;
             background: var(--input-bg);
             border-radius: 16px;
-            padding: 6px;
-            gap: 6px;
-            margin-bottom: 28px;
+            padding: 5px;
+            gap: 5px;
             border: 1px solid var(--border-color);
+            width: 100%;
         }
-        .tab-btn {
+
+        .type-tab {
             flex: 1;
-            padding: 12px 20px;
+            padding: 13px 20px;
             border: none;
             border-radius: 12px;
             font-size: 1rem;
@@ -39,36 +71,86 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            letter-spacing: 0.01em;
         }
-        .tab-btn.income-tab.active {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(16,185,129,0.35);
-        }
-        .tab-btn.expense-tab.active {
-            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(248,113,113,0.35);
-        }
-        .tab-btn:not(.active):hover {
+
+        .type-tab:hover:not(.active) {
             background: var(--border-color);
             color: var(--text-primary);
         }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .income-category-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
-            background: rgba(16,185,129,0.12);
-            border: 1px solid rgba(16,185,129,0.3);
-            border-radius: 12px;
-            color: #10b981;
-            font-weight: 700;
-            font-size: 0.95rem;
+
+        .type-tab.expense-tab.active {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            color: #fff;
+            box-shadow: 0 4px 18px rgba(244, 63, 94, 0.4);
         }
-        .income-btn {
+
+        .type-tab.income-tab.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Tab content */
+        .tab-content {
+            display: none;
+            animation: fadeIn .3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* Income source pills */
+        .income-source-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .source-pill {
+            padding: 11px 14px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .source-pill:hover,
+        .source-pill.selected {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+        }
+
+        input[name="income_source"] {
+            display: none;
+        }
+
+        /* Submit buttons */
+        .income-submit-btn {
             width: 100%;
             padding: 15px;
             border: none;
@@ -79,41 +161,63 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
             margin-top: 8px;
         }
-        .income-btn:hover {
+
+        .income-submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16,185,129,0.45);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
         }
-        .expense-btn {
+
+        .expense-submit-btn {
             width: 100%;
             padding: 15px;
             border: none;
             border-radius: 14px;
-            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
             color: #fff;
             font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(248,113,113,0.3);
+            box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
             margin-top: 8px;
         }
-        .expense-btn:hover {
+
+        .expense-submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(248,113,113,0.45);
+            box-shadow: 0 8px 25px rgba(244, 63, 94, 0.45);
+        }
+
+        /* Color indicator strip at top of form */
+        .form-indicator {
+            height: 4px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            transition: background 0.3s;
+        }
+
+        .form-indicator.expense {
+            background: linear-gradient(90deg, #f43f5e, #e11d48);
+        }
+
+        .form-indicator.income {
+            background: linear-gradient(90deg, #10b981, #059669);
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar">
-        <a href="/dashboard" class="logo" style="text-decoration: none;">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="width: 38px; height: 38px; border-radius: 50%;">
+        <a href="/dashboard" class="logo" style="text-decoration:none;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo"
+                style="width:38px;height:38px;border-radius:50%;">
             Expense<span>Tracker</span>
         </a>
         <div class="user-info">
-            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span
+                    class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
             <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
@@ -123,100 +227,184 @@
         <section class="form-panel">
             <div class="card-header">
                 <div>
-                    <h1>Add New Expense</h1>
-                    <p class="subtitle">Enter your latest spending and keep your dashboard up to date.</p>
+                    <h1 id="formTitle">Add New Record</h1>
+                    <p class="subtitle" id="formSubtitle">Select type below to log expense or income.</p>
                 </div>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                <div class="flash-container">
-                  {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">{{ message }}</div>
-                  {% endfor %}
-                </div>
-              {% endif %}
+            {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
             {% endwith %}
 
-            <form class="form-card" action="/add" method="POST">
-                <div class="form-group">
-                    <label>Amount</label>
-                    <input type="number" name="amount" step="0.01" required placeholder="0.00">
+            <!-- ── TYPE TOGGLE (like Email / Phone) ── -->
+            <div class="type-toggle-wrap">
+                <label>Select Type</label>
+                <div class="type-toggle" role="tablist">
+                    <button class="type-tab expense-tab {% if active_tab == 'expense' %}active{% endif %}"
+                        id="tab-expense" onclick="switchTab('expense')" type="button" role="tab">
+                        💸 Expense
+                    </button>
+                    <button class="type-tab income-tab {% if active_tab == 'income' %}active{% endif %}" id="tab-income"
+                        onclick="switchTab('income')" type="button" role="tab">
+                        💰 Income
+                    </button>
                 </div>
-               
-                <!-- Category Dropdown -->
-                <div class="form-group">
-                    <label for="categorySelect">Category</label>
-                    <select name="category" id="categorySelect" onchange="checkCustomCategory(this)">
-                        <option value="Food" {% if last_used_category == 'Food' %}selected{% endif %}>Food</option>
-                        <option value="Travel" {% if last_used_category == 'Travel' %}selected{% endif %}>Travel</option>
-                        <option value="Groceries" {% if last_used_category == 'Groceries' %}selected{% endif %}>Groceries</option>
-                        <option value="Bills" {% if last_used_category == 'Bills' %}selected{% endif %}>Bills</option>
-                        <option value="Shopping" {% if last_used_category == 'Shopping' %}selected{% endif %}>Shopping</option>
-                        
-                        <!-- Custom Categories with Cross Option -->
-                        {% if custom_categories %}
+            </div>
+
+            <!-- Color indicator strip -->
+            <div class="form-indicator {% if active_tab == 'income' %}income{% else %}expense{% endif %}"
+                id="formIndicator"></div>
+
+            <!-- ── EXPENSE TAB ── -->
+            <div class="tab-content {% if active_tab == 'expense' %}active{% endif %}" id="content-expense">
+                <form class="form-card" action="/add" method="POST">
+                    <input type="hidden" name="record_type" value="expense">
+                    <div class="form-group">
+                        <label>Amount (Rs)</label>
+                        <input type="number" name="amount" step="0.01" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="categorySelect">Category</label>
+                        <select name="category" id="categorySelect" onchange="checkCustomCategory(this)">
+                            <option value="Food" {% if last_used_category=='Food' %}selected{% endif %}>🍔 Food</option>
+                            <option value="Travel" {% if last_used_category=='Travel' %}selected{% endif %}>🚗 Travel
+                            </option>
+                            <option value="Groceries" {% if last_used_category=='Groceries' %}selected{% endif %}>🛒
+                                Groceries</option>
+                            <option value="Bills" {% if last_used_category=='Bills' %}selected{% endif %}>💡 Bills
+                            </option>
+                            <option value="Shopping" {% if last_used_category=='Shopping' %}selected{% endif %}>🛍️
+                                Shopping</option>
+                            {% if custom_categories %}
                             {% for cat in custom_categories %}
-                                <option value="{{ cat }}" {% if last_used_category == cat %}selected{% endif %}>{{ cat }}</option>
-                                <option value="DELETE:{{ cat }}">{{ cat }}  Delete choice</option>
+                            <option value="{{ cat }}" {% if last_used_category==cat %}selected{% endif %}>{{ cat }}
+                            </option>
+                            <option value="DELETE:{{ cat }}">{{ cat }} — Delete</option>
                             {% endfor %}
-                        {% endif %}
-                        
-                        <option value="custom">Add choice</option>
-                    </select>
-                </div>
+                            {% endif %}
+                            <option value="custom">➕ Add custom category</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customCategoryDiv" style="display:none;">
+                        <label for="customCategoryInput">Custom Category Name</label>
+                        <input type="text" name="custom_category" id="customCategoryInput"
+                            placeholder="e.g. Gym, Medicine">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" name="date" value="{{ today_date }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description (Optional)</label>
+                        <input type="text" name="description" placeholder="Optional notes...">
+                    </div>
+                    <button type="submit" class="expense-submit-btn">💸 Add Expense</button>
+                </form>
+            </div>
 
-                <!-- Custom Category Input Box -->
-                <div class="form-group" id="customCategoryDiv" style="display: none;">
-                    <label for="customCategoryInput">Enter Custom Category</label>
-                    <input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Groceries, Gym">
-                </div>
+            <!-- ── INCOME TAB ── -->
+            <div class="tab-content {% if active_tab == 'income' %}active{% endif %}" id="content-income">
+                <form class="form-card" action="/add" method="POST">
+                    <input type="hidden" name="record_type" value="income">
+                    <div class="form-group">
+                        <label>Amount (Rs)</label>
+                        <input type="number" name="amount" step="0.01" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Income Source</label>
+                        <input type="hidden" name="category" id="incomeCategoryInput" value="Salary">
+                        <div class="income-source-grid">
+                            <div class="source-pill selected" onclick="selectSource(this,'Salary')">💰 Salary</div>
+                            <div class="source-pill" onclick="selectSource(this,'Freelance')">💻 Freelance</div>
+                            <div class="source-pill" onclick="selectSource(this,'Business')">🏢 Business</div>
+                            <div class="source-pill" onclick="selectSource(this,'Investment')">📈 Investment</div>
+                            <div class="source-pill" onclick="selectSource(this,'Bonus')">🎁 Bonus</div>
+                            <div class="source-pill" onclick="selectSource(this,'Other')">🏷️ Other</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" name="date" value="{{ today_date }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description (Optional)</label>
+                        <input type="text" name="description" placeholder="Optional notes...">
+                    </div>
+                    <button type="submit" class="income-submit-btn">💰 Add Income</button>
+                </form>
+            </div>
 
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" name="date" value="{{ today_date }}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Description</label>
-                    <input type="text" name="description" placeholder="Optional notes...">
-                </div>
-                
-                <button type="submit" class="primary-btn">Add Expense</button>
-            </form>
-
-            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
+            <a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
         </section>
     </main>
 
     <script>
-    function checkCustomCategory(select) {
-        const customDiv = document.getElementById('customCategoryDiv');
-        const customInput = document.getElementById('customCategoryInput');
-        if (select.value.startsWith('DELETE:')) {
-            const catName = select.value.replace('DELETE:', '');
-            if (confirm(`Kya aap '${catName}' category ko delete karna chahte hain?`)) {
-                window.location.href = `/delete_custom_category?name=${encodeURIComponent(catName)}`;
-            } else {
-                select.value = "Food";
-            }
-            return;
-        }
-        if (select.value === 'custom') {
-            customDiv.style.display = 'block';
-            customInput.required = true;
-            customInput.focus();
-        } else {
-            customDiv.style.display = 'none';
-            customInput.required = false;
-            customInput.value = '';
-        }
-    }
+        var currentTab = '{{ active_tab }}';
 
-    document.addEventListener("DOMContentLoaded", function() {
-        const select = document.getElementById('categorySelect');
-        checkCustomCategory(select);
-    });
+        function switchTab(tab) {
+            currentTab = tab;
+            // Update tab buttons
+            document.querySelectorAll('.type-tab').forEach(function (t) { t.classList.remove('active'); });
+            document.getElementById('tab-' + tab).classList.add('active');
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+            document.getElementById('content-' + tab).classList.add('active');
+            // Update indicator
+            var ind = document.getElementById('formIndicator');
+            ind.className = 'form-indicator ' + tab;
+            // Update title
+            if (tab === 'expense') {
+                document.getElementById('formTitle').textContent = 'Add New Expense';
+                document.getElementById('formSubtitle').textContent = 'Log your spending and track where your money goes.';
+            } else {
+                document.getElementById('formTitle').textContent = 'Add New Income';
+                document.getElementById('formSubtitle').textContent = 'Record your earnings and build a clear financial picture.';
+            }
+            history.replaceState(null, '', '/add?tab=' + tab);
+        }
+
+        function checkCustomCategory(select) {
+            var customDiv = document.getElementById('customCategoryDiv');
+            var customInput = document.getElementById('customCategoryInput');
+            if (select.value.startsWith('DELETE:')) {
+                var catName = select.value.replace('DELETE:', '');
+                if (confirm("Kya aap '" + catName + "' category delete karna chahte hain?")) {
+                    window.location.href = '/delete_custom_category?name=' + encodeURIComponent(catName);
+                } else {
+                    select.value = 'Food';
+                }
+                return;
+            }
+            if (select.value === 'custom') {
+                customDiv.style.display = 'block';
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customDiv.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+
+        function selectSource(el, value) {
+            document.querySelectorAll('.source-pill').forEach(function (p) { p.classList.remove('selected'); });
+            el.classList.add('selected');
+            document.getElementById('incomeCategoryInput').value = value;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function () {
+            var select = document.getElementById('categorySelect');
+            if (select) checkCustomCategory(select);
+            switchTab(currentTab);
+        });
     </script>
 </body>
+
 </html>

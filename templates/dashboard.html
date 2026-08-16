@@ -1,506 +1,128 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Expense & Income Tracker</title>
+    <title>Dashboard | Expense &amp; Income Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
-    <meta name="apple-mobile-web-app-title" content="Expense Tracker"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
+    <meta name="description" content="Premium personal finance dashboard to track income, expenses and savings.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style> 
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: var(--bg-gradient);
-            color: var(--text-primary);
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 36px;
-            background: var(--navbar-bg);
-            border-bottom: 1px solid var(--border-color);
-            backdrop-filter: blur(16px);
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 22px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            color: var(--text-primary);
-            text-decoration: none;
-        }
-
-        .logo img {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--accent-primary);
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
-        }
-
-        .logo strong {
-            color: var(--accent-primary);
-            display: inline-block;
-            line-height: 1;
-        }
-
-        .user-info {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .logout-btn {
-            color: var(--currency-expense);
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.95rem;
-            transition: opacity 0.25s ease;
-        }
-
-        .logout-btn:hover {
-            opacity: 0.8;
-            text-decoration: underline;
-        }
-
-        .page-shell {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px 24px 60px;
-            width: 100%;
-            max-width: 1240px;
-            margin: 0 auto;
-            color: var(--text-primary);
-        }
-
-        .hero-banner {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 26px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .dashboard-greeting { 
-            font-size: clamp(2rem, 3.2vw, 2.9rem);
-            line-height: 1.15;
-            margin: 0;
-            font-weight: 800;
-        }
-
-        .dashboard-greeting .greeting-prefix {
-            color: var(--text-primary);
-            font-weight: 800;
-        }
-
-        .dashboard-greeting .user-greeting-name {
-            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .hero-subtext {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            margin: 8px 0 0;
-        }
-
-        .quick-actions-bar {
-            display: flex;
-            gap: 12px;
-        }
-
-        .quick-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 14px;
-            font-weight: 700;
-            font-size: 0.92rem;
-            text-decoration: none;
-            transition: all 0.25s ease;
-        }
-
-        .quick-btn-income {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--currency-income);
-            border: 1.5px solid rgba(16, 185, 129, 0.35);
-        }
-        .quick-btn-income:hover {
-            background: var(--currency-income);
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-        }
-
-        .quick-btn-expense {
-            background: rgba(244, 63, 94, 0.15);
-            color: var(--currency-expense);
-            border: 1.5px solid rgba(244, 63, 94, 0.35);
-        }
-        .quick-btn-expense:hover {
-            background: var(--currency-expense);
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
-        }
-
-        /* Top Financial KPI Cards Grid */
-        .top-overview-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
-        .top-kpi-card {
-            position: relative;
-            padding: 24px;
-            border-radius: 24px;
-            background: var(--bg-card);
-            border: 1.5px solid var(--border-color);
-            box-shadow: var(--shadow-card);
-            backdrop-filter: blur(18px);
-            transition: all 0.35s ease;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .top-kpi-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .top-kpi-card.income-card {
-            border-color: rgba(16, 185, 129, 0.35);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, var(--bg-card) 100%);
-        }
-        .top-kpi-card.income-card:hover {
-            border-color: var(--currency-income);
-            box-shadow: 0 16px 36px var(--currency-income-glow);
-        }
-
-        .top-kpi-card.expense-card {
-            border-color: rgba(244, 63, 94, 0.35);
-            background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, var(--bg-card) 100%);
-        }
-        .top-kpi-card.expense-card:hover {
-            border-color: var(--currency-expense);
-            box-shadow: 0 16px 36px var(--currency-expense-glow);
-        }
-
-        .top-kpi-card.savings-card {
-            border-color: rgba(14, 165, 233, 0.35);
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, var(--bg-card) 100%);
-        }
-        .top-kpi-card.savings-card:hover {
-            border-color: var(--currency-balance);
-            box-shadow: 0 16px 36px var(--currency-savings-glow);
-        }
-
-        .kpi-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .kpi-label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-        }
-
-        .kpi-icon-badge {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            display: grid;
-            place-items: center;
-            font-size: 1.3rem;
-            color: #ffffff;
-        }
-
-        .income-card .kpi-icon-badge {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
-        }
-
-        .expense-card .kpi-icon-badge {
-            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-            box-shadow: 0 6px 16px rgba(244, 63, 94, 0.35);
-        }
-
-        .savings-card .kpi-icon-badge {
-            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.35);
-        }
-
-        .kpi-val {
-            font-size: clamp(1.8rem, 2.5vw, 2.3rem);
-            font-weight: 800;
-            line-height: 1.1;
-            margin: 0 0 12px;
-            letter-spacing: -0.5px;
-        }
-
-        .income-card .kpi-val { color: var(--currency-income); }
-        .expense-card .kpi-val { color: var(--currency-expense); }
-        .savings-card .kpi-val { color: var(--currency-balance); }
-
-        .kpi-footer-tags {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .kpi-sub-badge {
-            font-size: 0.8rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .income-card .kpi-sub-badge {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--currency-income);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .expense-card .kpi-sub-badge {
-            background: rgba(244, 63, 94, 0.15);
-            color: var(--currency-expense);
-            border: 1px solid rgba(244, 63, 94, 0.3);
-        }
-
-        .savings-card .kpi-sub-badge {
-            background: rgba(14, 165, 233, 0.15);
-            color: var(--currency-balance);
-            border: 1px solid rgba(14, 165, 233, 0.3);
-        }
-
-        /* Main Section Container */
-        .dashboard-main-card {
-            width: 100%;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 30px;
-            padding: 36px;
-            box-shadow: var(--shadow-card);
-            backdrop-filter: blur(18px);
-            margin-bottom: 30px;
-        }
-
-        /* Comparison Chart Card */
-        .chart-section {
-            width: 100%;
-            margin-bottom: 34px;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .chart-title-wrap h2 {
-            margin: 0;
-            font-size: 1.45rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chart-title-wrap p {
-            margin: 4px 0 0;
-            font-size: 0.92rem;
-            color: var(--text-secondary);
-        }
-
-        .chart-legend-custom {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.88rem;
-            font-weight: 700;
-        }
-
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 4px;
-        }
-
-        .legend-dot.income { background: var(--currency-income); }
-        .legend-dot.expense { background: var(--currency-expense); }
-
-        .chart-canvas-wrapper {
-            position: relative;
-            height: 300px;
-            width: 100%;
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 20px 16px;
-        }
-
-        /* Module Navigation Cards */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
-            width: 100%;
-        }
-
-        .module-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 14px;
-            padding: 30px 20px;
-            border-radius: 24px;
-            background: var(--input-bg);
-            border: 1.5px solid var(--border-color);
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: all 0.35s ease;
-            text-align: center;
-        }
-
-        .module-card:hover {
-            transform: translateY(-6px);
-            background: var(--bg-card-hover);
-            border-color: var(--accent-primary);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .module-card .icon {
-            width: 64px;
-            height: 64px;
-            display: grid;
-            place-items: center;
-            border-radius: 20px;
-            background: var(--accent-gradient);
-            color: #ffffff;
-            font-size: 1.9rem;
-            box-shadow: 0 8px 18px rgba(56, 189, 248, 0.25);
-        }
-
-        .module-card h3 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: var(--text-primary);
-            font-weight: 700;
-        }
-
-        .module-card p {
-            margin: 0;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            font-size: 0.9rem;
-        }
-
-        .module-card .badge {
-            margin-top: 4px;
-            display: inline-flex;
-            padding: 5px 12px;
-            border-radius: 999px;
-            background: rgba(56, 189, 248, 0.14);
-            color: var(--accent-primary);
-            font-size: 0.82rem;
-            font-weight: 700;
-        }
-
-        .footer {
-            margin-top: 20px;
-            padding: 16px;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-muted);
-            text-align: center;
-            font-size: 0.95rem;
-            width: 100%;
-        }
-
-        .footer strong {
-            color: var(--accent-primary);
-        }
-
-        @media (max-width: 1024px) {
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 760px) {
-            .page-shell {
-                padding: 20px 14px 40px;
-            }
-            .hero-top {
-                flex-direction: column;
-            }
-            .hero .stats {
-                grid-template-columns: 1fr;
-            }
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-            .chart-canvas-wrapper {
-                height: 250px;
-            }
-            .dashboard-main-card {
-                padding: 24px 18px;
-            }
-        }
+    <style>
+        *{box-sizing:border-box;font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif}
+        body{margin:0;min-height:100vh;background:var(--bg-gradient);color:var(--text-primary);transition:background .3s ease,color .3s ease}
+        .navbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;background:var(--navbar-bg);border-bottom:1px solid var(--border-color);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20}
+        .logo{display:inline-flex;align-items:center;gap:12px;font-size:20px;font-weight:800;color:var(--text-primary);text-decoration:none}
+        .logo img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-primary);box-shadow:0 0 12px rgba(56,189,248,.3)}
+        .logo strong{color:var(--accent-primary)}
+        .user-info{display:flex;gap:14px;align-items:center}
+        .logout-btn{color:var(--currency-expense);text-decoration:none;font-weight:700;font-size:.9rem;transition:opacity .25s}
+        .logout-btn:hover{opacity:.75;text-decoration:underline}
+        .page-shell{display:flex;flex-direction:column;align-items:center;padding:28px 20px 60px;width:100%;max-width:1180px;margin:0 auto}
+        .flash-container{width:100%;margin-bottom:16px}
+        .flash-message{padding:12px 18px;border-radius:12px;margin-bottom:8px;font-weight:600;font-size:.9rem}
+        .flash-message.success{background:rgba(16,185,129,.15);color:var(--currency-income);border:1px solid rgba(16,185,129,.3)}
+        .flash-message.danger{background:rgba(244,63,94,.15);color:var(--currency-expense);border:1px solid rgba(244,63,94,.3)}
+        .hero-banner{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+        .hero-text h1{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:900;margin:0 0 6px;line-height:1.15}
+        .greeting-prefix{color:var(--text-primary)}
+        .user-name{background:linear-gradient(135deg,#38bdf8,#818cf8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .hero-text p{margin:0;color:var(--text-secondary);font-size:.95rem}
+        .quick-actions{display:flex;gap:10px;flex-wrap:wrap}
+        .quick-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:14px;font-weight:700;font-size:.88rem;text-decoration:none;transition:all .25s ease}
+        .quick-btn-income{background:rgba(16,185,129,.12);color:var(--currency-income);border:1.5px solid rgba(16,185,129,.3)}
+        .quick-btn-income:hover{background:var(--currency-income);color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,185,129,.3)}
+        .quick-btn-expense{background:rgba(244,63,94,.12);color:var(--currency-expense);border:1.5px solid rgba(244,63,94,.3)}
+        .quick-btn-expense:hover{background:var(--currency-expense);color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(244,63,94,.3)}
+        .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;margin-bottom:24px;animation:fadeUp .5s ease .05s both}
+        .kpi-card{position:relative;padding:22px 24px;border-radius:22px;background:var(--bg-card);border:1.5px solid var(--border-color);box-shadow:var(--shadow-card);backdrop-filter:blur(18px);transition:all .3s ease;overflow:hidden;display:flex;flex-direction:column;gap:10px}
+        .kpi-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;border-radius:50%;opacity:.06;transform:translate(30%,-30%)}
+        .kpi-card:hover{transform:translateY(-5px)}
+        .income-kpi{border-color:rgba(16,185,129,.35);background:linear-gradient(145deg,rgba(16,185,129,.08),var(--bg-card))}
+        .income-kpi::before{background:#10b981}
+        .income-kpi:hover{border-color:#10b981;box-shadow:0 16px 40px rgba(16,185,129,.2)}
+        .expense-kpi{border-color:rgba(244,63,94,.35);background:linear-gradient(145deg,rgba(244,63,94,.08),var(--bg-card))}
+        .expense-kpi::before{background:#f43f5e}
+        .expense-kpi:hover{border-color:#f43f5e;box-shadow:0 16px 40px rgba(244,63,94,.2)}
+        .savings-kpi{border-color:rgba(99,102,241,.35);background:linear-gradient(145deg,rgba(99,102,241,.08),var(--bg-card))}
+        .savings-kpi::before{background:#6366f1}
+        .savings-kpi:hover{border-color:#6366f1;box-shadow:0 16px 40px rgba(99,102,241,.2)}
+        .kpi-top{display:flex;justify-content:space-between;align-items:center}
+        .kpi-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary)}
+        .kpi-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:1.25rem;color:#fff;flex-shrink:0}
+        .income-kpi .kpi-icon{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 6px 14px rgba(16,185,129,.35)}
+        .expense-kpi .kpi-icon{background:linear-gradient(135deg,#f43f5e,#e11d48);box-shadow:0 6px 14px rgba(244,63,94,.35)}
+        .savings-kpi .kpi-icon{background:linear-gradient(135deg,#6366f1,#4f46e5);box-shadow:0 6px 14px rgba(99,102,241,.35)}
+        .kpi-value{font-size:clamp(1.6rem,2.2vw,2.1rem);font-weight:900;letter-spacing:-.5px;line-height:1}
+        .income-kpi .kpi-value{color:var(--currency-income)}
+        .expense-kpi .kpi-value{color:var(--currency-expense)}
+        .savings-kpi .kpi-value{color:#818cf8}
+        .kpi-footer{display:flex;gap:8px;flex-wrap:wrap}
+        .kpi-badge{font-size:.74rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+        .income-kpi .kpi-badge{background:rgba(16,185,129,.12);color:var(--currency-income);border:1px solid rgba(16,185,129,.25)}
+        .expense-kpi .kpi-badge{background:rgba(244,63,94,.12);color:var(--currency-expense);border:1px solid rgba(244,63,94,.25)}
+        .savings-kpi .kpi-badge{background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25)}
+        .main-card{width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:28px;padding:32px;box-shadow:var(--shadow-card);backdrop-filter:blur(18px);margin-bottom:24px;animation:fadeUp .5s ease .15s both}
+        .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+        .chart-title h2{margin:0;font-size:1.3rem;font-weight:800}
+        .chart-title p{margin:4px 0 0;font-size:.87rem;color:var(--text-secondary)}
+        .chart-legend{display:flex;gap:14px}
+        .leg-item{display:flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700}
+        .leg-dot{width:11px;height:11px;border-radius:4px}
+        .leg-dot.inc{background:#10b981}
+        .leg-dot.exp{background:#f43f5e}
+        .chart-wrap{position:relative;height:270px;width:100%;background:var(--input-bg);border:1px solid var(--border-color);border-radius:18px;padding:18px 14px;margin-bottom:32px}
+        .section-title{font-size:.82rem;font-weight:800;margin:0 0 18px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.09em;display:flex;align-items:center;gap:8px}
+        .section-title::after{content:'';flex:1;height:1px;background:var(--border-color)}
+        .module-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+        .module-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;padding:26px 20px 22px;border-radius:22px;background:var(--input-bg);border:1.5px solid var(--border-color);text-decoration:none;color:var(--text-primary);transition:all .3s ease;text-align:center;overflow:hidden}
+        .module-card::after{content:'';position:absolute;bottom:-22px;right:-22px;width:80px;height:80px;border-radius:50%;opacity:.05;transition:opacity .3s}
+        .module-card:hover{transform:translateY(-6px)}
+        .module-card:hover::after{opacity:.12}
+        .add-expense-card{border-color:rgba(244,63,94,.25)}
+        .add-expense-card::after{background:#f43f5e}
+        .add-expense-card:hover{border-color:#f43f5e;box-shadow:0 14px 34px rgba(244,63,94,.2)}
+        .add-income-card{border-color:rgba(16,185,129,.25)}
+        .add-income-card::after{background:#10b981}
+        .add-income-card:hover{border-color:#10b981;box-shadow:0 14px 34px rgba(16,185,129,.2)}
+        .view-card{border-color:rgba(56,189,248,.25)}
+        .view-card::after{background:#38bdf8}
+        .view-card:hover{border-color:#38bdf8;box-shadow:0 14px 34px rgba(56,189,248,.2)}
+        .summary-mod-card{border-color:rgba(129,140,248,.25)}
+        .summary-mod-card::after{background:#818cf8}
+        .summary-mod-card:hover{border-color:#818cf8;box-shadow:0 14px 34px rgba(129,140,248,.2)}
+        .mod-icon{width:62px;height:62px;display:grid;place-items:center;border-radius:19px;font-size:1.8rem;color:#fff}
+        .add-expense-card .mod-icon{background:linear-gradient(135deg,#f43f5e,#e11d48);box-shadow:0 8px 18px rgba(244,63,94,.3)}
+        .add-income-card .mod-icon{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 18px rgba(16,185,129,.3)}
+        .view-card .mod-icon{background:linear-gradient(135deg,#38bdf8,#0ea5e9);box-shadow:0 8px 18px rgba(56,189,248,.3)}
+        .summary-mod-card .mod-icon{background:linear-gradient(135deg,#818cf8,#6366f1);box-shadow:0 8px 18px rgba(129,140,248,.3)}
+        .module-card h3{font-size:1.15rem;margin:0;font-weight:800}
+        .module-card p{margin:0;color:var(--text-secondary);font-size:.85rem;line-height:1.5}
+        .card-mini-stat{width:100%;background:var(--bg-card);border-radius:12px;padding:8px 14px;border:1px solid var(--border-color);text-align:center}
+        .card-mini-stat .cs-val{display:block;font-size:1.1rem;font-weight:800}
+        .card-mini-stat .cs-lbl{font-size:.73rem;color:var(--text-secondary);font-weight:600}
+        .income-stat .cs-val{color:var(--currency-income)}
+        .expense-stat .cs-val{color:var(--currency-expense)}
+        .saving-stat .cs-val{color:#818cf8}
+        .mod-badge{padding:4px 12px;border-radius:999px;font-size:.77rem;font-weight:700}
+        .add-expense-card .mod-badge{background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.25)}
+        .add-income-card .mod-badge{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25)}
+        .view-card .mod-badge{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
+        .summary-mod-card .mod-badge{background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.25)}
+        .page-footer{margin-top:16px;padding:14px;border-top:1px solid var(--border-color);color:var(--text-muted);text-align:center;font-size:.9rem;width:100%}
+        .page-footer strong{color:var(--accent-primary)}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+        @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-row .savings-kpi{grid-column:1/-1}}
+        @media(max-width:640px){.page-shell{padding:16px 14px 40px}.navbar{padding:12px 16px}.main-card{padding:20px 14px}.kpi-row{grid-template-columns:1fr}.kpi-row .savings-kpi{grid-column:auto}.module-grid{grid-template-columns:1fr}.hero-banner{flex-direction:column;align-items:flex-start}.chart-wrap{height:210px}}
     </style>
 </head>
 <body>
@@ -527,160 +149,146 @@
           {% endif %}
         {% endwith %}
 
-        <section class="dashboard-card">
-            <div class="hero">
-                <div class="hero-top">
-                    <div>
-                        <h1 class="dashboard-greeting"><span class="greeting-prefix">Good Evening,</span> <span class="user-greeting-name">{{ session.get('first_name', 'User') }}</span>!</h1>
-                        <p>Manage your finances with a premium dashboard designed to help you stay on top of your spending.</p>
-                    </div>
-                </div>
-                <div class="stats">
-                    <div class="stat-pill">
-                        <strong class="rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</strong>
-                        <span>Total Expense</span>
-                    </div>
-                    <div class="stat-pill">
-                        <strong class="rupee-balance">Rs {{ "%.0f"|format(month_expense) }}</strong>
-                        <span>This Month</span>
-                    </div>
-                    <div class="stat-pill">
-                        <strong>{{ top_category }}</strong>
-                        <span>Top Category</span>
-                    </div>
-                </div>
+        <div class="hero-banner">
+            <div class="hero-text">
+                <h1>
+                    <span class="greeting-prefix" id="greetingText">Good Day,</span>
+                    <span class="user-name"> {{ session.get('first_name', 'User') }}</span>!
+                </h1>
+                <p>Manage your finances with a premium dashboard. Stay on top of your spending.</p>
+            </div>
+            <div class="quick-actions">
+                <a href="/add?tab=income" class="quick-btn quick-btn-income" id="btn-add-income">➕ Add Income</a>
+                <a href="/add?tab=expense" class="quick-btn quick-btn-expense" id="btn-add-expense">➖ Add Expense</a>
+            </div>
+        </div>
 
-                <div class="chart-canvas-wrapper">
-                    <canvas id="comparisonChart"></canvas>
+        <div class="kpi-row">
+            <div class="kpi-card income-kpi">
+                <div class="kpi-top">
+                    <span class="kpi-label">Total Income</span>
+                    <div class="kpi-icon">💰</div>
+                </div>
+                <div class="kpi-value rupee-balance">Rs {{ "%.0f"|format(total_income) }}</div>
+                <div class="kpi-footer">
+                    <span class="kpi-badge">↗️ This Month: Rs {{ "%.0f"|format(month_income) }}</span>
                 </div>
             </div>
+            <div class="kpi-card expense-kpi">
+                <div class="kpi-top">
+                    <span class="kpi-label">Total Expense</span>
+                    <div class="kpi-icon">💸</div>
+                </div>
+                <div class="kpi-value rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</div>
+                <div class="kpi-footer">
+                    <span class="kpi-badge">↘️ This Month: Rs {{ "%.0f"|format(month_expense) }}</span>
+                </div>
+            </div>
+            <div class="kpi-card savings-kpi">
+                <div class="kpi-top">
+                    <span class="kpi-label">Net Savings</span>
+                    <div class="kpi-icon">🏦</div>
+                </div>
+                <div class="kpi-value" style="color: {% if total_savings >= 0 %}#818cf8{% else %}#f43f5e{% endif %};">
+                    Rs {{ "%.0f"|format(total_savings) }}
+                </div>
+                <div class="kpi-footer">
+                    <span class="kpi-badge">🏆 {{ top_category }}</span>
+                    <span class="kpi-badge">{{ saving_pct }}% Saved</span>
+                </div>
+            </div>
+        </div>
 
-            <!-- Quick Navigation Module Cards -->
-            <div class="cards-grid">
-                <a href="/add" class="module-card">
-                    <div class="icon">➕</div>
-                    <h2>Add Expense</h2>
+        <div class="main-card">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <h2>📊 Income vs Expense</h2>
+                    <p>Last 6 months financial overview</p>
+                </div>
+                <div class="chart-legend">
+                    <div class="leg-item"><span class="leg-dot inc"></span> Income</div>
+                    <div class="leg-item"><span class="leg-dot exp"></span> Expense</div>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+
+            <p class="section-title">⚡ Quick Navigation</p>
+
+            <div class="module-grid">
+                <a href="/add?tab=expense" class="module-card add-expense-card" id="nav-add-expense">
+                    <div class="mod-icon">➖</div>
+                    <h3>Add Expense</h3>
                     <p>Log new spending quickly with a polished entry form.</p>
-                    <span class="badge">Quick Add</span>
-                </a>
-                <a href="/view" class="module-card">
-                    <div class="card-stat expense-stat">
-                        <span class="cs-amount">Rs {{ "%.0f"|format(total_expense) }}</span>
-                        <span class="cs-label">⬇️ Total Expense</span>
+                    <div class="card-mini-stat expense-stat">
+                        <span class="cs-val rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</span>
+                        <span class="cs-lbl">Total Spent</span>
                     </div>
-                    <div class="icon">📋</div>
-                    <h2>View Records</h2>
-                    <p>See your full expense history in a neat responsive table.</p>
-                    <span class="badge">Detailed List</span>
+                    <span class="mod-badge">Quick Add</span>
                 </a>
-                <a href="/summary" class="module-card">
-                    <div class="card-stat saving-stat">
-                        <span class="cs-amount">Rs {{ "%.0f"|format(total_saving) }}</span>
-                        <span class="cs-label">💰 Total Saving &nbsp;
-                            <span style="font-size:1rem; font-weight:900; color:#818cf8;">{{ saving_pct }}%</span>
-                        </span>
-                    </div>
-                    <div class="icon">📊</div>
-                    <h3>Smart Summary</h3>
-                    <p>Category breakdowns, filters, and PDF statement download.</p>
-                    <span class="badge">Reports & Export</span>
-                </a>
-            </div>
 
-            <div class="footer">
-                Made by: <strong>Umair Siddique</strong>
+                <a href="/add?tab=income" class="module-card add-income-card" id="nav-add-income">
+                    <div class="mod-icon">➕</div>
+                    <h3>Add Income</h3>
+                    <p>Record earnings, salary, freelance, or any income source.</p>
+                    <div class="card-mini-stat income-stat">
+                        <span class="cs-val rupee-balance">Rs {{ "%.0f"|format(total_income) }}</span>
+                        <span class="cs-lbl">Total Earned</span>
+                    </div>
+                    <span class="mod-badge">Log Income</span>
+                </a>
+
+                <a href="/view" class="module-card view-card" id="nav-view">
+                    <div class="mod-icon">📋</div>
+                    <h3>View Records</h3>
+                    <p>See your full transaction history in a neat responsive table.</p>
+                    <div class="card-mini-stat">
+                        <span class="cs-val" style="color:var(--accent-primary);">{{ total_records }}</span>
+                        <span class="cs-lbl">Total Entries</span>
+                    </div>
+                    <span class="mod-badge">Detailed List</span>
+                </a>
+
+                <a href="/summary?tab=expense" class="module-card summary-mod-card" id="nav-summary">
+                    <div class="mod-icon">📊</div>
+                    <h3>Expense Summary</h3>
+                    <p>Category breakdowns, filters, and PDF export of your expenses.</p>
+                    <div class="card-mini-stat saving-stat">
+                        <span class="cs-val rupee-balance">Rs {{ "%.0f"|format(total_savings) }}</span>
+                        <span class="cs-lbl">Savings · {{ saving_pct }}%</span>
+                    </div>
+                    <span class="mod-badge">Reports &amp; Export</span>
+                </a>
             </div>
-        </section>
+        </div>
+
+        <div class="page-footer">Made by: <strong>Umair Siddique</strong></div>
     </main>
 
-    <!-- Interactive Income vs Expense Comparison Chart Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            const labels = {{ chart_labels | tojson }};
-            const incomeData = {{ chart_income_data | tojson }};
-            const expenseData = {{ chart_expense_data | tojson }};
-
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-            const textColor = isLight ? '#334155' : '#cbd5e1';
-            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-
-            // Gradients
-            const incomeGradient = ctx.createLinearGradient(0, 0, 0, 260);
-            incomeGradient.addColorStop(0, '#10b981');
-            incomeGradient.addColorStop(1, '#059669');
-
-            const expenseGradient = ctx.createLinearGradient(0, 0, 0, 260);
-            expenseGradient.addColorStop(0, '#f43f5e');
-            expenseGradient.addColorStop(1, '#e11d48');
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Income (Rs)',
-                            data: incomeData,
-                            backgroundColor: incomeGradient,
-                            borderRadius: 8,
-                            borderSkipped: false,
-                            barPercentage: 0.7,
-                            categoryPercentage: 0.6
-                        },
-                        {
-                            label: 'Expense (Rs)',
-                            data: expenseData,
-                            backgroundColor: expenseGradient,
-                            borderRadius: 8,
-                            borderSkipped: false,
-                            barPercentage: 0.7,
-                            categoryPercentage: 0.6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: isLight ? '#ffffff' : '#0b1329',
-                            titleColor: isLight ? '#0f172a' : '#f8fafc',
-                            bodyColor: isLight ? '#334155' : '#cbd5e1',
-                            borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
-                            borderWidth: 1,
-                            padding: 12,
-                            boxPadding: 6,
-                            usePointStyle: true,
-                            callbacks: {
-                                label: function(context) {
-                                    return ' ' + context.dataset.label + ': Rs ' + Number(context.raw).toLocaleString();
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                color: textColor,
-                                font: { size: 12, family: 'Segoe UI', weight: '600' }
-                            }
-                        },
-                        y: {
-                            grid: { color: gridColor },
-                            ticks: {
-                                color: textColor,
-                                font: { size: 11, family: 'Segoe UI' },
-                                callback: function(value) {
-                                    return 'Rs ' + (value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+        (function(){
+            var h=new Date().getHours(),el=document.getElementById('greetingText');
+            if(el){
+                if(h<12)el.textContent='Good Morning,';
+                else if(h<17)el.textContent='Good Afternoon,';
+                else if(h<21)el.textContent='Good Evening,';
+                else el.textContent='Good Night,';
+            }
+        })();
+        document.addEventListener('DOMContentLoaded',function(){
+            var ctx=document.getElementById('comparisonChart').getContext('2d');
+            var labels={{ chart_labels|tojson }};
+            var incomeData={{ chart_income_data|tojson }};
+            var expenseData={{ chart_expense_data|tojson }};
+            var isLight=document.documentElement.getAttribute('data-theme')==='light';
+            var textColor=isLight?'#334155':'#cbd5e1';
+            var gridColor=isLight?'rgba(15,23,42,0.08)':'rgba(255,255,255,0.08)';
+            var ig=ctx.createLinearGradient(0,0,0,240);
+            ig.addColorStop(0,'#10b981');ig.addColorStop(1,'#059669');
+            var eg=ctx.createLinearGradient(0,0,0,240);
+            eg.addColorStop(0,'#f43f5e');eg.addColorStop(1,'#e11d48');
+            new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Income (Rs)',data:incomeData,backgroundColor:ig,borderRadius:8,borderSkipped:false,barPercentage:0.65,categoryPercentage:0.6},{label:'Expense (Rs)',data:expenseData,backgroundColor:eg,borderRadius:8,borderSkipped:false,barPercentage:0.65,categoryPercentage:0.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:isLight?'#fff':'#0b1329',titleColor:isLight?'#0f172a':'#f8fafc',bodyColor:isLight?'#334155':'#cbd5e1',borderColor:isLight?'rgba(15,23,42,0.12)':'rgba(255,255,255,0.12)',borderWidth:1,padding:12,boxPadding:6,usePointStyle:true,callbacks:{label:function(c){return' '+c.dataset.label+': Rs '+Number(c.raw).toLocaleString();}}}},scales:{x:{grid:{display:false},ticks:{color:textColor,font:{size:11,family:'Inter',weight:'600'}}},y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11,family:'Inter'},callback:function(v){return'Rs '+(v>=1000?(v/1000).toFixed(0)+'k':v);}}}}}});
         });
     </script>
 </body>

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Summary | Expense & Income Tracker</title>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}"> 
-    <meta name="theme-color" content="#0056b3">  
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +15,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='summary-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         .card-header {
@@ -101,9 +102,17 @@
             font-weight: 800;
         }
 
-        .summary-kpi-box.income .box-amount { color: var(--currency-income); }
-        .summary-kpi-box.expense .box-amount { color: var(--currency-expense); }
-        .summary-kpi-box.savings .box-amount { color: var(--currency-balance); }
+        .summary-kpi-box.income .box-amount {
+            color: var(--currency-income);
+        }
+
+        .summary-kpi-box.expense .box-amount {
+            color: var(--currency-expense);
+        }
+
+        .summary-kpi-box.savings .box-amount {
+            color: var(--currency-balance);
+        }
 
         /* Filter Type Tabs */
         .category-type-tabs {
@@ -186,10 +195,12 @@
             border-color: rgba(16, 185, 129, 0.4);
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.09) 0%, var(--input-bg) 100%);
         }
+
         .summary-card.card-income:hover {
             border-color: var(--currency-income);
             box-shadow: 0 14px 30px var(--currency-income-glow);
         }
+
         .summary-card.card-income .card-amount {
             color: var(--currency-income) !important;
         }
@@ -199,10 +210,12 @@
             border-color: rgba(244, 63, 94, 0.4);
             background: linear-gradient(135deg, rgba(244, 63, 94, 0.09) 0%, var(--input-bg) 100%);
         }
+
         .summary-card.card-expense:hover {
             border-color: var(--currency-expense);
             box-shadow: 0 14px 30px var(--currency-expense-glow);
         }
+
         .summary-card.card-expense .card-amount {
             color: var(--currency-expense) !important;
         }
@@ -295,10 +308,12 @@
     <nav class="navbar">
         <div class="logo">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
-            <a href="/dashboard" class="logo" style="text-decoration: none; color: inherit;">Expense<span>Tracker</span></a>
+            <a href="/dashboard" class="logo"
+                style="text-decoration: none; color: inherit;">Expense<span>Tracker</span></a>
         </div>
         <div class="user-info">
-            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span
+                    class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
             <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
@@ -307,17 +322,31 @@
         <section class="form-panel">
             <div class="card-header">
                 <div>
-                    <h1>📊 {% if is_category_filtered %}{{ selected_category }}{% else %}{{ view_type.capitalize() }}{% endif %} Summary</h1>
+                    <h1>
+                        {% if is_category_filtered %}
+                        📊 {{ selected_category }}
+                        {% elif active_tab == 'expense' %}
+                        💸 Expense Summary
+                        {% elif active_tab == 'income' %}
+                        💰 Income Summary
+                        {% else %}
+                        📊 Financial Summary
+                        {% endif %}
+                    </h1>
                     <p class="subtitle">
                         {% if is_category_filtered %}
                         Showing all recorded transactions for <strong>{{ selected_category }}</strong>.
+                        {% elif active_tab == 'expense' %}
+                        Your expense breakdown by category. Track where your money goes.
+                        {% elif active_tab == 'income' %}
+                        Your income breakdown by source. See what you earn.
                         {% else %}
                         Click on any category card below to inspect individual transactions.
                         {% endif %}
                     </p>
                     <p class="period-label">
                         {% if is_category_filtered %}
-                        Category: <strong>{{ selected_category }}</strong> &bull; 
+                        Category: <strong>{{ selected_category }}</strong> &bull;
                         {% endif %}
                         {% if view_type == 'daily' %}
                         Date: <strong>{{ selected_date }}</strong>
@@ -332,12 +361,14 @@
                 </div>
                 <div class="report-actions">
                     {% if is_category_filtered %}
-                    <a href="/summary?type={{ view_type }}&tab={{ active_tab }}" class="btn" style="background: var(--input-bg); border-color: var(--border-color);">⬅️ All Categories</a>
+                    <a href="/summary?type={{ view_type }}&tab={{ active_tab }}" class="btn"
+                        style="background: var(--input-bg); border-color: var(--border-color);">⬅️ All Categories</a>
                     {% endif %}
                     <a href="{{ url_for('download_report', type=view_type, date=selected_date, category=selected_category) }}"
-                        class="btn report-btn">⬇️ Download PDF Statement</a>
+                        class="btn report-btn">⬇️ Download PDF</a>
                 </div>
             </div>
+
 
             <!-- Timeframe Controls Row -->
             <div class="controls-row">
@@ -366,52 +397,60 @@
                 </div>
             </div>
 
-            <!-- Financial KPI Triad for this period -->
+            <!-- Financial KPI Bar for this period -->
             <div class="summary-kpi-bar">
-                <div class="summary-kpi-box income">
-                    <div class="box-title">
-                        <span>Total Income</span>
-                        <span>🟢 ↗️</span>
-                    </div>
-                    <div class="box-amount rupee-balance">Rs {{ "{:,.0f}".format(totals['income'].get(view_type, 0)) }}</div>
-                </div>
-
+                {% if active_tab in ['all', 'expense'] %}
                 <div class="summary-kpi-box expense">
                     <div class="box-title">
                         <span>Total Expense</span>
                         <span>🔴 ↘️</span>
                     </div>
-                    <div class="box-amount rupee-balance">Rs {{ "{:,.0f}".format(totals['expense'].get(view_type, 0)) }}</div>
+                    <div class="box-amount rupee-balance">Rs {{ "{:,.0f}".format(totals['expense'].get(view_type, 0)) }}
+                    </div>
                 </div>
+                {% endif %}
+
+                {% if active_tab in ['all', 'income'] %}
+                <div class="summary-kpi-box income">
+                    <div class="box-title">
+                        <span>Total Income</span>
+                        <span>🟢 ↗️</span>
+                    </div>
+                    <div class="box-amount rupee-balance">Rs {{ "{:,.0f}".format(totals['income'].get(view_type, 0)) }}
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="summary-kpi-box savings">
                     <div class="box-title">
                         <span>Net Savings</span>
                         <span>💎 🏦</span>
                     </div>
-                    <div class="box-amount rupee-balance" style="color: {% if totals['savings'].get(view_type, 0) >= 0 %}var(--currency-balance){% else %}var(--currency-expense){% endif %};">
+                    <div class="box-amount rupee-balance"
+                        style="color: {% if totals['savings'].get(view_type, 0) >= 0 %}var(--currency-balance){% else %}var(--currency-expense){% endif %};">
                         Rs {{ "{:,.0f}".format(totals['savings'].get(view_type, 0)) }}
                     </div>
                 </div>
             </div>
 
-            <!-- Type Filter Tabs (All / Expenses / Income) -->
+            <!-- Type Filter Tabs -->
             {% if not is_category_filtered %}
             <div class="category-type-tabs">
-                <a href="/summary?type={{ view_type }}&tab=all{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}" 
-                   class="tab-btn {% if active_tab == 'all' %}active-all{% endif %}">
-                   📋 All Categories
+                <a href="/summary?type={{ view_type }}&tab=expense{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
+                    class="tab-btn {% if active_tab == 'expense' %}active-expense{% endif %}">
+                    💸 Expense Summary ({{ expense_data[view_type]|length }})
                 </a>
-                <a href="/summary?type={{ view_type }}&tab=expense{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}" 
-                   class="tab-btn {% if active_tab == 'expense' %}active-expense{% endif %}">
-                   🔴 Expenses Only ({{ expense_data[view_type]|length }})
+                <a href="/summary?type={{ view_type }}&tab=all{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
+                    class="tab-btn {% if active_tab == 'all' %}active-all{% endif %}">
+                    📋 All Records
                 </a>
-                <a href="/summary?type={{ view_type }}&tab=income{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}" 
-                   class="tab-btn {% if active_tab == 'income' %}active-income{% endif %}">
-                   🟢 Income Only ({{ income_data[view_type]|length }})
+                <a href="/summary?type={{ view_type }}&tab=income{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
+                    class="tab-btn {% if active_tab == 'income' %}active-income{% endif %}">
+                    💰 Income ({{ income_data[view_type]|length }})
                 </a>
             </div>
             {% endif %}
+
 
             {% if is_category_filtered %}
             <!-- Detailed Transaction Cards for Selected Category -->
@@ -419,7 +458,8 @@
                 {% if category_items %}
                 {% for item in category_items %}
                 {% set item_is_income = (item.type == 'income') %}
-                <div class="summary-card {% if item_is_income %}card-income{% else %}card-expense{% endif %}" style="min-height: auto;">
+                <div class="summary-card {% if item_is_income %}card-income{% else %}card-expense{% endif %}"
+                    style="min-height: auto;">
                     <div class="summary-card-header">
                         <h3>
                             {% if item.category.lower() == 'travel' %}🚗
@@ -438,7 +478,8 @@
                         </span>
                     </div>
                     <p class="card-amount">Rs {{ "{:,.2f}".format(item.amount|float) }}</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary);">
                         <span>📅 {{ item.date }}</span>
                         {% if item.description %}<span>📝 {{ item.description }}</span>{% endif %}
                     </div>
@@ -449,57 +490,59 @@
                 {% endif %}
             </div>
             {% else %}
-            
+
             <!-- Category Cards Grid (Clearly labeled Income & Expense) -->
             <div class="summary-cards">
                 <!-- 1. Expense Categories -->
                 {% if active_tab in ['all', 'expense'] %}
-                    {% for cat, total in expense_data[view_type].items() %}
-                    <a href="/summary?type={{ view_type }}&tab={{ active_tab }}&category={{ cat }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
-                        class="summary-card card-expense">
-                        <div class="summary-card-header">
-                            <h3>
-                                {% if cat.lower() == 'travel' %}🚗
-                                {% elif cat.lower() == 'food' %}🍔
-                                {% elif cat.lower() == 'groceries' %}🛒
-                                {% elif cat.lower() == 'bills' %}💡
-                                {% elif cat.lower() == 'shopping' %}🛍️
-                                {% elif cat.lower() == 'entertainment' %}🎬
-                                {% else %}🏷️{% endif %}
-                                {{ cat }}
-                            </h3>
-                            <span class="card-type-tag tag-expense">🔴 Expense</span>
-                        </div>
-                        <p class="card-amount">Rs {{ "{:,.0f}".format(total) }}</p>
-                        <span class="view-details">View expense records &rarr;</span>
-                    </a>
-                    {% endfor %}
+                {% for cat, total in expense_data[view_type].items() %}
+                <a href="/summary?type={{ view_type }}&tab={{ active_tab }}&category={{ cat }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
+                    class="summary-card card-expense">
+                    <div class="summary-card-header">
+                        <h3>
+                            {% if cat.lower() == 'travel' %}🚗
+                            {% elif cat.lower() == 'food' %}🍔
+                            {% elif cat.lower() == 'groceries' %}🛒
+                            {% elif cat.lower() == 'bills' %}💡
+                            {% elif cat.lower() == 'shopping' %}🛍️
+                            {% elif cat.lower() == 'entertainment' %}🎬
+                            {% else %}🏷️{% endif %}
+                            {{ cat }}
+                        </h3>
+                        <span class="card-type-tag tag-expense">🔴 Expense</span>
+                    </div>
+                    <p class="card-amount">Rs {{ "{:,.0f}".format(total) }}</p>
+                    <span class="view-details">View expense records &rarr;</span>
+                </a>
+                {% endfor %}
                 {% endif %}
 
                 <!-- 2. Income Categories -->
                 {% if active_tab in ['all', 'income'] %}
-                    {% for cat, total in income_data[view_type].items() %}
-                    <a href="/summary?type={{ view_type }}&tab={{ active_tab }}&category={{ cat }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
-                        class="summary-card card-income">
-                        <div class="summary-card-header">
-                            <h3>
-                                {% if cat.lower() == 'salary' %}💰
-                                {% elif cat.lower() == 'freelance' %}💻
-                                {% elif cat.lower() == 'investment' %}📈
-                                {% elif cat.lower() == 'business' %}🏢
-                                {% elif cat.lower() == 'bonus' %}🎁
-                                {% else %}💎{% endif %}
-                                {{ cat }}
-                            </h3>
-                            <span class="card-type-tag tag-income">🟢 Income</span>
-                        </div>
-                        <p class="card-amount">Rs {{ "{:,.0f}".format(total) }}</p>
-                        <span class="view-details">View income records &rarr;</span>
-                    </a>
-                    {% endfor %}
+                {% for cat, total in income_data[view_type].items() %}
+                <a href="/summary?type={{ view_type }}&tab={{ active_tab }}&category={{ cat }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
+                    class="summary-card card-income">
+                    <div class="summary-card-header">
+                        <h3>
+                            {% if cat.lower() == 'salary' %}💰
+                            {% elif cat.lower() == 'freelance' %}💻
+                            {% elif cat.lower() == 'investment' %}📈
+                            {% elif cat.lower() == 'business' %}🏢
+                            {% elif cat.lower() == 'bonus' %}🎁
+                            {% else %}💎{% endif %}
+                            {{ cat }}
+                        </h3>
+                        <span class="card-type-tag tag-income">🟢 Income</span>
+                    </div>
+                    <p class="card-amount">Rs {{ "{:,.0f}".format(total) }}</p>
+                    <span class="view-details">View income records &rarr;</span>
+                </a>
+                {% endfor %}
                 {% endif %}
 
-                {% if (active_tab == 'all' and not expense_data[view_type] and not income_data[view_type]) or (active_tab == 'expense' and not expense_data[view_type]) or (active_tab == 'income' and not income_data[view_type]) %}
+                {% if (active_tab == 'all' and not expense_data[view_type] and not income_data[view_type]) or
+                (active_tab == 'expense' and not expense_data[view_type]) or (active_tab == 'income' and not
+                income_data[view_type]) %}
                 <p class="no-data" style="grid-column: 1 / -1;">No entries recorded for this selection!</p>
                 {% endif %}
             </div>
@@ -521,85 +564,87 @@
         document.addEventListener('DOMContentLoaded', function () {
             const ctx = document.getElementById('summaryCategoryChart').getContext('2d');
 
-            const activeTab = {{ active_tab | tojson }};
-            const expenseCats = {{ expense_data[view_type].keys() | list | tojson if expense_data[view_type] else [] }};
-            const expenseVals = {{ expense_data[view_type].values() | list | tojson if expense_data[view_type] else [] }};
-            const incomeCats = {{ income_data[view_type].keys() | list | tojson if income_data[view_type] else [] }};
-            const incomeVals = {{ income_data[view_type].values() | list | tojson if income_data[view_type] else [] }};
+            const activeTab = {{ active_tab | tojson
+        }};
+        const expenseCats = {{ expense_data[view_type].keys() | list | tojson if expense_data[view_type] else[] }};
+        const expenseVals = {{ expense_data[view_type].values() | list | tojson if expense_data[view_type] else[] }};
+        const incomeCats = {{ income_data[view_type].keys() | list | tojson if income_data[view_type] else[] }};
+        const incomeVals = {{ income_data[view_type].values() | list | tojson if income_data[view_type] else[] }};
 
-            let labels = [];
-            let data = [];
-            let bgColors = [];
+        let labels = [];
+        let data = [];
+        let bgColors = [];
 
-            if (activeTab === 'expense' || activeTab === 'all') {
-                labels.push(...expenseCats);
-                data.push(...expenseVals);
-                bgColors.push(...expenseCats.map(() => '#f43f5e'));
-            }
-            if (activeTab === 'income' || activeTab === 'all') {
-                labels.push(...incomeCats);
-                data.push(...incomeVals);
-                bgColors.push(...incomeCats.map(() => '#10b981'));
-            }
+        if (activeTab === 'expense' || activeTab === 'all') {
+            labels.push(...expenseCats);
+            data.push(...expenseVals);
+            bgColors.push(...expenseCats.map(() => '#f43f5e'));
+        }
+        if (activeTab === 'income' || activeTab === 'all') {
+            labels.push(...incomeCats);
+            data.push(...incomeVals);
+            bgColors.push(...incomeCats.map(() => '#10b981'));
+        }
 
-            if (labels.length > 0) {
-                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-                const textColor = isLight ? '#334155' : '#cbd5e1';
-                const titleColor = isLight ? '#0f172a' : '#f8fafc';
-                const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
+        if (labels.length > 0) {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const textColor = isLight ? '#334155' : '#cbd5e1';
+            const titleColor = isLight ? '#0f172a' : '#f8fafc';
+            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
 
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Amount (Rs)',
-                            data: data,
-                            backgroundColor: bgColors,
-                            borderRadius: 8,
-                            borderSkipped: false,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            title: {
-                                display: true,
-                                text: 'Category Breakdown (Rs)',
-                                color: titleColor,
-                                font: { size: 14, family: 'Segoe UI', weight: '700' },
-                                padding: { bottom: 14 }
-                            },
-                            tooltip: {
-                                backgroundColor: isLight ? '#ffffff' : '#0b1329',
-                                titleColor: isLight ? '#0f172a' : '#f8fafc',
-                                bodyColor: isLight ? '#334155' : '#cbd5e1',
-                                borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
-                                borderWidth: 1,
-                                padding: 12,
-                                callbacks: {
-                                    label: function(ctx) { return '  Rs ' + Number(ctx.raw).toLocaleString(); }
-                                }
-                            }
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Amount (Rs)',
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Category Breakdown (Rs)',
+                            color: titleColor,
+                            font: { size: 14, family: 'Segoe UI', weight: '700' },
+                            padding: { bottom: 14 }
                         },
-                        scales: {
-                            x: {
-                                grid: { display: false },
-                                ticks: { color: textColor, font: { size: 12, family: 'Segoe UI', weight: '600' } }
-                            },
-                            y: {
-                                grid: { color: gridColor },
-                                ticks: { color: textColor, font: { size: 11, family: 'Segoe UI' } }
+                        tooltip: {
+                            backgroundColor: isLight ? '#ffffff' : '#0b1329',
+                            titleColor: isLight ? '#0f172a' : '#f8fafc',
+                            bodyColor: isLight ? '#334155' : '#cbd5e1',
+                            borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function (ctx) { return '  Rs ' + Number(ctx.raw).toLocaleString(); }
                             }
                         }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { size: 12, family: 'Segoe UI', weight: '600' } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: textColor, font: { size: 11, family: 'Segoe UI' } }
+                        }
                     }
-                });
-            } else {
-                document.querySelector('.chart-container').style.display = 'none';
-            }
+                }
+            });
+        } else {
+            document.querySelector('.chart-container').style.display = 'none';
+        }
         });
     </script>
 </body>
+
 </html>
