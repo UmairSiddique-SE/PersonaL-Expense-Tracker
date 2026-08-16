@@ -157,9 +157,36 @@
                 </h1>
                 <p>Manage your finances with a premium dashboard. Stay on top of your spending.</p>
             </div>
-            <div class="quick-actions">
-                <a href="/add?tab=income" class="quick-btn quick-btn-income" id="btn-add-income">➕ Add Income</a>
-                <a href="/add?tab=expense" class="quick-btn quick-btn-expense" id="btn-add-expense">➖ Add Expense</a>
+        </div>
+
+        <div class="summary-panel">
+            <div class="panel-top">
+                <div class="user-meta">
+                    <p class="eyebrow">Account</p>
+                    <h2>{{ session.get('first_name', 'User') }} {{ session.get('last_name', '') }}</h2>
+                </div>
+                <div class="balance-box">
+                    <span class="balance-label">Balance</span>
+                    <strong>Rs {{ "%.0f"|format(total_savings) }}</strong>
+                </div>
+            </div>
+
+            <div class="action-grid">
+                <a href="/add?tab=income" class="action-card income" id="btn-add-income">
+                    <div class="action-icon">+</div>
+                    <div class="action-text">
+                        <span class="action-name">Add Income</span>
+                        <small>Total: Rs {{ "%.0f"|format(total_income) }}</small>
+                    </div>
+                </a>
+
+                <a href="/add?tab=expense" class="action-card expense" id="btn-add-expense">
+                    <div class="action-icon">−</div>
+                    <div class="action-text">
+                        <span class="action-name">Add Expense</span>
+                        <small>Total: Rs {{ "%.0f"|format(total_expense) }}</small>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -199,70 +226,6 @@
             </div>
         </div>
 
-        <div class="main-card">
-            <div class="chart-header">
-                <div class="chart-title">
-                    <h2>📊 Income vs Expense</h2>
-                    <p>Last 6 months financial overview</p>
-                </div>
-                <div class="chart-legend">
-                    <div class="leg-item"><span class="leg-dot inc"></span> Income</div>
-                    <div class="leg-item"><span class="leg-dot exp"></span> Expense</div>
-                </div>
-            </div>
-            <div class="chart-wrap">
-                <canvas id="comparisonChart"></canvas>
-            </div>
-
-            <p class="section-title">⚡ Quick Navigation</p>
-
-            <div class="module-grid">
-                <a href="/add?tab=expense" class="module-card add-expense-card" id="nav-add-expense">
-                    <div class="mod-icon">➖</div>
-                    <h3>Add Expense</h3>
-                    <p>Log new spending quickly with a polished entry form.</p>
-                    <div class="card-mini-stat expense-stat">
-                        <span class="cs-val rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</span>
-                        <span class="cs-lbl">Total Spent</span>
-                    </div>
-                    <span class="mod-badge">Quick Add</span>
-                </a>
-
-                <a href="/add?tab=income" class="module-card add-income-card" id="nav-add-income">
-                    <div class="mod-icon">➕</div>
-                    <h3>Add Income</h3>
-                    <p>Record earnings, salary, freelance, or any income source.</p>
-                    <div class="card-mini-stat income-stat">
-                        <span class="cs-val rupee-balance">Rs {{ "%.0f"|format(total_income) }}</span>
-                        <span class="cs-lbl">Total Earned</span>
-                    </div>
-                    <span class="mod-badge">Log Income</span>
-                </a>
-
-                <a href="/view" class="module-card view-card" id="nav-view">
-                    <div class="mod-icon">📋</div>
-                    <h3>View Records</h3>
-                    <p>See your full transaction history in a neat responsive table.</p>
-                    <div class="card-mini-stat">
-                        <span class="cs-val" style="color:var(--accent-primary);">{{ total_records }}</span>
-                        <span class="cs-lbl">Total Entries</span>
-                    </div>
-                    <span class="mod-badge">Detailed List</span>
-                </a>
-
-                <a href="/summary?tab=expense" class="module-card summary-mod-card" id="nav-summary">
-                    <div class="mod-icon">📊</div>
-                    <h3>Expense Summary</h3>
-                    <p>Category breakdowns, filters, and PDF export of your expenses.</p>
-                    <div class="card-mini-stat saving-stat">
-                        <span class="cs-val rupee-balance">Rs {{ "%.0f"|format(total_savings) }}</span>
-                        <span class="cs-lbl">Savings · {{ saving_pct }}%</span>
-                    </div>
-                    <span class="mod-badge">Reports &amp; Export</span>
-                </a>
-            </div>
-        </div>
-
         <div class="page-footer">Made by: <strong>Umair Siddique</strong></div>
     </main>
 
@@ -276,20 +239,6 @@
                 else el.textContent='Good Night,';
             }
         })();
-        document.addEventListener('DOMContentLoaded',function(){
-            var ctx=document.getElementById('comparisonChart').getContext('2d');
-            var labels={{ chart_labels|tojson }};
-            var incomeData={{ chart_income_data|tojson }};
-            var expenseData={{ chart_expense_data|tojson }};
-            var isLight=document.documentElement.getAttribute('data-theme')==='light';
-            var textColor=isLight?'#334155':'#cbd5e1';
-            var gridColor=isLight?'rgba(15,23,42,0.08)':'rgba(255,255,255,0.08)';
-            var ig=ctx.createLinearGradient(0,0,0,240);
-            ig.addColorStop(0,'#10b981');ig.addColorStop(1,'#059669');
-            var eg=ctx.createLinearGradient(0,0,0,240);
-            eg.addColorStop(0,'#f43f5e');eg.addColorStop(1,'#e11d48');
-            new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Income (Rs)',data:incomeData,backgroundColor:ig,borderRadius:8,borderSkipped:false,barPercentage:0.65,categoryPercentage:0.6},{label:'Expense (Rs)',data:expenseData,backgroundColor:eg,borderRadius:8,borderSkipped:false,barPercentage:0.65,categoryPercentage:0.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:isLight?'#fff':'#0b1329',titleColor:isLight?'#0f172a':'#f8fafc',bodyColor:isLight?'#334155':'#cbd5e1',borderColor:isLight?'rgba(15,23,42,0.12)':'rgba(255,255,255,0.12)',borderWidth:1,padding:12,boxPadding:6,usePointStyle:true,callbacks:{label:function(c){return' '+c.dataset.label+': Rs '+Number(c.raw).toLocaleString();}}}},scales:{x:{grid:{display:false},ticks:{color:textColor,font:{size:11,family:'Inter',weight:'600'}}},y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11,family:'Inter'},callback:function(v){return'Rs '+(v>=1000?(v/1000).toFixed(0)+'k':v);}}}}}});
-        });
     </script>
 </body>
 </html>
