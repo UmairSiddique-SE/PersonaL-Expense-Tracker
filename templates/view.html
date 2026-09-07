@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Expenses | Expense Tracker</title>
+    <title>View Records | Expense Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Expense Tracker">
@@ -19,30 +20,24 @@
 <nav class="navbar">
     <div class="logo">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
-        <a href="/dashboard" class="logo" style="text-decoration: none; color: inherit;">Expense<span>Tracker</span></a>
+        <a href="{{ url_for('dashboard') }}" class="logo" style="text-decoration:none;color:inherit;">Expense<span>Tracker</span></a>
     </div>
     <div class="user-info">
         <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
         <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
-        <form method="POST" action="{{ url_for('logout') }}" style="display:inline; margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0; background:none; cursor:pointer; font:inherit;">Logout</button></form>
+        <form method="POST" action="{{ url_for('logout') }}" style="display:inline;margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0;background:none;cursor:pointer;font:inherit;">Logout</button></form>
     </div>
 </nav>
 <main class="page-shell">
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-container">
-          {% for category, message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}
-        </div>
-      {% endif %}
+      {% if messages %}<div class="flash-container">{% for category, message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
     {% endwith %}
     <section class="form-panel">
-        <div class="card-header">
-            <div><h1>All Expenses</h1><p class="subtitle">Review and manage your spending history in the exact order records were added.</p></div>
-        </div>
+        <div class="card-header"><div><h1>All Records</h1><p class="subtitle">Review and manage income and expense transactions in newest-added-first order.</p></div></div>
         <div class="filter-pills-bar">
-            <a href="/view?type=all" class="filter-pill {% if filter_type == 'all' %}active-all{% endif %}">📋 All ({{ expenses|length }})</a>
-            <a href="/view?type=expense" class="filter-pill {% if filter_type == 'expense' %}active-expense{% endif %}">🔴 Expenses Only</a>
-            <a href="/view?type=income" class="filter-pill {% if filter_type == 'income' %}active-income{% endif %}">🟢 Income Only</a>
+            <a href="{{ url_for('view', type='all') }}" class="filter-pill {% if filter_type == 'all' %}active-all{% endif %}">📋 All ({{ expenses|length }})</a>
+            <a href="{{ url_for('view', type='expense') }}" class="filter-pill {% if filter_type == 'expense' %}active-expense{% endif %}">🔴 Expenses Only</a>
+            <a href="{{ url_for('view', type='income') }}" class="filter-pill {% if filter_type == 'income' %}active-income{% endif %}">🟢 Income Only</a>
         </div>
         <div class="table-wrapper">
             <table id="recordsTable">
@@ -50,26 +45,24 @@
                 <tbody>
                     {% if expenses %}
                     {% for item in expenses %}
-                    {% set is_inc = (item.get('type', 'expense') == 'income') %}
-                    <tr data-record-id="{{ item._id }}">
+                    {% set is_inc = (item.get('type', 'expense')|lower == 'income') %}
+                    <tr data-record-id="{{ item.get('_id') }}">
                         <td><span class="{% if is_inc %}tag-type-income{% else %}tag-type-expense{% endif %}">{% if is_inc %}🟢 Income{% else %}🔴 Expense{% endif %}</span></td>
-                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">{% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.amount|float) }}</td>
-                        <td><strong>{{ item.category }}</strong></td>
-                        <td>{{ item.date }}</td>
-                        <td>{{ item.description or '-' }}</td>
-                        <td class="actions-cell"><div class="action-btn-group"><a href="{{ url_for('edit', id=item._id) }}" class="action-btn edit-btn">Edit</a><form method="POST" action="{{ url_for('delete', id=item._id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?')">
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="action-btn delete-btn">Delete</button></form></div></td>
+                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">{% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.get('amount', 0)|float) }}</td>
+                        <td><strong>{{ item.get('category', 'Other') }}</strong></td>
+                        <td>{{ item.get('date', '—') }}</td>
+                        <td>{{ item.get('description') or '-' }}</td>
+                        <td class="actions-cell"><div class="action-btn-group"><a href="{{ url_for('edit', id=item.get('_id')) }}" class="action-btn edit-btn">Edit</a><form method="POST" action="{{ url_for('delete', id=item.get('_id')) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?')"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="action-btn delete-btn">Delete</button></form></div></td>
                     </tr>
                     {% endfor %}
                     {% else %}
-                    <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No transactions found for this filter. Click "+ Add New" to create one!</td></tr>
+                    <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No transactions found for this filter. Click “Add Record” to create one.</td></tr>
                     {% endif %}
                 </tbody>
             </table>
         </div>
-        <div class="footer-actions"><a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a></div>
+        <div class="footer-actions"><a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a></div>
     </section>
 </main>
-
 </body>
 </html>
