@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Expense Tracker">
@@ -31,8 +32,6 @@
         .flash-message{padding:12px 18px;border-radius:12px;margin-bottom:8px;font-weight:600;font-size:.9rem}
         .flash-message.success{background:rgba(16,185,129,.15);color:var(--currency-income);border:1px solid rgba(16,185,129,.3)}
         .flash-message.danger{background:rgba(244,63,94,.15);color:var(--currency-expense);border:1px solid rgba(244,63,94,.3)}
-
-        /* ── Hero Card with Name + Balance ── */
         .hero-card{width:100%;background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:24px;padding:28px 32px;box-shadow:var(--shadow-card);backdrop-filter:blur(18px);margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;animation:fadeUp .45s ease both;position:relative;overflow:hidden}
         .hero-card::before{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(129,140,248,.12));pointer-events:none}
         .hero-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(99,102,241,.08));pointer-events:none}
@@ -46,8 +45,6 @@
         .hero-balance .balance-value{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:900;letter-spacing:-.5px;line-height:1}
         .hero-balance .balance-positive{color:#10b981}
         .hero-balance .balance-negative{color:#f43f5e}
-
-        /* ── KPI Row ── */
         .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;margin-bottom:24px;animation:fadeUp .5s ease .08s both}
         .kpi-card{position:relative;padding:22px 24px;border-radius:22px;background:var(--bg-card);border:1.5px solid var(--border-color);box-shadow:var(--shadow-card);backdrop-filter:blur(18px);transition:all .3s ease;overflow:hidden;display:flex;flex-direction:column;gap:10px}
         .kpi-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;border-radius:50%;opacity:.06;transform:translate(30%,-30%)}
@@ -76,35 +73,19 @@
         .income-kpi .kpi-badge{background:rgba(16,185,129,.12);color:var(--currency-income);border:1px solid rgba(16,185,129,.25)}
         .expense-kpi .kpi-badge{background:rgba(244,63,94,.12);color:var(--currency-expense);border:1px solid rgba(244,63,94,.25)}
         .savings-kpi .kpi-badge{background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25)}
-
-        /* ── Action Module Cards ── */
         .module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;margin-bottom:24px;animation:fadeUp .5s ease .16s both}
         .module-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 22px 26px;border-radius:22px;background:var(--bg-card);border:1.5px solid var(--border-color);box-shadow:var(--shadow-card);backdrop-filter:blur(18px);text-decoration:none;color:var(--text-primary);transition:all .3s ease;text-align:center;overflow:hidden}
         .module-card::after{content:'';position:absolute;bottom:-22px;right:-22px;width:90px;height:90px;border-radius:50%;opacity:.05;transition:opacity .3s}
         .module-card:hover{transform:translateY(-6px)}
         .module-card:hover::after{opacity:.12}
-        .add-record-card{border-color:rgba(16,185,129,.3)}
-        .add-record-card::after{background:#10b981}
-        .add-record-card:hover{border-color:#10b981;box-shadow:0 16px 38px rgba(16,185,129,.2)}
-        .view-card{border-color:rgba(56,189,248,.3)}
-        .view-card::after{background:#38bdf8}
-        .view-card:hover{border-color:#38bdf8;box-shadow:0 16px 38px rgba(56,189,248,.2)}
-        .summary-mod-card{border-color:rgba(129,140,248,.3)}
-        .summary-mod-card::after{background:#818cf8}
-        .summary-mod-card:hover{border-color:#818cf8;box-shadow:0 16px 38px rgba(129,140,248,.2)}
+        .add-record-card{border-color:rgba(16,185,129,.3)} .add-record-card::after{background:#10b981} .add-record-card:hover{border-color:#10b981;box-shadow:0 16px 38px rgba(16,185,129,.2)}
+        .view-card{border-color:rgba(56,189,248,.3)} .view-card::after{background:#38bdf8} .view-card:hover{border-color:#38bdf8;box-shadow:0 16px 38px rgba(56,189,248,.2)}
+        .summary-mod-card{border-color:rgba(129,140,248,.3)} .summary-mod-card::after{background:#818cf8} .summary-mod-card:hover{border-color:#818cf8;box-shadow:0 16px 38px rgba(129,140,248,.2)}
         .mod-icon{width:64px;height:64px;display:grid;place-items:center;border-radius:19px;font-size:1.8rem;color:#fff}
-        .add-record-card .mod-icon{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 20px rgba(16,185,129,.3)}
-        .view-card .mod-icon{background:linear-gradient(135deg,#38bdf8,#0ea5e9);box-shadow:0 8px 20px rgba(56,189,248,.3)}
-        .summary-mod-card .mod-icon{background:linear-gradient(135deg,#818cf8,#6366f1);box-shadow:0 8px 20px rgba(129,140,248,.3)}
-        .module-card h3{font-size:1.15rem;margin:0;font-weight:800}
-        .module-card p{margin:0;color:var(--text-secondary);font-size:.84rem;line-height:1.5}
-        .mod-badge{padding:5px 14px;border-radius:999px;font-size:.78rem;font-weight:700}
-        .add-record-card .mod-badge{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25)}
-        .view-card .mod-badge{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
-        .summary-mod-card .mod-badge{background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.25)}
-
-        .page-footer{margin-top:16px;padding:14px;border-top:1px solid var(--border-color);color:var(--text-muted);text-align:center;font-size:.9rem;width:100%}
-        .page-footer strong{color:var(--accent-primary)}
+        .add-record-card .mod-icon{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 20px rgba(16,185,129,.3)} .view-card .mod-icon{background:linear-gradient(135deg,#38bdf8,#0ea5e9);box-shadow:0 8px 20px rgba(56,189,248,.3)} .summary-mod-card .mod-icon{background:linear-gradient(135deg,#818cf8,#6366f1);box-shadow:0 8px 20px rgba(129,140,248,.3)}
+        .module-card h3{font-size:1.15rem;margin:0;font-weight:800}.module-card p{margin:0;color:var(--text-secondary);font-size:.84rem;line-height:1.5}.mod-badge{padding:5px 14px;border-radius:999px;font-size:.78rem;font-weight:700}
+        .add-record-card .mod-badge{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25)} .view-card .mod-badge{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.25)} .summary-mod-card .mod-badge{background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.25)}
+        .page-footer{margin-top:16px;padding:14px;border-top:1px solid var(--border-color);color:var(--text-muted);text-align:center;font-size:.9rem;width:100%}.page-footer strong{color:var(--accent-primary)}
         @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
         @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-row .savings-kpi{grid-column:1/-1}.module-grid{grid-template-columns:repeat(2,1fr)}.module-grid .summary-mod-card{grid-column:1/-1}}
         @media(max-width:640px){.page-shell{padding:16px 14px 40px}.navbar{padding:12px 16px}.hero-card{padding:20px 18px;flex-direction:column;align-items:flex-start}.hero-balance{text-align:left}.kpi-row{grid-template-columns:1fr}.kpi-row .savings-kpi{grid-column:auto}.module-grid{grid-template-columns:1fr}.module-grid .summary-mod-card{grid-column:auto}}
@@ -112,118 +93,28 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="{{ url_for('index') }}" class="logo">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="lazy">
-            <strong>Expense Tracker</strong>
-        </a>
+        <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" loading="lazy"><strong>Expense Tracker</strong></a>
         <div class="user-info">
             <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
             <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
             <form method="POST" action="{{ url_for('logout') }}" style="display:inline; margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0; background:none; cursor:pointer; font:inherit;">Logout</button></form>
         </div>
     </nav>
-
     <main class="page-shell">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-container">
-              {% for category, message in messages %}
-                <div class="flash-message {{ category }}">{{ message }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-
-        <!-- ── Hero Card: Name + Balance ── -->
-        <div class="hero-card">
-            <div class="hero-left">
-                <h1>
-                    <span class="greeting-prefix" id="greetingText">Good Day,</span>
-                    <span class="user-name"> {{ session.get('first_name', 'User') }}</span>!
-                </h1>
-                <p>{{ session.get('first_name', 'User') }} {{ session.get('last_name', '') }} &bull; Personal Finance Dashboard</p>
-            </div>
-            <div class="hero-balance">
-                <span class="balance-label">Current Balance</span>
-                <div class="balance-value {% if total_savings >= 0 %}balance-positive{% else %}balance-negative{% endif %}">
-                    Rs {{ "%.0f"|format(total_savings) }}
-                </div>
-            </div>
-        </div>
-
-        <!-- ── KPI Row: Total Income | Total Expense | Savings ── -->
+        {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-container">{% for category, message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}
+        <div class="hero-card"><div class="hero-left"><h1><span class="greeting-prefix" id="greetingText">Good Day,</span><span class="user-name"> {{ session.get('first_name', 'User') }}</span>!</h1><p>{{ session.get('first_name', 'User') }} {{ session.get('last_name', '') }} &bull; Personal Finance Dashboard</p></div><div class="hero-balance"><span class="balance-label">Current Balance</span><div class="balance-value {% if total_savings >= 0 %}balance-positive{% else %}balance-negative{% endif %}">Rs {{ "%.0f"|format(total_savings) }}</div></div></div>
         <div class="kpi-row">
-            <div class="kpi-card income-kpi">
-                <div class="kpi-top">
-                    <span class="kpi-label">Total Income</span>
-                    <div class="kpi-icon">💰</div>
-                </div>
-                <div class="kpi-value rupee-balance">Rs {{ "%.0f"|format(total_income) }}</div>
-                <div class="kpi-footer">
-                    <span class="kpi-badge">↗️ This Month: Rs {{ "%.0f"|format(month_income) }}</span>
-                </div>
-            </div>
-            <div class="kpi-card expense-kpi">
-                <div class="kpi-top">
-                    <span class="kpi-label">Total Expense</span>
-                    <div class="kpi-icon">💸</div>
-                </div>
-                <div class="kpi-value rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</div>
-                <div class="kpi-footer">
-                    <span class="kpi-badge">↘️ This Month: Rs {{ "%.0f"|format(month_expense) }}</span>
-                </div>
-            </div>
-            <div class="kpi-card savings-kpi">
-                <div class="kpi-top">
-                    <span class="kpi-label">Net Savings</span>
-                    <div class="kpi-icon">🏦</div>
-                </div>
-                <div class="kpi-value" style="color: {% if total_savings >= 0 %}#818cf8{% else %}#f43f5e{% endif %};">
-                    Rs {{ "%.0f"|format(total_savings) }}
-                </div>
-                <div class="kpi-footer">
-                    <span class="kpi-badge">🏆 {{ top_category }}</span>
-                    <span class="kpi-badge">{{ saving_pct }}% Saved</span>
-                </div>
-            </div>
+            <div class="kpi-card income-kpi"><div class="kpi-top"><span class="kpi-label">Total Income</span><div class="kpi-icon">💰</div></div><div class="kpi-value rupee-balance">Rs {{ "%.0f"|format(total_income) }}</div><div class="kpi-footer"><span class="kpi-badge">↗️ This Month: Rs {{ "%.0f"|format(month_income) }}</span></div></div>
+            <div class="kpi-card expense-kpi"><div class="kpi-top"><span class="kpi-label">Total Expense</span><div class="kpi-icon">💸</div></div><div class="kpi-value rupee-balance">Rs {{ "%.0f"|format(total_expense) }}</div><div class="kpi-footer"><span class="kpi-badge">↘️ This Month: Rs {{ "%.0f"|format(month_expense) }}</span></div></div>
+            <div class="kpi-card savings-kpi"><div class="kpi-top"><span class="kpi-label">Net Savings</span><div class="kpi-icon">🏦</div></div><div class="kpi-value" style="color: {% if total_savings >= 0 %}#818cf8{% else %}#f43f5e{% endif %};">Rs {{ "%.0f"|format(total_savings) }}</div><div class="kpi-footer"><span class="kpi-badge">🏆 {{ top_category }}</span><span class="kpi-badge">{{ saving_pct }}% Saved</span></div></div>
         </div>
-
-        <!-- ── Action Module Cards: Add Record | View Records | View Summary ── -->
         <div class="module-grid">
-            <a href="/add" class="module-card add-record-card" id="btn-add-record">
-                <div class="mod-icon">📝</div>
-                <h3>Add Record</h3>
-                <p>Add new income or expense entries to your tracker</p>
-                <span class="mod-badge">{{ total_records }} Records</span>
-            </a>
-            <a href="/view" class="module-card view-card" id="btn-view-records">
-                <div class="mod-icon">📋</div>
-                <h3>View Records</h3>
-                <p>Browse, search and manage all your transactions</p>
-                <span class="mod-badge">View All →</span>
-            </a>
-            <a href="/summary" class="module-card summary-mod-card" id="btn-view-summary">
-                <div class="mod-icon">📊</div>
-                <h3>View Summary</h3>
-                <p>Category breakdowns, charts and financial reports</p>
-                <span class="mod-badge">Analytics →</span>
-            </a>
+            <a href="{{ url_for('add') }}" class="module-card add-record-card" id="btn-add-record"><div class="mod-icon">📝</div><h3>Add Record</h3><p>Add new income or expense entries to your tracker</p><span class="mod-badge">{{ total_records }} Records</span></a>
+            <a href="{{ url_for('view') }}" class="module-card view-card" id="btn-view-records"><div class="mod-icon">📋</div><h3>View Records</h3><p>Browse, search and manage all your transactions</p><span class="mod-badge">View All →</span></a>
+            <a href="{{ url_for('summary') }}" class="module-card summary-mod-card" id="btn-view-summary"><div class="mod-icon">📊</div><h3>View Summary</h3><p>Category breakdowns, charts and financial reports</p><span class="mod-badge">Analytics →</span></a>
         </div>
-
         <div class="page-footer">Made by: <strong>Umair Siddique</strong></div>
     </main>
-
-    <script>
-        (function(){
-            var h=new Date().getHours(),el=document.getElementById('greetingText');
-            if(el){
-                if(h<12)el.textContent='Good Morning,';
-                else if(h<17)el.textContent='Good Afternoon,';
-                else if(h<21)el.textContent='Good Evening,';
-                else el.textContent='Good Night,';
-            }
-        })();
-    </script>
+    <script>(function(){var h=new Date().getHours(),el=document.getElementById('greetingText');if(el){if(h<12)el.textContent='Good Morning,';else if(h<17)el.textContent='Good Afternoon,';else if(h<21)el.textContent='Good Evening,';else el.textContent='Good Night,';}})();</script>
 </body>
 </html>
-
