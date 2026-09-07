@@ -114,10 +114,13 @@ def safe_object_id(value):
 def record_created_at(record):
     value = record.get("created_at")
     if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
         return value
     if isinstance(value, str):
         try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
         except ValueError:
             pass
     oid = record.get("_id")
@@ -204,7 +207,6 @@ def login():
             try:
                 password_valid = bool(stored_password) and check_password_hash(stored_password, password)
             except (ValueError, TypeError):
-                app.logger.warning("Invalid password hash for username: %s", username)
                 password_valid = False
             if password_valid:
                 session.clear()
@@ -513,18 +515,25 @@ def add():
 @login_required
 def view():
     uid = session.get("user_id")
-    filter_type = request.args.get("type", "all").lower()
-    query = {"user_id": uid}
-    if filter_type in {"expense", "income"}:
-        query["type"] = filter_type
-    else:
+    filter_type = request.args.get("type", "all").strip().lower()
+    if filter_type not in {"all", "expense", "income"}:
         filter_type = "all"
+
+    query = {"user_id": uid}
+    if filter_type != "all":
+        query["type"] = filter_type
+
     try:
-        expenses = list(expenses_collection.find(query).sort([("created_at", -1), ("_id", -1)]))
-        expenses = [record_to_view(item) for item in sort_by_added(expenses, newest_first=True)]
+        # MongoDB performs the primary ordering; _id is the deterministic tie-breaker.
+        cursor = expenses_collection.find(query).sort([("created_at", -1), ("_id", -1)])
+        expenses = [record_to_view(item) for item in cursor]
+        # Legacy records without created_at still need deterministic newest-first ordering.
+        expenses = sort_by_added(expenses, newest_first=True)
     except Exception:
         app.logger.exception("View records query error")
+        flash("Unable to load your records right now. Please refresh and try again.", "danger")
         expenses = []
+
     return render_template("view.html", expenses=expenses, filter_type=filter_type)
 
 
@@ -562,44 +571,44 @@ def delete(id):
 @app.route("/edit/<id>", methods=["GET", "POST"])
 @login_required
 def edit(id):
-    uid = session.get("user_id")
     oid = safe_object_id(id)
     if not oid:
         flash("Invalid record ID.", "danger")
         return redirect(url_for("view"))
     try:
-        expense = expenses_collection.find_one({"_id": oid, "user_id": uid})
+        item = expenses_collection.find_one({"_id": oid, "user_id": session.get("user_id")})
     except Exception:
-        expense = None
-    if not expense:
+        item = None
+    if not item:
         flash("Record not found or access denied.", "danger")
         return redirect(url_for("view"))
     if request.method == "POST":
-        trans_type = str(request.form.get("type", expense.get("type", "expense"))).lower()
-        if trans_type not in {"expense", "income"}:
-            flash("Invalid transaction type.", "danger")
-            return redirect(url_for("edit", id=id))
+        record_type = str(request.form.get("record_type", item.get("type", "expense"))).lower()
+        if record_type not in {"income", "expense"}:
+            record_type = "expense"
         try:
             amount = parse_amount(request.form.get("amount"))
             record_date = parse_record_date(request.form.get("date"))
         except ValueError as exc:
             flash(str(exc), "danger")
             return redirect(url_for("edit", id=id))
-        category = normalize_category(request.form.get("category"), "Salary" if trans_type == "income" else "Other")
+        category = normalize_category(request.form.get("category"), "Salary" if record_type == "income" else "Other")
+        if record_type == "expense" and request.form.get("category") == "custom":
+            category = normalize_category(request.form.get("custom_category"), "Other")
         description = normalize_text(request.form.get("description"), 500)
         try:
-            expenses_collection.update_one({"_id": oid, "user_id": uid}, {"$set": {"type": trans_type, "amount": float(amount), "category": category, "date": record_date.isoformat(), "description": description, "updated_at": utc_now()}})
+            expenses_collection.update_one({"_id": oid, "user_id": session.get("user_id")}, {"$set": {
+                "type": record_type, "amount": float(amount), "category": category,
+                "date": record_date.isoformat(), "description": description, "updated_at": utc_now()
+            }})
             flash("Record updated successfully!", "success")
         except Exception:
             app.logger.exception("Record update error")
             flash("Error updating record.", "danger")
         return redirect(url_for("view"))
-    return render_template("edit.html", expense=record_to_view(expense))
+    return render_template("edit.html", item=record_to_view(item))
 
 
-# -----------------------------
-# Summary / reports
-# -----------------------------
 def summary_period_matches(trans_date, view_type, selected_date, from_date, to_date, today):
     if not trans_date:
         return False
@@ -631,46 +640,43 @@ def summary():
     from_date = request.args.get("from_date", "")
     to_date = request.args.get("to_date", "")
     try:
-        transactions = list(expenses_collection.find({"user_id": uid}))
+        items = list(expenses_collection.find({"user_id": uid}))
     except Exception:
         app.logger.exception("Summary query error")
-        transactions = []
+        items = []
     today = date.today()
-    timeframes = ["overall", "weekly", "monthly", "daily"]
-    expense_data = {tf: {} for tf in timeframes}
-    income_data = {tf: {} for tf in timeframes}
-    income_totals = {tf: Decimal("0.00") for tf in timeframes}
-    expense_totals = {tf: Decimal("0.00") for tf in timeframes}
-    savings_totals = {tf: Decimal("0.00") for tf in timeframes}
-    category_items = []
-    category_filter = bool(selected_category and selected_category.lower() != "all")
-    for trans in transactions:
-        amount = money(trans.get("amount"))
-        category = normalize_category(trans.get("category"))
-        trans_type = str(trans.get("type", "expense")).lower()
-        trans_date = transaction_date(trans)
-        if not trans_date:
+    filtered = []
+    total_income = Decimal("0.00")
+    total_expense = Decimal("0.00")
+    category_totals = {}
+    for item in items:
+        trans_date = transaction_date(item)
+        category = normalize_category(item.get("category"))
+        trans_type = str(item.get("type", "expense")).lower()
+        if active_tab == "expense" and trans_type != "expense":
             continue
-        matches = {"overall": True, "weekly": today - timedelta(days=6) <= trans_date <= today, "monthly": trans_date.year == today.year and trans_date.month == today.month, "daily": trans_date.isoformat() == selected_date}
-        for tf, matched in matches.items():
-            if matched:
-                if trans_type == "income":
-                    income_totals[tf] += amount
-                    income_data[tf][category] = income_data[tf].get(category, Decimal("0.00")) + amount
-                else:
-                    expense_totals[tf] += amount
-                    expense_data[tf][category] = expense_data[tf].get(category, Decimal("0.00")) + amount
-        if category_filter and category.lower() == selected_category.lower() and summary_period_matches(trans_date, view_type, selected_date, from_date, to_date, today):
-            category_items.append(trans)
-    for tf in timeframes:
-        savings_totals[tf] = income_totals[tf] - expense_totals[tf]
-    total_income = income_totals["overall"]
-    total_expense = expense_totals["overall"]
-    total_saving = savings_totals["overall"]
-    saving_pct = total_saving / total_income * Decimal("100") if total_income > 0 else Decimal("0")
-    expense_pct = total_expense / total_income * Decimal("100") if total_income > 0 else Decimal("0")
-    category_items = [record_to_view(x) for x in sort_by_added(category_items, newest_first=True)]
-    return render_template("summary.html", expense_data={tf: {k: float(v) for k, v in data.items()} for tf, data in expense_data.items()}, income_data={tf: {k: float(v) for k, v in data.items()} for tf, data in income_data.items()}, totals={"income": {tf: float(v) for tf, v in income_totals.items()}, "expense": {tf: float(v) for tf, v in expense_totals.items()}, "savings": {tf: float(v) for tf, v in savings_totals.items()}}, income_totals={tf: float(v) for tf, v in income_totals.items()}, expense_totals={tf: float(v) for tf, v in expense_totals.items()}, total_income=float(total_income), total_expense=float(total_expense), total_saving=float(total_saving), saving_pct=float(round(saving_pct, 1)), expense_pct=float(round(expense_pct, 1)), selected_date=selected_date, view_type=view_type, active_tab=active_tab, selected_category=selected_category, category_items=category_items, is_category_filtered=category_filter, from_date=from_date, to_date=to_date)
+        if active_tab == "income" and trans_type != "income":
+            continue
+        if not summary_period_matches(trans_date, view_type, selected_date, from_date, to_date, today):
+            continue
+        if selected_category and selected_category.lower() != "all" and category.lower() != selected_category.lower():
+            continue
+        filtered.append(item)
+        amount = money(item.get("amount"))
+        if trans_type == "income":
+            total_income += amount
+        else:
+            total_expense += amount
+        category_totals[category] = category_totals.get(category, Decimal("0.00")) + amount
+    filtered = sort_by_added(filtered, newest_first=True)
+    total_balance = total_income - total_expense
+    return render_template(
+        "summary.html", expenses=[record_to_view(item) for item in filtered], total_income=float(total_income),
+        total_expense=float(total_expense), total_savings=float(total_balance), total_balance=float(total_balance),
+        category_totals={key: float(value) for key, value in sorted(category_totals.items(), key=lambda pair: pair[1], reverse=True)},
+        view_type=view_type, selected_date=selected_date, selected_category=selected_category,
+        active_tab=active_tab, from_date=from_date, to_date=to_date,
+    )
 
 
 @app.route("/summary/details")
@@ -679,37 +685,24 @@ def summary_details():
     uid = session.get("user_id")
     category = normalize_text(request.args.get("category"), 80)
     view_type = request.args.get("type", "overall").lower()
-    if view_type not in {"overall", "weekly", "monthly", "daily", "range"}:
-        view_type = "overall"
-    active_tab = request.args.get("tab", "all").lower()
-    if active_tab not in {"all", "expense", "income"}:
-        active_tab = "all"
     selected_date = request.args.get("date", date.today().isoformat())
     from_date = request.args.get("from_date", "")
     to_date = request.args.get("to_date", "")
+    if view_type not in {"overall", "weekly", "monthly", "daily", "range"}:
+        view_type = "overall"
     try:
-        transactions = list(expenses_collection.find({"user_id": uid}))
+        items = list(expenses_collection.find({"user_id": uid}))
     except Exception:
-        transactions = []
+        items = []
     today = date.today()
     filtered = []
-    total = Decimal("0.00")
-    for trans in transactions:
-        trans_type = str(trans.get("type", "expense")).lower()
-        if active_tab == "expense" and trans_type != "expense":
+    for item in items:
+        if category and normalize_category(item.get("category")).lower() != category.lower():
             continue
-        if active_tab == "income" and trans_type != "income":
-            continue
-        if category and normalize_category(trans.get("category")).lower() != category.lower():
-            continue
-        trans_date = transaction_date(trans)
-        if not summary_period_matches(trans_date, view_type, selected_date, from_date, to_date, today):
-            continue
-        total += money(trans.get("amount"))
-        filtered.append(trans)
-    filtered = [record_to_view(x) for x in sort_by_added(filtered, newest_first=True)]
-    filter_text = {"weekly": "Last 7 days", "monthly": "Current month", "daily": f"Date: {selected_date}", "range": f"{from_date} to {to_date}"}.get(view_type, "Overall category breakdown")
-    return render_template("summary_details.html", category=category, expenses=filtered, total=float(total), filter_text=filter_text, view_type=view_type, active_tab=active_tab, selected_date=selected_date, from_date=from_date, to_date=to_date)
+        if summary_period_matches(transaction_date(item), view_type, selected_date, from_date, to_date, today):
+            filtered.append(item)
+    filtered = sort_by_added(filtered, newest_first=True)
+    return render_template("summary_details.html", expenses=[record_to_view(item) for item in filtered], category=category, view_type=view_type, selected_date=selected_date, from_date=from_date, to_date=to_date)
 
 
 @app.route("/summary/report")
@@ -729,7 +722,7 @@ def download_report():
     try:
         items = list(expenses_collection.find({"user_id": uid}))
     except Exception:
-        app.logger.exception("Report database query error")
+        app.logger.exception("Report query error")
         items = []
 
     today = date.today()
@@ -755,80 +748,63 @@ def download_report():
         else:
             total_expense += amount
 
-    # Newest added records first, matching the main records page.
     filtered = sort_by_added(filtered, newest_first=True)
+    net = total_income - total_expense
     buffer = io.BytesIO()
     try:
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=14 * mm, bottomMargin=14 * mm, leftMargin=14 * mm, rightMargin=14 * mm, title="Financial Tracker Statement", author="Personal Expense Tracker")
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=15 * mm, bottomMargin=15 * mm, leftMargin=15 * mm, rightMargin=15 * mm)
         styles = getSampleStyleSheet()
-        title_style = ParagraphStyle("ReportTitle", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=17, leading=21, textColor=colors.HexColor("#0f172a"), spaceAfter=5)
-        subtitle_style = ParagraphStyle("ReportSubtitle", parent=styles["Normal"], fontName="Helvetica", fontSize=8.5, leading=12, textColor=colors.HexColor("#475569"), spaceAfter=10)
-        summary_style = ParagraphStyle("ReportSummary", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=9, leading=13, spaceAfter=10)
-        cell_style = ParagraphStyle("ReportCell", parent=styles["Normal"], fontName="Helvetica", fontSize=7.5, leading=9, textColor=colors.HexColor("#0f172a"))
-        head_style = ParagraphStyle("ReportHead", parent=cell_style, fontName="Helvetica-Bold", textColor=colors.white, alignment=1)
-
-        user_name = escape(normalize_text(session.get("first_name", "User"), 80))
-        period = {"overall": "Overall", "weekly": "Last 7 Days", "monthly": "Current Month", "daily": f"Date: {selected_date}", "range": f"{from_date} to {to_date}"}.get(view_type, "Overall")
-        tab_label = {"expense": "Expenses Only", "income": "Income Only", "all": "Income & Expenses"}.get(active_tab, "Income & Expenses")
-        generated = datetime.now().strftime("%d %b %Y, %I:%M %p")
+        title_style = ParagraphStyle("StatementTitle", parent=styles["Title"], fontSize=18, leading=22, textColor=colors.HexColor("#0f172a"), spaceAfter=5)
+        meta_style = ParagraphStyle("StatementMeta", parent=styles["Normal"], fontSize=8.5, leading=12, textColor=colors.HexColor("#475569"), spaceAfter=10)
+        cell_style = ParagraphStyle("StatementCell", parent=styles["Normal"], fontSize=7.5, leading=9, textColor=colors.HexColor("#0f172a"))
+        header_style = ParagraphStyle("StatementHeader", parent=cell_style, fontName="Helvetica-Bold", textColor=colors.white)
+        total_label_style = ParagraphStyle("TotalLabel", parent=styles["Normal"], fontSize=9, leading=12, fontName="Helvetica-Bold", textColor=colors.HexColor("#0f172a"))
+        total_value_style = ParagraphStyle("TotalValue", parent=total_label_style, alignment=2)
 
         elements = [Paragraph("Financial Tracker — Financial Statement", title_style)]
-        elements.append(Paragraph(f"<b>User:</b> {user_name} &nbsp;&nbsp; | &nbsp;&nbsp; <b>Period:</b> {escape(period)} &nbsp;&nbsp; | &nbsp;&nbsp; <b>View:</b> {escape(tab_label)} &nbsp;&nbsp; | &nbsp;&nbsp; <b>Generated:</b> {escape(generated)}", subtitle_style))
+        period = view_type.capitalize()
+        if view_type == "daily":
+            period += f" ({escape(selected_date)})"
+        elif view_type == "monthly":
+            period += " (Current Month)"
+        elif view_type == "weekly":
+            period += " (Last 7 Days)"
+        elif view_type == "range":
+            period += f" ({escape(from_date)} to {escape(to_date)})"
+        tab_label = {"expense": "Expenses Only", "income": "Income Only", "all": "Income & Expenses"}[active_tab]
+        user_name = escape(normalize_text(session.get("first_name", "User"), 80))
+        generated = datetime.now().strftime("%d %b %Y, %I:%M %p")
+        elements.append(Paragraph(f"<b>User:</b> {user_name} &nbsp;&nbsp; <b>Period:</b> {escape(period)} &nbsp;&nbsp; <b>View:</b> {escape(tab_label)}<br/><b>Generated:</b> {escape(generated)}", meta_style))
 
-        net = total_income - total_expense
-        net_color = "#059669" if net >= 0 else "#e11d48"
-        elements.append(Paragraph(f"<b>Total Income:</b> <font color='#059669'>Rs {total_income:,.2f}</font> &nbsp;&nbsp;&nbsp; <b>Total Expense:</b> <font color='#e11d48'>Rs {total_expense:,.2f}</font> &nbsp;&nbsp;&nbsp; <b>Net Savings:</b> <font color='{net_color}'>Rs {net:,.2f}</font>", summary_style))
+        summary_data = [[Paragraph("Total Income", total_label_style), Paragraph(f"Rs {total_income:,.2f}", total_value_style)], [Paragraph("Total Expense", total_label_style), Paragraph(f"Rs {total_expense:,.2f}", total_value_style)], [Paragraph("Net Savings / Balance", total_label_style), Paragraph(f"Rs {net:,.2f}", total_value_style)]]
+        summary_table = Table(summary_data, colWidths=[110 * mm, 65 * mm], hAlign="LEFT")
+        summary_table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")), ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7), ("LEFTPADDING", (0, 0), (-1, -1), 8), ("RIGHTPADDING", (0, 0), (-1, -1), 8)]))
+        elements.extend([summary_table, Spacer(1, 10)])
 
-        table_data = [[Paragraph("#", head_style), Paragraph("Date", head_style), Paragraph("Type", head_style), Paragraph("Category", head_style), Paragraph("Description", head_style), Paragraph("Amount (Rs)", head_style)]]
-        for i, item in enumerate(filtered, 1):
-            description = normalize_text(item.get("description"), 120) or "-"
-            # ReportLab Helvetica is not a Unicode font. Replace unsupported control characters while
-            # preserving normal financial text so a single unusual description cannot crash PDF creation.
-            safe_description = "".join(ch if ord(ch) >= 32 or ch in "\n\t" else " " for ch in description)
-            table_data.append([
-                Paragraph(str(i), cell_style),
-                Paragraph(escape(str(item.get("date", "-"))), cell_style),
-                Paragraph(escape(str(item.get("type", "expense")).capitalize()), cell_style),
-                Paragraph(escape(normalize_category(item.get("category"), "-")), cell_style),
-                Paragraph(escape(safe_description), cell_style),
-                Paragraph(f"{money(item.get('amount')):,.2f}", ParagraphStyle("Amount", parent=cell_style, alignment=2)),
-            ])
+        table_data = [[Paragraph("#", header_style), Paragraph("Date", header_style), Paragraph("Type", header_style), Paragraph("Category", header_style), Paragraph("Description", header_style), Paragraph("Amount (Rs)", header_style)]]
+        for index, item in enumerate(filtered, 1):
+            trans_type = str(item.get("type", "expense")).capitalize()
+            amount = money(item.get("amount"))
+            category = normalize_category(item.get("category"))
+            description = normalize_text(item.get("description"), 180).replace("\x00", "")
+            table_data.append([Paragraph(str(index), cell_style), Paragraph(escape(str(item.get("date", "—"))), cell_style), Paragraph(escape(trans_type), cell_style), Paragraph(escape(category), cell_style), Paragraph(escape(description or "—"), cell_style), Paragraph(f"Rs {amount:,.2f}", cell_style)])
 
-        if filtered:
-            table = Table(table_data, colWidths=[22, 58, 55, 82, 190, 78], repeatRows=1, hAlign="LEFT")
-            table.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
-                ("GRID", (0, 0), (-1, -1), 0.45, colors.HexColor("#cbd5e1")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (0, 1), (0, -1), "CENTER"),
-                ("ALIGN", (5, 1), (5, -1), "RIGHT"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ]))
-            elements.append(table)
-            elements.append(Spacer(1, 10))
-        else:
-            elements.append(Paragraph("No financial records found for this selection.", styles["Normal"]))
-            elements.append(Spacer(1, 12))
+        if len(table_data) == 1:
+            table_data.append([Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("No transactions found for this selection.", cell_style), Paragraph("Rs 0.00", cell_style)])
 
-        # Final statement totals — always present at the end of the report.
-        totals_data = [
-            [Paragraph("Statement Totals", head_style), Paragraph("Amount (Rs)", head_style)],
-            [Paragraph("Total Income", cell_style), Paragraph(f"{total_income:,.2f}", ParagraphStyle("TotalIncome", parent=cell_style, alignment=2))],
-            [Paragraph("Total Expense", cell_style), Paragraph(f"{total_expense:,.2f}", ParagraphStyle("TotalExpense", parent=cell_style, alignment=2))],
-            [Paragraph("Net Savings / Balance", cell_style), Paragraph(f"{net:,.2f}", ParagraphStyle("TotalNet", parent=cell_style, alignment=2))],
-            [Paragraph("Total Records", cell_style), Paragraph(str(len(filtered)), ParagraphStyle("TotalRecords", parent=cell_style, alignment=2))],
+        table = Table(table_data, colWidths=[18, 58, 52, 78, 195, 76], repeatRows=1, hAlign="LEFT")
+        table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white), ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#cbd5e1")), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5), ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5)]))
+        elements.extend([table, Spacer(1, 12)])
+
+        final_totals = [
+            [Paragraph("Total Income", total_label_style), Paragraph(f"Rs {total_income:,.2f}", total_value_style)],
+            [Paragraph("Total Expense", total_label_style), Paragraph(f"Rs {total_expense:,.2f}", total_value_style)],
+            [Paragraph("Net Savings / Balance", total_label_style), Paragraph(f"Rs {net:,.2f}", total_value_style)],
+            [Paragraph("Total Records", total_label_style), Paragraph(str(len(filtered)), total_value_style)],
         ]
-        totals_table = Table(totals_data, colWidths=[250, 235], hAlign="RIGHT")
-        totals_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#f8fafc")),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ]))
-        elements.append(totals_table)
+        totals_table = Table(final_totals, colWidths=[110 * mm, 65 * mm], hAlign="LEFT")
+        totals_table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f1f5f9")), ("GRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#94a3b8")), ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7), ("LEFTPADDING", (0, 0), (-1, -1), 8), ("RIGHTPADDING", (0, 0), (-1, -1), 8)]))
+        elements.extend([Paragraph("Statement Totals", ParagraphStyle("TotalsHeading", parent=styles["Heading3"], fontSize=11, spaceAfter=5, textColor=colors.HexColor("#0f172a"))), totals_table])
         doc.build(elements)
     except Exception:
         app.logger.exception("PDF report generation error")
@@ -846,15 +822,15 @@ def sitemap():
 
 
 @app.errorhandler(404)
-def page_not_found(_error):
-    return redirect(url_for("dashboard" if session.get("user_id") else "index"))
+def not_found(error):
+    return render_template("404.html"), 404
 
 
 @app.errorhandler(500)
-def internal_server_error(_error):
-    flash("An internal server error occurred. Please try again.", "danger")
-    return redirect(url_for("dashboard" if session.get("user_id") else "index"))
+def server_error(error):
+    app.logger.exception("Unhandled application error")
+    return render_template("500.html"), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
+    app.run(debug=True)
