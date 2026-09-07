@@ -49,8 +49,22 @@ python app.py
 
 The application expects MongoDB to be available at `MONGO_URI`. The old JSON/mongomock fallback has intentionally been removed so development and production cannot silently use different databases.
 
+## QA checks
+
+Run the built-in regression suite after changes:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The suite covers money normalization/rejection, date handling, summary period boundaries, six-month calculations, and record insertion ordering.
+
 ## Important data behavior
 
 Each new transaction receives a `created_at` timestamp. The records screen and generated statements use that timestamp for insertion order, with MongoDB `ObjectId` creation time as a legacy fallback. The transaction `date` remains the date of the financial event and does not control insertion order.
 
 Money input is validated as positive and normalized to two decimal places before storage; calculations convert stored values to `Decimal` to avoid common floating-point calculation surprises.
+
+## Production deployment
+
+Production uses `wsgi.py` as the Vercel entrypoint. It requires `SECRET_KEY` to be configured and refuses to start when the production secret is missing. Keep `FLASK_DEBUG=0` and use HTTPS with `COOKIE_SECURE=1` in production.
