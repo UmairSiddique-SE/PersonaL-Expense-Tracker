@@ -1,650 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Summary | Expense & Income Tracker</title>
+    <title>Financial Summary | Expense Tracker</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#0056b3">
-    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='summary-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 24px;
-        }
-
-        .report-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .report-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            border: none;
-            font: inherit;
-        }
-
-        .period-label {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-top: 4px;
-        }
-
-        .period-label strong {
-            color: var(--accent-primary);
-        }
-
-        /* Top Summary KPI Triad */
-        .summary-kpi-bar {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .summary-kpi-box {
-            padding: 16px 20px;
-            border-radius: 18px;
-            background: var(--input-bg);
-            border: 1.5px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .summary-kpi-box.income {
-            border-color: rgba(16, 185, 129, 0.35);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--input-bg) 100%);
-        }
-
-        .summary-kpi-box.expense {
-            border-color: rgba(244, 63, 94, 0.35);
-            background: linear-gradient(135deg, rgba(244, 63, 94, 0.08) 0%, var(--input-bg) 100%);
-        }
-
-        .summary-kpi-box.savings {
-            border-color: rgba(14, 165, 233, 0.35);
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, var(--input-bg) 100%);
-        }
-
-        .summary-kpi-box .box-title {
-            font-size: 0.82rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .summary-kpi-box .box-amount {
-            font-size: 1.5rem;
-            font-weight: 800;
-        }
-
-        .summary-kpi-box.income .box-amount {
-            color: var(--currency-income);
-        }
-
-        .summary-kpi-box.expense .box-amount {
-            color: var(--currency-expense);
-        }
-
-        .summary-kpi-box.savings .box-amount {
-            color: var(--currency-balance);
-        }
-
-        /* Filter Type Tabs */
-        .category-type-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            padding: 8px 18px;
-            border-radius: 999px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-decoration: none;
-            color: var(--text-secondary);
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            transition: all 0.25s ease;
-        }
-
-        .tab-btn:hover {
-            color: var(--text-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .tab-btn.active-all {
-            background: var(--accent-gradient);
-            color: #ffffff;
-            border-color: transparent;
-        }
-
-        .tab-btn.active-expense {
-            background: var(--currency-expense);
-            color: #ffffff;
-            border-color: transparent;
-            box-shadow: 0 4px 14px var(--currency-expense-glow);
-        }
-
-        .tab-btn.active-income {
-            background: var(--currency-income);
-            color: #ffffff;
-            border-color: transparent;
-            box-shadow: 0 4px 14px var(--currency-income-glow);
-        }
-
-        /* Summary Cards Grid */
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 18px;
-            margin-bottom: 28px;
-        }
-
-        .summary-card {
-            background: var(--input-bg);
-            border: 1.5px solid var(--border-color);
-            padding: 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: all 0.35s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 140px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .summary-card:hover {
-            transform: translateY(-5px);
-        }
-
-        /* Explicit Income Card Styling */
-        .summary-card.card-income {
-            border-color: rgba(16, 185, 129, 0.4);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.09) 0%, var(--input-bg) 100%);
-        }
-
-        .summary-card.card-income:hover {
-            border-color: var(--currency-income);
-            box-shadow: 0 14px 30px var(--currency-income-glow);
-        }
-
-        .summary-card.card-income .card-amount {
-            color: var(--currency-income) !important;
-        }
-
-        /* Explicit Expense Card Styling */
-        .summary-card.card-expense {
-            border-color: rgba(244, 63, 94, 0.4);
-            background: linear-gradient(135deg, rgba(244, 63, 94, 0.09) 0%, var(--input-bg) 100%);
-        }
-
-        .summary-card.card-expense:hover {
-            border-color: var(--currency-expense);
-            box-shadow: 0 14px 30px var(--currency-expense-glow);
-        }
-
-        .summary-card.card-expense .card-amount {
-            color: var(--currency-expense) !important;
-        }
-
-        .summary-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .summary-card h3 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary) !important;
-        }
-
-        .card-type-tag {
-            font-size: 0.72rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            padding: 3px 8px;
-            border-radius: 999px;
-            letter-spacing: 0.04em;
-        }
-
-        .tag-income {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--currency-income);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-        }
-
-        .tag-expense {
-            background: rgba(244, 63, 94, 0.2);
-            color: var(--currency-expense);
-            border: 1px solid rgba(244, 63, 94, 0.35);
-        }
-
-        .card-amount {
-            margin: 6px 0 10px;
-            font-size: 1.45rem;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-        }
-
-        .summary-card .view-details {
-            font-size: 0.84rem;
-            color: var(--link-color);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s ease;
-        }
-
-        .summary-card .view-details:hover {
-            color: var(--link-hover);
-            text-decoration: underline;
-        }
-
-        /* Chart Container */
-        .chart-container {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-card);
-            max-width: 720px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .chart-container canvas {
-            max-height: 240px;
-            width: 100% !important;
-        }
-
-        @media (max-width: 760px) {
-            .summary-kpi-bar {
-                grid-template-columns: 1fr;
-            }
-        }
+        *{box-sizing:border-box;font-family:Inter,'Segoe UI',system-ui,sans-serif}
+        body{margin:0;min-height:100vh;background:var(--bg-gradient);color:var(--text-primary)}
+        .navbar{display:flex;justify-content:space-between;align-items:center;padding:14px 30px;background:var(--navbar-bg);border-bottom:1px solid var(--border-color);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20}
+        .brand{font-size:20px;font-weight:900;color:var(--accent-primary);text-decoration:none}
+        .nav-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+        .nav-actions a{color:var(--text-primary);text-decoration:none;font-weight:700;font-size:.9rem}
+        .logout{color:var(--currency-expense)!important}
+        .shell{width:min(1180px,100%);margin:auto;padding:28px 18px 60px}
+        .panel{background:var(--bg-card);border:1px solid var(--border-color);border-radius:24px;box-shadow:var(--shadow-card);padding:24px;backdrop-filter:blur(16px)}
+        .header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap;margin-bottom:22px}
+        h1{margin:0;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:900}
+        .subtitle{margin:7px 0 0;color:var(--text-secondary);line-height:1.5}
+        .period{margin:8px 0 0;font-size:.85rem;color:var(--text-secondary)}
+        .period strong{color:var(--accent-primary)}
+        .actions{display:flex;gap:9px;flex-wrap:wrap}
+        .btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border-radius:12px;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-primary);text-decoration:none;font-weight:800;font-size:.84rem}
+        .btn.active{background:var(--accent-gradient);color:#fff;border-color:transparent}
+        .btn.expense-active{background:var(--currency-expense);color:#fff;border-color:transparent}
+        .btn.income-active{background:var(--currency-income);color:#fff;border-color:transparent}
+        .filters{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border-color)}
+        .tabs,.periods{display:flex;gap:8px;flex-wrap:wrap}
+        .date-form{display:flex;align-items:center;gap:8px}
+        input[type=date]{padding:9px 11px;border-radius:10px;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-primary)}
+        .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:24px}
+        .kpi{padding:19px;border-radius:18px;border:1px solid var(--border-color);background:var(--input-bg)}
+        .kpi.exp{border-color:rgba(244,63,94,.35)}
+        .kpi.inc{border-color:rgba(16,185,129,.35)}
+        .kpi.net{border-color:rgba(99,102,241,.35)}
+        .kpi-label{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;font-weight:800;color:var(--text-secondary)}
+        .kpi-value{font-size:1.65rem;font-weight:900;margin-top:8px}
+        .exp .kpi-value{color:var(--currency-expense)}
+        .inc .kpi-value{color:var(--currency-income)}
+        .net .kpi-value{color:var(--currency-balance)}
+        .section-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:4px 0 14px}
+        .section-title h2{font-size:1.15rem;margin:0;font-weight:900}
+        .section-title span{font-size:.8rem;color:var(--text-secondary)}
+        .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-bottom:28px}
+        .category-card{display:block;padding:19px;border-radius:18px;border:1px solid var(--border-color);background:var(--input-bg);text-decoration:none;color:var(--text-primary);transition:.25s}
+        .category-card:hover{transform:translateY(-4px);border-color:var(--accent-primary);box-shadow:var(--shadow-card)}
+        .cat-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+        .cat-name{font-weight:900;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .tag{font-size:.67rem;font-weight:900;text-transform:uppercase;padding:4px 8px;border-radius:999px}
+        .tag.exp{color:var(--currency-expense);background:rgba(244,63,94,.12)}
+        .tag.inc{color:var(--currency-income);background:rgba(16,185,129,.12)}
+        .cat-total{font-size:1.5rem;font-weight:900;margin:12px 0 5px}
+        .category-card.expense .cat-total{color:var(--currency-expense)}
+        .category-card.income .cat-total{color:var(--currency-income)}
+        .cat-help{font-size:.78rem;color:var(--text-secondary)}
+        .empty{padding:35px 20px;text-align:center;color:var(--text-secondary);border:1px dashed var(--border-color);border-radius:16px}
+        .records{display:grid;gap:10px}
+        .record{display:grid;grid-template-columns:100px 1fr auto;gap:14px;align-items:center;padding:13px 15px;border:1px solid var(--border-color);border-radius:14px;background:var(--input-bg)}
+        .record-date{font-size:.8rem;color:var(--text-secondary)}
+        .record-main strong{display:block;font-size:.9rem}
+        .record-main span{font-size:.76rem;color:var(--text-secondary)}
+        .record-amount{font-weight:900;white-space:nowrap}
+        .record-amount.exp{color:var(--currency-expense)}
+        .record-amount.inc{color:var(--currency-income)}
+        .note{font-size:.76rem;color:var(--text-secondary);margin-top:16px}
+        @media(max-width:760px){.kpis{grid-template-columns:1fr}.record{grid-template-columns:1fr;gap:5px}.record-amount{justify-self:start}.navbar{padding:12px 16px}.shell{padding:16px 12px 40px}.panel{padding:18px}}
     </style>
 </head>
-
 <body>
-    <nav class="navbar">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Expense Tracker Logo">
-            <a href="/dashboard" class="logo"
-                style="text-decoration: none; color: inherit;">Expense<span>Tracker</span></a>
+<nav class="navbar">
+    <a class="brand" href="{{ url_for('dashboard') }}">ExpenseTracker</a>
+    <div class="nav-actions">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
+        <a href="{{ url_for('settings') }}">⚙️ Settings</a>
+        <a class="logout" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+<main class="shell">
+<section class="panel">
+    <div class="header">
+        <div>
+            <h1>{% if is_category_filtered %}📊 {{ selected_category }}{% elif active_tab == 'expense' %}💸 Expense Summary{% elif active_tab == 'income' %}💰 Income Summary{% else %}📊 Financial Summary{% endif %}</h1>
+            <p class="subtitle">{% if is_category_filtered %}Showing only records belonging to <strong>{{ selected_category }}</strong>.{% elif active_tab == 'expense' %}Expense totals are separated by category.{% elif active_tab == 'income' %}Income totals are separated by source.{% else %}Income, expenses and savings are kept completely separate.{% endif %}</p>
+            <p class="period">Period: <strong>{% if view_type == 'daily' %}{{ selected_date }}{% elif view_type == 'weekly' %}Last 7 days{% elif view_type == 'monthly' %}Current month{% elif view_type == 'range' %}{{ from_date }} to {{ to_date }}{% else %}All time{% endif %}</strong></p>
         </div>
-        <div class="user-info">
-            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span
-                    class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
-            <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
-            <a href="/logout" class="logout-btn">Logout</a>
+        <div class="actions">
+            {% if is_category_filtered %}<a class="btn" href="{{ url_for('summary', type=view_type, tab=active_tab, date=selected_date) }}">← All Categories</a>{% endif %}
+            <a class="btn" href="{{ url_for('download_report', type=view_type, date=selected_date, category=selected_category, from_date=from_date, to_date=to_date) }}">⬇️ PDF Report</a>
         </div>
-    </nav>
-    <main class="page-shell">
-        <section class="form-panel">
-            <div class="card-header">
-                <div>
-                    <h1>
-                        {% if is_category_filtered %}
-                        📊 {{ selected_category }}
-                        {% elif active_tab == 'expense' %}
-                        💸 Expense Summary
-                        {% elif active_tab == 'income' %}
-                        💰 Income Summary
-                        {% else %}
-                        📊 Financial Summary
-                        {% endif %}
-                    </h1>
-                    <p class="subtitle">
-                        {% if is_category_filtered %}
-                        Showing all recorded transactions for <strong>{{ selected_category }}</strong>.
-                        {% elif active_tab == 'expense' %}
-                        Your expense breakdown by category. Track where your money goes.
-                        {% elif active_tab == 'income' %}
-                        Your income breakdown by source. See what you earn.
-                        {% else %}
-                        Click on any category card below to inspect individual transactions.
-                        {% endif %}
-                    </p>
-                    <p class="period-label">
-                        {% if is_category_filtered %}
-                        Category: <strong>{{ selected_category }}</strong> &bull;
-                        {% endif %}
-                        {% if view_type == 'daily' %}
-                        Date: <strong>{{ selected_date }}</strong>
-                        {% elif view_type == 'monthly' %}
-                        Period: <strong>Current Month</strong>
-                        {% elif view_type == 'weekly' %}
-                        Period: <strong>Current Week</strong>
-                        {% else %}
-                        Period: <strong>All Time</strong>
-                        {% endif %}
-                    </p>
-                </div>
-                <div class="report-actions">
-                    {% if is_category_filtered %}
-                    <a href="/summary?type={{ view_type }}&tab={{ active_tab }}" class="btn"
-                        style="background: var(--input-bg); border-color: var(--border-color);">⬅️ All Categories</a>
-                    {% endif %}
-                    <a href="{{ url_for('download_report', type=view_type, date=selected_date, category=selected_category) }}"
-                        class="btn report-btn">⬇️ Download PDF</a>
-                </div>
-            </div>
+    </div>
 
+    <div class="filters">
+        <div class="tabs">
+            <a class="btn {% if active_tab == 'expense' %}expense-active{% endif %}" href="{{ url_for('summary', type=view_type, tab='expense', date=selected_date) }}">💸 Expenses</a>
+            <a class="btn {% if active_tab == 'income' %}income-active{% endif %}" href="{{ url_for('summary', type=view_type, tab='income', date=selected_date) }}">💰 Income</a>
+            <a class="btn {% if active_tab == 'all' %}active{% endif %}" href="{{ url_for('summary', type=view_type, tab='all', date=selected_date) }}">📊 All</a>
+        </div>
+        <div class="periods">
+            <a class="btn {% if view_type == 'overall' %}active{% endif %}" href="{{ url_for('summary', type='overall', tab=active_tab) }}">Overall</a>
+            <a class="btn {% if view_type == 'weekly' %}active{% endif %}" href="{{ url_for('summary', type='weekly', tab=active_tab) }}">Weekly</a>
+            <a class="btn {% if view_type == 'monthly' %}active{% endif %}" href="{{ url_for('summary', type='monthly', tab=active_tab) }}">Monthly</a>
+            <a class="btn {% if view_type == 'daily' %}active{% endif %}" href="{{ url_for('summary', type='daily', tab=active_tab, date=selected_date) }}">Daily</a>
+        </div>
+    </div>
 
-            <!-- Timeframe Controls Row -->
-            <div class="controls-row">
-                {% if view_type == 'daily' %}
-                <form action="/summary" method="GET" class="date-form">
-                    <input type="hidden" name="type" value="daily">
-                    <input type="hidden" name="tab" value="{{ active_tab }}">
-                    {% if is_category_filtered %}
-                    <input type="hidden" name="category" value="{{ selected_category }}">
-                    {% endif %}
-                    <label>Select Date</label>
-                    <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
-                </form>
-                {% else %}
-                <div></div>
-                {% endif %}
-                <div class="summary-buttons">
-                    <a href="/summary?type=overall&tab={{ active_tab }}{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
-                        class="btn{% if view_type == 'overall' %} active{% endif %}">Overall</a>
-                    <a href="/summary?type=weekly&tab={{ active_tab }}{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
-                        class="btn{% if view_type == 'weekly' %} active{% endif %}">Weekly</a>
-                    <a href="/summary?type=monthly&tab={{ active_tab }}{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
-                        class="btn{% if view_type == 'monthly' %} active{% endif %}">Monthly</a>
-                    <a href="/summary?type=daily&tab={{ active_tab }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}{% if is_category_filtered %}&category={{ selected_category }}{% endif %}"
-                        class="btn{% if view_type == 'daily' %} active{% endif %}">Daily</a>
-                </div>
-            </div>
+    {# When a category is selected, KPI values MUST represent that category only. #}
+    {% set ns = namespace(exp=0, inc=0) %}
+    {% if is_category_filtered %}
+        {% for item in category_items %}
+            {% if active_tab == 'all' or item.type == active_tab %}
+                {% if item.type == 'income' %}{% set ns.inc = ns.inc + (item.amount|float) %}{% else %}{% set ns.exp = ns.exp + (item.amount|float) %}{% endif %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {% if active_tab == 'expense' %}{% set ns.exp = totals['expense'].get(view_type, 0) %}{% elif active_tab == 'income' %}{% set ns.inc = totals['income'].get(view_type, 0) %}{% else %}{% set ns.exp = totals['expense'].get(view_type, 0) %}{% set ns.inc = totals['income'].get(view_type, 0) %}{% endif %}
+    {% endif %}
+    {% set ns.net = ns.inc - ns.exp %}
 
-            <!-- Financial KPI Bar for this period -->
-            <div class="summary-kpi-bar">
-                {% if active_tab in ['all', 'expense'] %}
-                <div class="summary-kpi-box expense">
-                    <div class="box-title">
-                        <span>Total Expense</span>
-                        <span>🔴 ↘️</span>
-                    </div>
-                    <div class="box-amount rupee-balance">Rs {{ "{:,.0f}".format(totals['expense'].get(view_type, 0)) }}
-                    </div>
-                </div>
-                {% endif %}
+    <div class="kpis">
+        <div class="kpi exp"><div class="kpi-label">Total Expense</div><div class="kpi-value">Rs {{ "{:,.2f}".format(ns.exp) }}</div></div>
+        <div class="kpi inc"><div class="kpi-label">Total Income</div><div class="kpi-value">Rs {{ "{:,.2f}".format(ns.inc) }}</div></div>
+        <div class="kpi net"><div class="kpi-label">Net Savings</div><div class="kpi-value">Rs {{ "{:,.2f}".format(ns.net) }}</div></div>
+    </div>
 
-                {% if active_tab in ['all', 'income'] %}
-                <div class="summary-kpi-box income">
-                    <div class="box-title">
-                        <span>Total Income</span>
-                        <span>🟢 ↗️</span>
-                    </div>
-                    <div class="box-amount rupee-balance">Rs {{ "{:,.0f}".format(totals['income'].get(view_type, 0)) }}
-                    </div>
-                </div>
-                {% endif %}
+    {% if not is_category_filtered %}
+    <div class="section-title"><h2>{% if active_tab == 'expense' %}Expense Categories{% elif active_tab == 'income' %}Income Sources{% else %}Categories & Sources{% endif %}</h2><span>Each card shows its own amount</span></div>
+    <div class="cards">
+        {% if active_tab in ['all','expense'] %}
+            {% for cat, total in expense_data[view_type].items()|sort(attribute='1', reverse=true) %}
+            <a class="category-card expense" href="{{ url_for('summary', type=view_type, tab='expense', category=cat, date=selected_date) }}">
+                <div class="cat-top"><span class="cat-name">{{ cat }}</span><span class="tag exp">Expense</span></div>
+                <div class="cat-total">Rs {{ "{:,.2f}".format(total|float) }}</div>
+                <div class="cat-help">View only {{ cat }} expenses →</div>
+            </a>
+            {% endfor %}
+        {% endif %}
+        {% if active_tab in ['all','income'] %}
+            {% for cat, total in income_data[view_type].items()|sort(attribute='1', reverse=true) %}
+            <a class="category-card income" href="{{ url_for('summary', type=view_type, tab='income', category=cat, date=selected_date) }}">
+                <div class="cat-top"><span class="cat-name">{{ cat }}</span><span class="tag inc">Income</span></div>
+                <div class="cat-total">Rs {{ "{:,.2f}".format(total|float) }}</div>
+                <div class="cat-help">View only {{ cat }} income →</div>
+            </a>
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% endif %}
 
-                <div class="summary-kpi-box savings">
-                    <div class="box-title">
-                        <span>Net Savings</span>
-                        <span>💎 🏦</span>
-                    </div>
-                    <div class="box-amount rupee-balance"
-                        style="color: {% if totals['savings'].get(view_type, 0) >= 0 %}var(--currency-balance){% else %}var(--currency-expense){% endif %};">
-                        Rs {{ "{:,.0f}".format(totals['savings'].get(view_type, 0)) }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Type Filter Tabs -->
-            {% if not is_category_filtered %}
-            <div class="category-type-tabs">
-                <a href="/summary?type={{ view_type }}&tab=expense{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
-                    class="tab-btn {% if active_tab == 'expense' %}active-expense{% endif %}">
-                    💸 Expense Summary ({{ expense_data[view_type]|length }})
-                </a>
-                <a href="/summary?type={{ view_type }}&tab=all{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
-                    class="tab-btn {% if active_tab == 'all' %}active-all{% endif %}">
-                    📋 All Records
-                </a>
-                <a href="/summary?type={{ view_type }}&tab=income{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
-                    class="tab-btn {% if active_tab == 'income' %}active-income{% endif %}">
-                    💰 Income ({{ income_data[view_type]|length }})
-                </a>
+    {% if is_category_filtered %}
+    <div class="section-title"><h2>{{ selected_category }} Records</h2><span>{{ category_items|length }} record(s)</span></div>
+    <div class="records">
+        {% for item in category_items %}
+            {% if active_tab == 'all' or item.type == active_tab %}
+            <div class="record">
+                <div class="record-date">{{ item.date }}</div>
+                <div class="record-main"><strong>{{ item.description or 'No description' }}</strong><span>{{ item.category }} · {{ item.type|capitalize }}</span></div>
+                <div class="record-amount {% if item.type == 'income' %}inc{% else %}exp{% endif %}">{% if item.type == 'income' %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.amount|float) }}</div>
             </div>
             {% endif %}
+        {% endfor %}
+    </div>
+    {% if not category_items %}<div class="empty">No records found for this category and period.</div>{% endif %}
+    {% endif %}
 
-
-            {% if is_category_filtered %}
-            <!-- Detailed Transaction Cards for Selected Category -->
-            <div class="summary-cards">
-                {% if category_items %}
-                {% for item in category_items %}
-                {% set item_is_income = (item.type == 'income') %}
-                <div class="summary-card {% if item_is_income %}card-income{% else %}card-expense{% endif %}"
-                    style="min-height: auto;">
-                    <div class="summary-card-header">
-                        <h3>
-                            {% if item.category.lower() == 'travel' %}🚗
-                            {% elif item.category.lower() == 'food' %}🍔
-                            {% elif item.category.lower() == 'groceries' %}🛒
-                            {% elif item.category.lower() == 'bills' %}💡
-                            {% elif item.category.lower() == 'salary' %}💰
-                            {% elif item.category.lower() == 'freelance' %}💻
-                            {% elif item.category.lower() == 'investment' %}📈
-                            {% elif item.category.lower() == 'business' %}🏢
-                            {% else %}🏷️{% endif %}
-                            {{ item.category }}
-                        </h3>
-                        <span class="card-type-tag {% if item_is_income %}tag-income{% else %}tag-expense{% endif %}">
-                            {% if item_is_income %}🟢 Income{% else %}🔴 Expense{% endif %}
-                        </span>
-                    </div>
-                    <p class="card-amount">Rs {{ "{:,.2f}".format(item.amount|float) }}</p>
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary);">
-                        <span>📅 {{ item.date }}</span>
-                        {% if item.description %}<span>📝 {{ item.description }}</span>{% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="no-data">No transactions found for {{ selected_category }} in this timeframe!</p>
-                {% endif %}
-            </div>
-            {% else %}
-
-            <!-- Category Cards Grid (Clearly labeled Income & Expense) -->
-            <div class="summary-cards">
-                <!-- 1. Expense Categories -->
-                {% if active_tab in ['all', 'expense'] %}
-                {% for cat, total in expense_data[view_type].items() %}
-                <a href="/summary?type={{ view_type }}&tab={{ active_tab }}&category={{ cat }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
-                    class="summary-card card-expense">
-                    <div class="summary-card-header">
-                        <h3>
-                            {% if cat.lower() == 'travel' %}🚗
-                            {% elif cat.lower() == 'food' %}🍔
-                            {% elif cat.lower() == 'groceries' %}🛒
-                            {% elif cat.lower() == 'bills' %}💡
-                            {% elif cat.lower() == 'shopping' %}🛍️
-                            {% elif cat.lower() == 'entertainment' %}🎬
-                            {% else %}🏷️{% endif %}
-                            {{ cat }}
-                        </h3>
-                        <span class="card-type-tag tag-expense">🔴 Expense</span>
-                    </div>
-                    <p class="card-amount">Rs {{ "{:,.0f}".format(total) }}</p>
-                    <span class="view-details">View expense records &rarr;</span>
-                </a>
-                {% endfor %}
-                {% endif %}
-
-                <!-- 2. Income Categories -->
-                {% if active_tab in ['all', 'income'] %}
-                {% for cat, total in income_data[view_type].items() %}
-                <a href="/summary?type={{ view_type }}&tab={{ active_tab }}&category={{ cat }}{% if view_type == 'daily' %}&date={{ selected_date }}{% endif %}"
-                    class="summary-card card-income">
-                    <div class="summary-card-header">
-                        <h3>
-                            {% if cat.lower() == 'salary' %}💰
-                            {% elif cat.lower() == 'freelance' %}💻
-                            {% elif cat.lower() == 'investment' %}📈
-                            {% elif cat.lower() == 'business' %}🏢
-                            {% elif cat.lower() == 'bonus' %}🎁
-                            {% else %}💎{% endif %}
-                            {{ cat }}
-                        </h3>
-                        <span class="card-type-tag tag-income">🟢 Income</span>
-                    </div>
-                    <p class="card-amount">Rs {{ "{:,.0f}".format(total) }}</p>
-                    <span class="view-details">View income records &rarr;</span>
-                </a>
-                {% endfor %}
-                {% endif %}
-
-                {% if (active_tab == 'all' and not expense_data[view_type] and not income_data[view_type]) or
-                (active_tab == 'expense' and not expense_data[view_type]) or (active_tab == 'income' and not
-                income_data[view_type]) %}
-                <p class="no-data" style="grid-column: 1 / -1;">No entries recorded for this selection!</p>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <!-- Category Breakdown Bar Chart -->
-            <div class="chart-container">
-                <canvas id="summaryCategoryChart"></canvas>
-            </div>
-
-            <div class="footer-actions" style="margin-top: 30px;">
-                <a class="back-link" href="/dashboard">← Back to Dashboard</a>
-            </div>
-        </section>
-    </main>
-
-    <!-- JavaScript for Category Chart -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('summaryCategoryChart').getContext('2d');
-
-            const activeTab = {{ active_tab | tojson
-        }};
-        const expenseCats = {{ expense_data[view_type].keys() | list | tojson if expense_data[view_type] else[] }};
-        const expenseVals = {{ expense_data[view_type].values() | list | tojson if expense_data[view_type] else[] }};
-        const incomeCats = {{ income_data[view_type].keys() | list | tojson if income_data[view_type] else[] }};
-        const incomeVals = {{ income_data[view_type].values() | list | tojson if income_data[view_type] else[] }};
-
-        let labels = [];
-        let data = [];
-        let bgColors = [];
-
-        if (activeTab === 'expense' || activeTab === 'all') {
-            labels.push(...expenseCats);
-            data.push(...expenseVals);
-            bgColors.push(...expenseCats.map(() => '#f43f5e'));
-        }
-        if (activeTab === 'income' || activeTab === 'all') {
-            labels.push(...incomeCats);
-            data.push(...incomeVals);
-            bgColors.push(...incomeCats.map(() => '#10b981'));
-        }
-
-        if (labels.length > 0) {
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-            const textColor = isLight ? '#334155' : '#cbd5e1';
-            const titleColor = isLight ? '#0f172a' : '#f8fafc';
-            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Amount (Rs)',
-                        data: data,
-                        backgroundColor: bgColors,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Category Breakdown (Rs)',
-                            color: titleColor,
-                            font: { size: 14, family: 'Segoe UI', weight: '700' },
-                            padding: { bottom: 14 }
-                        },
-                        tooltip: {
-                            backgroundColor: isLight ? '#ffffff' : '#0b1329',
-                            titleColor: isLight ? '#0f172a' : '#f8fafc',
-                            bodyColor: isLight ? '#334155' : '#cbd5e1',
-                            borderColor: isLight ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.12)',
-                            borderWidth: 1,
-                            padding: 12,
-                            callbacks: {
-                                label: function (ctx) { return '  Rs ' + Number(ctx.raw).toLocaleString(); }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: textColor, font: { size: 12, family: 'Segoe UI', weight: '600' } }
-                        },
-                        y: {
-                            grid: { color: gridColor },
-                            ticks: { color: textColor, font: { size: 11, family: 'Segoe UI' } }
-                        }
-                    }
-                }
-            });
-        } else {
-            document.querySelector('.chart-container').style.display = 'none';
-        }
-        });
-    </script>
+    {% if (not is_category_filtered) and not expense_data[view_type] and not income_data[view_type] %}
+        <div class="empty">No financial records found for this period.</div>
+    {% endif %}
+    <p class="note">Records are displayed using their stored transaction date for reporting, while the View Records page preserves the order in which records were added.</p>
+</section>
+</main>
 </body>
-
 </html>
