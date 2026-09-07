@@ -1,0 +1,127 @@
+name: Final security hardening
+
+on:
+  push:
+    paths:
+      - '.github/workflows/final-hardening.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply security and ordering fixes
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          # ---------------- app.py ----------------
+          path = Path('app.py')
+          text = path.read_text(encoding='utf-8-sig')
+          original = text
+
+          if 'from hmac import compare_digest' not in text:
+              text = text.replace('import re\n', 'import re\nimport secrets\nfrom hmac import compare_digest\n', 1)
+
+          marker = 'def utc_now():\n'
+          csrf_block = '''@app.before_request\ndef csrf_protect():\n    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:\n        token = request.form.get("_csrf_token") or request.headers.get("X-CSRF-Token")\n        expected = session.get("_csrf_token")\n        if not expected or not token or not compare_digest(token, expected):\n            return ("CSRF validation failed.", 400)\n\n\n@app.context_processor\ndef inject_csrf_token():\n    def csrf_token():\n        token = session.get("_csrf_token")\n        if not token:\n            token = secrets.token_urlsafe(32)\n            session["_csrf_token"] = token\n        return token\n    return {"csrf_token": csrf_token}\n\n\n'''
+          if 'def csrf_protect()' not in text:
+              if marker not in text:
+                  raise SystemExit('csrf insertion marker not found')
+              text = text.replace(marker, csrf_block + marker, 1)
+
+          text = text.replace('@app.route("/logout")\ndef logout():', '@app.route("/logout", methods=["POST"])\ndef logout():', 1)
+          text = text.replace('@app.route("/delete_custom_category", methods=["POST", "GET"])', '@app.route("/delete_custom_category", methods=["POST"])', 1)
+          text = text.replace('@app.route("/delete/<id>", methods=["POST", "GET"])', '@app.route("/delete/<id>", methods=["POST"])', 1)
+
+          if text == original:
+              raise SystemExit('No app.py hardening changes were applied')
+          path.write_text(text, encoding='utf-8')
+
+          # ---------------- templates ----------------
+          templates = list(Path('templates').glob('*.html'))
+          if not templates:
+              raise SystemExit('No templates found')
+
+          changed_forms = 0
+          changed_logouts = 0
+          for path in templates:
+              text = path.read_text(encoding='utf-8-sig')
+              original = text
+
+              # Every HTML form is protected by the shared Flask CSRF token.
+              def add_token(match):
+                  tag = match.group(0)
+                  return tag + '\n                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">'
+
+              parts = []
+              last = 0
+              for match in re.finditer(r'<form\\b[^>]*>', text, flags=re.I | re.S):
+                  parts.append(text[last:match.end()])
+                  following = text[match.end():match.end()+500]
+                  if 'name="_csrf_token"' in following:
+                      parts.append('')
+                  else:
+                      parts.append('\n                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">')
+                      changed_forms += 1
+                  last = match.end()
+              parts.append(text[last:])
+              text = ''.join(parts)
+
+              # Convert navigation logout links to POST forms.
+              logout_pattern = r'<a href="/logout" class="logout-btn">Logout</a>'
+              replacement = '<form method="POST" action="{{ url_for(\'logout\') }}" style="display:inline; margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0; background:none; cursor:pointer; font:inherit;">Logout</button></form>'
+              text, n = re.subn(logout_pattern, replacement, text)
+              changed_logouts += n
+
+              # Custom-category deletion must also be POST-only.
+              old_js = "window.location.href = '/delete_custom_category?name=' + encodeURIComponent(catName);"
+              new_js = '''var form = document.createElement('form');\n                    form.method = 'POST';\n                    form.action = '{{ url_for("delete_custom_category") }}';\n                    var token = document.createElement('input');\n                    token.type = 'hidden';\n                    token.name = '_csrf_token';\n                    token.value = '{{ csrf_token() }}';\n                    var input = document.createElement('input');\n                    input.type = 'hidden';\n                    input.name = 'name';\n                    input.value = catName;\n                    form.appendChild(token);\n                    form.appendChild(input);\n                    document.body.appendChild(form);\n                    form.submit();'''
+              if old_js in text:
+                  text = text.replace(old_js, new_js, 1)
+
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+
+          if changed_forms < 8:
+              raise SystemExit(f'Expected at least 8 protected forms, found {changed_forms}')
+          if changed_logouts < 1:
+              raise SystemExit('No logout navigation was converted to POST')
+
+          # Remove the temporary workflow after this job's checkout is committed.
+          wf = Path('.github/workflows/final-hardening.yml')
+          print(f'Protected forms: {changed_forms}; logout links converted: {changed_logouts}')
+
+      - name: Verify Python syntax
+        run: python -m py_compile app.py
+
+      - name: Verify security changes
+        shell: python
+        run: |
+          from pathlib import Path
+          app = Path('app.py').read_text(encoding='utf-8')
+          assert 'def csrf_protect()' in app
+          assert 'methods=["POST"]' in app
+          assert 'def inject_csrf_token()' in app
+          for path in Path('templates').glob('*.html'):
+              text = path.read_text(encoding='utf-8-sig')
+              if '<form' in text:
+                  assert 'name="_csrf_token"' in text, f'CSRF token missing in {path}'
+          assert 'href="/logout"' not in '\n'.join(p.read_text(encoding='utf-8-sig') for p in Path('templates').glob('*.html'))
+          print('Final hardening verification passed')
+
+      - name: Commit hardening and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.py templates .github/workflows/final-hardening.yml
+          git rm .github/workflows/final-hardening.yml
+          git commit -m 'security: add CSRF protection and POST-only destructive actions'
+          git push
