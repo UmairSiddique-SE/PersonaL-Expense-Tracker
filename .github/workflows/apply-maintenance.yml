@@ -1,0 +1,26 @@
+name: Apply maintenance patch
+on:
+  push:
+    paths:
+      - '_maintenance/fix_repo.py'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply patch
+        run: python _maintenance/fix_repo.py
+      - name: Commit fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.py .gitignore
+          git rm -r --cached __pycache__ 2>/dev/null || true
+          git add -u
+          git diff --cached --quiet || git commit -m 'fix: correct record ordering, validation and ownership [skip ci]'
+          git push
