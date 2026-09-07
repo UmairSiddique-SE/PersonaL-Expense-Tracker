@@ -55,15 +55,33 @@ function setupDoubleSubmissionProtection() {
     });
 }
 
-// Enhance Flash Messages into Screen-Centered Animated Toast Popups
+// Enhance Flash Messages into a truly centered, screen-level animated toast popup.
 function setupToastModal() {
     const container = document.querySelector('.flash-container');
     if (!container) return;
 
-    // Attach directly to body so no parent transform or backdrop-filter offsets it
+    // Move the overlay to <body> so no transformed/blurred parent can affect its position.
     if (container.parentElement !== document.body) {
         document.body.appendChild(container);
     }
+
+    // Force the overlay geometry inline as a final safeguard against page-specific CSS.
+    Object.assign(container.style, {
+        position: 'fixed',
+        inset: '0',
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0',
+        padding: '20px',
+        zIndex: '2147483647',
+        boxSizing: 'border-box'
+    });
+
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
 
     const messages = container.querySelectorAll('.flash-message');
     messages.forEach(msg => {
@@ -136,9 +154,25 @@ function setupToastModal() {
             <div class="toast-progress-bar"></div>
         `;
 
+        // Keep the card itself centered even if a page-specific stylesheet changes flex behavior.
+        Object.assign(msg.style, {
+            position: 'relative',
+            margin: '0 auto',
+            left: 'auto',
+            right: 'auto',
+            top: 'auto',
+            bottom: 'auto',
+            transform: 'none'
+        });
+
         const closeBtn = msg.querySelector('.toast-close-btn');
+        let dismissed = false;
         const dismissToast = () => {
+            if (dismissed) return;
+            dismissed = true;
             container.classList.add('toast-hiding');
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
             setTimeout(() => container.remove(), 300);
         };
 
@@ -146,19 +180,18 @@ function setupToastModal() {
             closeBtn.addEventListener('click', dismissToast);
         }
 
-        container.addEventListener('click', (e) => {
-            if (e.target === container) {
-                dismissToast();
-            }
-        });
-
         setTimeout(dismissToast, 3200);
+    });
+
+    container.addEventListener('click', (e) => {
+        if (e.target === container) {
+            const button = container.querySelector('.toast-close-btn');
+            if (button) button.click();
+        }
     });
 }
 
 // High-end visual polish shared by Dashboard and Summary pages.
-// Injected after page styles so the enhancement can safely refine existing templates
-// without changing application data, routes, forms, or calculations.
 function setupPremiumPageMotion() {
     const path = window.location.pathname;
     const isDashboard = path === '/dashboard' || path === '/index';
