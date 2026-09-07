@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -219,7 +219,7 @@
             <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span
                     class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
             <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
-            <a href="/logout" class="logout-btn">Logout</a>
+            <form method="POST" action="{{ url_for('logout') }}" style="display:inline; margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0; background:none; cursor:pointer; font:inherit;">Logout</button></form>
         </div>
     </nav>
 
@@ -264,6 +264,7 @@
             <!-- ── EXPENSE TAB ── -->
             <div class="tab-content {% if active_tab == 'expense' %}active{% endif %}" id="content-expense">
                 <form class="form-card" action="/add" method="POST">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="record_type" value="expense">
                     <div class="form-group">
                         <label>Amount (Rs)</label>
@@ -311,6 +312,7 @@
             <!-- ── INCOME TAB ── -->
             <div class="tab-content {% if active_tab == 'income' %}active{% endif %}" id="content-income">
                 <form class="form-card" action="/add" method="POST">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="record_type" value="income">
                     <div class="form-group">
                         <label>Amount (Rs)</label>
@@ -375,7 +377,21 @@
             if (select.value.startsWith('DELETE:')) {
                 var catName = select.value.replace('DELETE:', '');
                 if (confirm("Kya aap '" + catName + "' category delete karna chahte hain?")) {
-                    window.location.href = '/delete_custom_category?name=' + encodeURIComponent(catName);
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ url_for("delete_custom_category") }}';
+                    var token = document.createElement('input');
+                    token.type = 'hidden';
+                    token.name = '_csrf_token';
+                    token.value = '{{ csrf_token() }}';
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'name';
+                    input.value = catName;
+                    form.appendChild(token);
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
                 } else {
                     select.value = 'Food';
                 }

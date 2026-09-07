@@ -195,6 +195,7 @@
             <h2>Reset Password</h2>
             <p class="note">Answer the security question you set during signup.</p>
             <form method="POST" autocomplete="off">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="step" value="question">
                 <input type="hidden" name="username" value="{{ username }}" autocomplete="off">
                 <input type="text" value="{{ question }}" readonly style="opacity:0.85; cursor:not-allowed;">
@@ -206,6 +207,7 @@
             <h2>Forgot Password</h2>
             <p class="note">Enter your registered username to continue.</p>
             <form method="POST" autocomplete="off">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="step" value="lookup">
                 <input type="text" name="username" placeholder="Username@gmail.com" autocomplete="off" required>
                 <button type="submit">Continue</button>

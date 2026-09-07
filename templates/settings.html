@@ -78,7 +78,7 @@
         <div class="user-info">
             <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
             <a href="{{ url_for('settings') }}" class="settings-btn active">⚙️ Settings</a>
-            <a href="/logout" class="logout-btn">Logout</a>
+            <form method="POST" action="{{ url_for('logout') }}" style="display:inline; margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0; background:none; cursor:pointer; font:inherit;">Logout</button></form>
         </div>
     </nav>
 
@@ -107,6 +107,7 @@
                     <h2>👤 Change Name</h2>
                     <div class="user-username-badge">Username: @{{ user.username }}</div>
                     <form action="/update_name" method="POST">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group">
                             <label for="first_name">Display Name</label>
                             <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required placeholder="Enter your display name">
@@ -119,6 +120,7 @@
                 <div class="settings-card">
                     <h2>🔒 Change Password</h2>
                     <form action="/change_password" method="POST">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group">
                             <label for="current_password">Current Password</label>
                             <input type="password" id="current_password" name="current_password" required placeholder="Enter current password">
@@ -142,6 +144,7 @@
                         Warning: Deleting your account will <strong>permanently erase</strong> your account profile and all recorded expenses from the database. This action cannot be undone.
                     </p>
                     <form action="/delete_account" method="POST" onsubmit="return confirmAccountDeletion(event, this);">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group">
                             <label for="confirm_delete_password" style="color: #ef4444; font-weight: 600;">Confirm Password to Delete</label>
                             <input type="password" id="confirm_delete_password" name="confirm_delete_password" required placeholder="Enter password to confirm deletion">

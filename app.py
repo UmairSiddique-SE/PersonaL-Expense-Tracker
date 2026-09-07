@@ -1,6 +1,8 @@
 import io
 import os
 import re
+import secrets
+from hmac import compare_digest
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from functools import wraps
@@ -42,6 +44,26 @@ def ensure_indexes():
         app.logger.warning("Database indexes could not be created: %s", exc)
 
 ensure_indexes()
+
+
+@app.before_request
+def csrf_protect():
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+        token = request.form.get("_csrf_token") or request.headers.get("X-CSRF-Token")
+        expected = session.get("_csrf_token")
+        if not expected or not token or not compare_digest(token, expected):
+            return ("CSRF validation failed.", 400)
+
+
+@app.context_processor
+def inject_csrf_token():
+    def csrf_token():
+        token = session.get("_csrf_token")
+        if not token:
+            token = secrets.token_urlsafe(32)
+            session["_csrf_token"] = token
+        return token
+    return {"csrf_token": csrf_token}
 
 
 def utc_now():
@@ -273,7 +295,7 @@ def forgot():
     return render_template("forgot.html")
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
     return redirect(url_for("index"))
@@ -503,7 +525,7 @@ def view():
     return render_template("view.html", expenses=expenses, filter_type=filter_type)
 
 
-@app.route("/delete_custom_category", methods=["POST", "GET"])
+@app.route("/delete_custom_category", methods=["POST"])
 @login_required
 def delete_custom_category():
     uid = session.get("user_id")
@@ -518,7 +540,7 @@ def delete_custom_category():
     return redirect(url_for("add"))
 
 
-@app.route("/delete/<id>", methods=["POST", "GET"])
+@app.route("/delete/<id>", methods=["POST"])
 @login_required
 def delete(id):
     oid = safe_object_id(id)
