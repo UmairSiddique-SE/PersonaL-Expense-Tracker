@@ -14,7 +14,6 @@ if not os.environ.get("SECRET_KEY"):
     )
 
 from app import app  # noqa: E402
-import report_overrides  # noqa: E402,F401
 
 
 __all__ = ["app"]
