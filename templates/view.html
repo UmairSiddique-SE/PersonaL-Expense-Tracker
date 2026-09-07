@@ -70,14 +70,6 @@
         <div class="footer-actions"><a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a></div>
     </section>
 </main>
-<script>
-(function () {
-    const tbody = document.querySelector('#recordsTable tbody');
-    if (!tbody) return;
-    const rows = Array.from(tbody.querySelectorAll('tr[data-record-id]'));
-    rows.sort((a, b) => String(b.dataset.recordId).localeCompare(String(a.dataset.recordId)));
-    rows.forEach(row => tbody.appendChild(row));
-})();
-</script>
+
 </body>
 </html>
