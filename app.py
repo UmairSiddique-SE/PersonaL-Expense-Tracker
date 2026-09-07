@@ -263,8 +263,6 @@ def forgot():
             return render_template("forgot.html", step="question", username=username, question=question)
         try:
             update = {"password": generate_password_hash(new_password)}
-            if stored_answer == security_answer:
-                update["security_answer"] = generate_password_hash(security_answer)
             users_collection.update_one({"_id": user["_id"]}, {"$set": update})
         except Exception:
             app.logger.exception("Password reset update error")
@@ -607,6 +605,8 @@ def summary():
     selected_date = request.args.get("date", date.today().isoformat())
     selected_category = normalize_text(request.args.get("category"), 80)
     active_tab = request.args.get("tab", "expense").lower()
+    if active_tab not in {"all", "expense", "income"}:
+        active_tab = "expense"
     from_date = request.args.get("from_date", "")
     to_date = request.args.get("to_date", "")
     try:
@@ -673,6 +673,11 @@ def summary_details():
     uid = session.get("user_id")
     category = normalize_text(request.args.get("category"), 80)
     view_type = request.args.get("type", "overall").lower()
+    if view_type not in {"overall", "weekly", "monthly", "daily", "range"}:
+        view_type = "overall"
+    active_tab = request.args.get("tab", "all").lower()
+    if active_tab not in {"all", "expense", "income"}:
+        active_tab = "all"
     selected_date = request.args.get("date", date.today().isoformat())
     from_date = request.args.get("from_date", "")
     to_date = request.args.get("to_date", "")
@@ -684,6 +689,11 @@ def summary_details():
     filtered = []
     total = Decimal("0.00")
     for trans in transactions:
+        trans_type = str(trans.get("type", "expense")).lower()
+        if active_tab == "expense" and trans_type != "expense":
+            continue
+        if active_tab == "income" and trans_type != "income":
+            continue
         if category and normalize_category(trans.get("category")).lower() != category.lower():
             continue
         trans_date = transaction_date(trans)
@@ -693,7 +703,7 @@ def summary_details():
         filtered.append(trans)
     filtered = [record_to_view(x) for x in sort_by_added(filtered, newest_first=True)]
     filter_text = {"weekly": "Last 7 days", "monthly": "Current month", "daily": f"Date: {selected_date}", "range": f"{from_date} to {to_date}"}.get(view_type, "Overall category breakdown")
-    return render_template("summary_details.html", category=category, expenses=filtered, total=float(total), filter_text=filter_text, view_type=view_type, selected_date=selected_date, from_date=from_date, to_date=to_date)
+    return render_template("summary_details.html", category=category, expenses=filtered, total=float(total), filter_text=filter_text, view_type=view_type, active_tab=active_tab, selected_date=selected_date, from_date=from_date, to_date=to_date)
 
 
 @app.route("/summary/report")
@@ -705,6 +715,9 @@ def download_report():
         view_type = "overall"
     selected_date = request.args.get("date", date.today().isoformat())
     selected_category = normalize_text(request.args.get("category"), 80)
+    active_tab = request.args.get("tab", "all").lower()
+    if active_tab not in {"all", "expense", "income"}:
+        active_tab = "all"
     from_date = request.args.get("from_date", "")
     to_date = request.args.get("to_date", "")
     try:
@@ -718,13 +731,18 @@ def download_report():
     for item in items:
         trans_date = transaction_date(item)
         category = normalize_category(item.get("category"))
+        trans_type = str(item.get("type", "expense")).lower()
+        if active_tab == "expense" and trans_type != "expense":
+            continue
+        if active_tab == "income" and trans_type != "income":
+            continue
         if not summary_period_matches(trans_date, view_type, selected_date, from_date, to_date, today):
             continue
         if selected_category and selected_category.lower() != "all" and category.lower() != selected_category.lower():
             continue
         filtered.append(item)
         amount = money(item.get("amount"))
-        if str(item.get("type", "expense")).lower() == "income":
+        if trans_type == "income":
             total_income += amount
         else:
             total_expense += amount
@@ -740,7 +758,8 @@ def download_report():
     elif view_type == "monthly": period += " (Current Month)"
     elif view_type == "weekly": period += " (Last 7 Days)"
     elif view_type == "range": period += f" ({from_date} to {to_date})"
-    elements.append(Paragraph(f"<b>User:</b> {session.get('first_name', 'User')} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Report Period:</b> {period} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Generated:</b> {datetime.now().strftime('%d %b %Y, %I:%M %p')}", subtitle_style))
+    tab_label = {"expense": "Expenses Only", "income": "Income Only", "all": "Income & Expenses"}[active_tab]
+    elements.append(Paragraph(f"<b>User:</b> {session.get('first_name', 'User')} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Report Period:</b> {period} &nbsp;&nbsp;|&nbsp;&nbsp; <b>View:</b> {tab_label} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Generated:</b> {datetime.now().strftime('%d %b %Y, %I:%M %p')}", subtitle_style))
     net = total_income - total_expense
     net_color = "#059669" if net >= 0 else "#e11d48"
     elements.append(Paragraph(f"<b>Total Income:</b> <font color='#059669'>Rs {total_income:,.2f}</font> &nbsp;&nbsp;&nbsp; <b>Total Expense:</b> <font color='#e11d48'>Rs {total_expense:,.2f}</font> &nbsp;&nbsp;&nbsp; <b>Net Savings:</b> <font color='{net_color}'>Rs {net:,.2f}</font>", ParagraphStyle("SummaryP", parent=styles["Normal"], fontSize=10, spaceAfter=12)))
