@@ -1,0 +1,87 @@
+name: Apply backend hardening
+
+on:
+  push:
+    paths:
+      - '.github/workflows/app-hardening.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch app.py
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('app.py')
+          text = path.read_text(encoding='utf-8-sig')
+          original = text
+
+          old = '''        try:\n            update = {"password": generate_password_hash(new_password)}\n            if stored_answer == security_answer:\n                update["security_answer"] = generate_password_hash(security_answer)\n            users_collection.update_one({"_id": user["_id"]}, {"$set": update})\n'''
+          new = '''        try:\n            update = {"password": generate_password_hash(new_password)}\n            users_collection.update_one({"_id": user["_id"]}, {"$set": update})\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''    active_tab = request.args.get("tab", "expense").lower()\n    from_date = request.args.get("from_date", "")\n'''
+          new = '''    active_tab = request.args.get("tab", "expense").lower()\n    if active_tab not in {"all", "expense", "income"}:\n        active_tab = "expense"\n    from_date = request.args.get("from_date", "")\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''    category = normalize_text(request.args.get("category"), 80)\n    view_type = request.args.get("type", "overall").lower()\n    selected_date = request.args.get("date", date.today().isoformat())\n'''
+          new = '''    category = normalize_text(request.args.get("category"), 80)\n    view_type = request.args.get("type", "overall").lower()\n    if view_type not in {"overall", "weekly", "monthly", "daily", "range"}:\n        view_type = "overall"\n    active_tab = request.args.get("tab", "all").lower()\n    if active_tab not in {"all", "expense", "income"}:\n        active_tab = "all"\n    selected_date = request.args.get("date", date.today().isoformat())\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''    for trans in transactions:\n        if category and normalize_category(trans.get("category")).lower() != category.lower():\n            continue\n        trans_date = transaction_date(trans)\n'''
+          new = '''    for trans in transactions:\n        trans_type = str(trans.get("type", "expense")).lower()\n        if active_tab == "expense" and trans_type != "expense":\n            continue\n        if active_tab == "income" and trans_type != "income":\n            continue\n        if category and normalize_category(trans.get("category")).lower() != category.lower():\n            continue\n        trans_date = transaction_date(trans)\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''    return render_template("summary_details.html", category=category, expenses=filtered, total=float(total), filter_text=filter_text, view_type=view_type, selected_date=selected_date, from_date=from_date, to_date=to_date)\n'''
+          new = '''    return render_template("summary_details.html", category=category, expenses=filtered, total=float(total), filter_text=filter_text, view_type=view_type, active_tab=active_tab, selected_date=selected_date, from_date=from_date, to_date=to_date)\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''    selected_category = normalize_text(request.args.get("category"), 80)\n    from_date = request.args.get("from_date", "")\n    to_date = request.args.get("to_date", "")\n'''
+          new = '''    selected_category = normalize_text(request.args.get("category"), 80)\n    active_tab = request.args.get("tab", "all").lower()\n    if active_tab not in {"all", "expense", "income"}:\n        active_tab = "all"\n    from_date = request.args.get("from_date", "")\n    to_date = request.args.get("to_date", "")\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''    for item in items:\n        trans_date = transaction_date(item)\n        category = normalize_category(item.get("category"))\n        if not summary_period_matches(trans_date, view_type, selected_date, from_date, to_date, today):\n            continue\n'''
+          new = '''    for item in items:\n        trans_date = transaction_date(item)\n        category = normalize_category(item.get("category"))\n        trans_type = str(item.get("type", "expense")).lower()\n        if active_tab == "expense" and trans_type != "expense":\n            continue\n        if active_tab == "income" and trans_type != "income":\n            continue\n        if not summary_period_matches(trans_date, view_type, selected_date, from_date, to_date, today):\n            continue\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''        if str(item.get("type", "expense")).lower() == "income":\n            total_income += amount\n        else:\n            total_expense += amount\n'''
+          new = '''        if trans_type == "income":\n            total_income += amount\n        else:\n            total_expense += amount\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          old = '''    elements.append(Paragraph(f"<b>User:</b> {session.get('first_name', 'User')} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Report Period:</b> {period} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Generated:</b> {datetime.now().strftime('%d %b %Y, %I:%M %p')}", subtitle_style))\n'''
+          new = '''    tab_label = {"expense": "Expenses Only", "income": "Income Only", "all": "Income & Expenses"}[active_tab]\n    elements.append(Paragraph(f"<b>User:</b> {session.get('first_name', 'User')} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Report Period:</b> {period} &nbsp;&nbsp;|&nbsp;&nbsp; <b>View:</b> {tab_label} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Generated:</b> {datetime.now().strftime('%d %b %Y, %I:%M %p')}", subtitle_style))\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          if text == original:
+              raise SystemExit('No expected app.py patterns were found; refusing to create a no-op commit.')
+          path.write_text(text, encoding='utf-8')
+
+      - name: Verify syntax
+        run: python -m py_compile app.py
+
+      - name: Commit changes and remove patch workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.py .github/workflows/app-hardening.yml
+          git rm .github/workflows/app-hardening.yml
+          git commit -m 'fix: honor summary tabs and report filters'
+          git push
