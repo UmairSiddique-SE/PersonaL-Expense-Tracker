@@ -198,12 +198,21 @@ def login():
             app.logger.exception("Login database error")
             flash("Database connection error. Please try again.", "danger")
             return render_template("login.html")
-        if user and check_password_hash(user.get("password", ""), password):
-            session.clear()
-            session.permanent = bool(request.form.get("remember_me"))
-            session["user_id"] = str(user["_id"])
-            session["first_name"] = user.get("first_name", "User")
-            return redirect(url_for("dashboard"))
+        if user:
+            stored_password = user.get("password", "")
+            try:
+                password_valid = bool(stored_password) and check_password_hash(stored_password, password)
+            except (ValueError, TypeError):
+                # Protect the login endpoint from legacy/corrupt password records.
+                # Such a record must never turn a normal bad-login attempt into HTTP 500.
+                app.logger.warning("Invalid password hash for username: %s", username)
+                password_valid = False
+            if password_valid:
+                session.clear()
+                session.permanent = bool(request.form.get("remember_me"))
+                session["user_id"] = str(user["_id"])
+                session["first_name"] = user.get("first_name", "User")
+                return redirect(url_for("dashboard"))
         flash("Invalid username or password.", "danger")
     return render_template("login.html")
 
@@ -473,7 +482,6 @@ def add():
             expenses_collection.insert_one({
                 "user_id": uid,
                 "type": record_type,
-                # Stored as a normalized 2-decimal BSON double; calculations are performed with Decimal.
                 "amount": float(amount),
                 "category": category,
                 "date": record_date.isoformat(),
