@@ -27,83 +27,58 @@
         <a href="/logout" class="logout-btn">Logout</a>
     </div>
 </nav>
-
 <main class="page-shell">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-container">
-          {% for category, message in messages %}
-            <div class="flash-message {{ category }}">{{ message }}</div>
-          {% endfor %}
+          {% for category, message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}
         </div>
       {% endif %}
     {% endwith %}
-
     <section class="form-panel">
         <div class="card-header">
-            <div>
-                <h1>All Expenses</h1>
-                <p class="subtitle">Review and manage your spending history in one place.</p>
-            </div>
+            <div><h1>All Expenses</h1><p class="subtitle">Review and manage your spending history in the exact order records were added.</p></div>
         </div>
-
-        <!-- Filter Pills Bar -->
         <div class="filter-pills-bar">
             <a href="/view?type=all" class="filter-pill {% if filter_type == 'all' %}active-all{% endif %}">📋 All ({{ expenses|length }})</a>
             <a href="/view?type=expense" class="filter-pill {% if filter_type == 'expense' %}active-expense{% endif %}">🔴 Expenses Only</a>
             <a href="/view?type=income" class="filter-pill {% if filter_type == 'income' %}active-income{% endif %}">🟢 Income Only</a>
         </div>
-
         <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Category</th>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+            <table id="recordsTable">
+                <thead><tr><th>Type</th><th>Amount</th><th>Category</th><th>Date</th><th>Description</th><th>Actions</th></tr></thead>
                 <tbody>
                     {% if expenses %}
                     {% for item in expenses %}
                     {% set is_inc = (item.get('type', 'expense') == 'income') %}
-                    <tr>
-                        <td>
-                            <span class="{% if is_inc %}tag-type-income{% else %}tag-type-expense{% endif %}">
-                                {% if is_inc %}🟢 Income{% else %}🔴 Expense{% endif %}
-                            </span>
-                        </td>
-                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">
-                            {% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.amount|float) }}
-                        </td>
+                    <tr data-record-id="{{ item._id }}">
+                        <td><span class="{% if is_inc %}tag-type-income{% else %}tag-type-expense{% endif %}">{% if is_inc %}🟢 Income{% else %}🔴 Expense{% endif %}</span></td>
+                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">{% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.amount|float) }}</td>
                         <td><strong>{{ item.category }}</strong></td>
                         <td>{{ item.date }}</td>
                         <td>{{ item.description or '-' }}</td>
-                        <td class="actions-cell">
-                            <div class="action-btn-group">
-                                <a href="{{ url_for('edit', id=item._id) }}" class="action-btn edit-btn">Edit</a>
-                                <a href="{{ url_for('delete', id=item._id) }}" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this record?')">Delete</a>
-                            </div>
-                        </td>
+                        <td class="actions-cell"><div class="action-btn-group"><a href="{{ url_for('edit', id=item._id) }}" class="action-btn edit-btn">Edit</a><a href="{{ url_for('delete', id=item._id) }}" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this record?')">Delete</a></div></td>
                     </tr>
                     {% endfor %}
                     {% else %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
-                            No transactions found for this filter. Click "+ Add New" to create one!
-                        </td>
-                    </tr>
+                    <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No transactions found for this filter. Click "+ Add New" to create one!</td></tr>
                     {% endif %}
                 </tbody>
             </table>
         </div>
-        <div class="footer-actions">
-            <a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a>
-        </div>
+        <div class="footer-actions"><a class="back-link" href="{{ url_for('dashboard') }}">Back to Home</a></div>
     </section>
 </main>
+<script>
+// ObjectId contains the record creation timestamp, so this keeps legacy records in true insertion order
+// even before the backend migration adds created_at to new records.
+(function () {
+    const tbody = document.querySelector('#recordsTable tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr[data-record-id]'));
+    rows.sort((a, b) => String(b.dataset.recordId).localeCompare(String(a.dataset.recordId)));
+    rows.forEach(row => tbody.appendChild(row));
+})();
+</script>
 </body>
 </html>
