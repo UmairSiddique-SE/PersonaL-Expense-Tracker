@@ -2,6 +2,39 @@
 (function () {
     const savedTheme = localStorage.getItem('app-theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Apply the same compact single-button design before the page renders.
+    // This prevents the theme control from briefly changing shape/icon when navigating.
+    const style = document.createElement('style');
+    style.id = 'global-theme-button-style';
+    style.textContent = `
+        .theme-toggle-btn {
+            width: 34px !important;
+            height: 34px !important;
+            min-width: 34px !important;
+            max-width: 34px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            cursor: pointer !important;
+            line-height: 1 !important;
+        }
+        .theme-toggle-btn .theme-label { display: none !important; }
+        .theme-toggle-btn .theme-icon { display: none !important; }
+        .theme-toggle-btn::before {
+            content: '☀️';
+            display: block !important;
+            font-size: 15px !important;
+            line-height: 1 !important;
+        }
+        [data-theme="light"] .theme-toggle-btn::before { content: '🌙'; }
+    `;
+    document.head.appendChild(style);
 })();
 
 function toggleTheme() {
@@ -115,7 +148,9 @@ function setupProfileMenuStyles() {
         .profile-item.logout-item{color:var(--currency-expense)}
         .profile-item.logout-item:hover,.profile-item.logout-item:focus-visible{color:var(--currency-expense);background:rgba(244,63,94,.1)}
         .theme-toggle-btn{width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:10px!important}
-        .theme-toggle-btn .theme-icon{display:block!important;font-size:.95rem!important;line-height:1!important}
+        .theme-toggle-btn .theme-icon{display:none!important}
+        .theme-toggle-btn .theme-label{display:none!important}
+        .theme-toggle-btn::before{font-size:15px!important;line-height:1!important}
         @media(max-width:600px){.profile-dropdown{right:0;min-width:155px}}
     `;
     document.head.appendChild(style);
