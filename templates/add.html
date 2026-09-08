@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,419 +7,55 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0056b3">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='add-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: var(--bg-gradient);
-            color: var(--text-primary)
-        }
-
-        /* ── TYPE TOGGLE (Email/Phone style) ── */
-        .type-toggle-wrap {
-            margin-bottom: 28px;
-        }
-
-        .type-toggle-wrap label {
-            display: block;
-            font-size: 0.78rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-        }
-
-        .type-toggle {
-            display: flex;
-            background: var(--input-bg);
-            border-radius: 16px;
-            padding: 5px;
-            gap: 5px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-        }
-
-        .type-tab {
-            flex: 1;
-            padding: 13px 20px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: transparent;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            letter-spacing: 0.01em;
-        }
-
-        .type-tab:hover:not(.active) {
-            background: var(--border-color);
-            color: var(--text-primary);
-        }
-
-        .type-tab.expense-tab.active {
-            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-            color: #fff;
-            box-shadow: 0 4px 18px rgba(244, 63, 94, 0.4);
-        }
-
-        .type-tab.income-tab.active {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #fff;
-            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
-        }
-
-        /* Tab content */
-        .tab-content {
-            display: none;
-            animation: fadeIn .3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
-        }
-
-        /* Income source pills */
-        .income-source-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 4px;
-        }
-
-        .source-pill {
-            padding: 11px 14px;
-            border-radius: 12px;
-            border: 1.5px solid var(--border-color);
-            background: var(--input-bg);
-            color: var(--text-secondary);
-            font-weight: 700;
-            font-size: 0.88rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-        }
-
-        .source-pill:hover,
-        .source-pill.selected {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, 0.12);
-            color: #10b981;
-        }
-
-        input[name="income_source"] {
-            display: none;
-        }
-
-        /* Submit buttons */
-        .income-submit-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #fff;
-            font-size: 1.05rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-            margin-top: 8px;
-        }
-
-        .income-submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
-        }
-
-        .expense-submit-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-            color: #fff;
-            font-size: 1.05rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
-            margin-top: 8px;
-        }
-
-        .expense-submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(244, 63, 94, 0.45);
-        }
-
-        /* Color indicator strip at top of form */
-        .form-indicator {
-            height: 4px;
-            border-radius: 4px;
-            margin-bottom: 24px;
-            transition: background 0.3s;
-        }
-
-        .form-indicator.expense {
-            background: linear-gradient(90deg, #f43f5e, #e11d48);
-        }
-
-        .form-indicator.income {
-            background: linear-gradient(90deg, #10b981, #059669);
-        }
+        *{box-sizing:border-box;font-family:'Inter','Segoe UI',system-ui,sans-serif}body{margin:0;min-height:100vh;background:var(--bg-gradient);color:var(--text-primary)}
+        .navbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;background:var(--navbar-bg);border-bottom:1px solid var(--border-color);backdrop-filter:blur(16px);position:sticky;top:0;z-index:10}.logo{display:flex;align-items:center;gap:12px;color:var(--text-primary);text-decoration:none;font-weight:800;font-size:20px}.logo img{width:40px;height:40px;border-radius:50%;border:2px solid var(--accent-primary)}.logo strong{color:var(--accent-primary)}.user-info{display:flex;align-items:center;gap:14px}.logout-btn{color:var(--currency-expense);font-weight:700}
+        .page-shell{max-width:720px;margin:0 auto;padding:30px 18px 50px}.form-panel{background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:24px;padding:28px;box-shadow:var(--shadow-card);backdrop-filter:blur(18px)}.card-header h1{margin:0;font-size:clamp(1.6rem,4vw,2.1rem);font-weight:900}.subtitle{margin:7px 0 22px;color:var(--text-secondary);font-size:.88rem}.type-toggle-wrap label,.form-group label{display:block;font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:8px}.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--input-bg);padding:5px;border:1px solid var(--border-color);border-radius:15px}.type-tab{border:0;border-radius:11px;padding:12px;font-weight:800;background:transparent;color:var(--text-secondary);cursor:pointer}.type-tab.active{background:var(--bg-card);color:var(--text-primary);box-shadow:0 4px 12px rgba(0,0,0,.08)}.form-indicator{height:3px;border-radius:99px;margin:18px 0;background:#f43f5e}.form-indicator.income{background:#10b981}.tab-content{display:none}.tab-content.active{display:block}.form-group{margin-bottom:17px}.form-group input,.form-group select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-primary);outline:none;font-size:.92rem}.form-group input:focus,.form-group select:focus{border-color:var(--accent-primary);box-shadow:0 0 0 3px rgba(56,189,248,.1)}.hint{margin:6px 0 0;color:var(--text-muted);font-size:.72rem}.submit-btn{width:100%;padding:14px;border:0;border-radius:13px;color:#fff;font-size:1rem;font-weight:800;cursor:pointer;margin-top:4px}.expense-submit-btn{background:linear-gradient(135deg,#f43f5e,#e11d48)}.income-submit-btn{background:linear-gradient(135deg,#10b981,#059669)}.back-link{display:block;text-align:center;margin-top:20px;color:var(--accent-primary);text-decoration:none;font-weight:700}.flash-message{padding:12px 16px;border-radius:12px;margin-bottom:8px;font-size:.88rem;font-weight:600}.flash-message.success{background:rgba(16,185,129,.14);color:var(--currency-income)}.flash-message.danger{background:rgba(244,63,94,.14);color:var(--currency-expense)}
+        @media(max-width:600px){.navbar{padding:12px 16px}.page-shell{padding:18px 13px 35px}.form-panel{padding:20px}.user-info{gap:8px}.settings-btn{font-size:.82rem}}
     </style>
 </head>
-
 <body>
-    <nav class="navbar">
-        <a href="/dashboard" class="logo" style="text-decoration:none;">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo"
-                style="width:38px;height:38px;border-radius:50%;">
-            Expense<span>Tracker</span>
-        </a>
-        <div class="user-info">
-            <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span
-                    class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
-            <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
-            <form method="POST" action="{{ url_for('logout') }}" style="display:inline; margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0; background:none; cursor:pointer; font:inherit;">Logout</button></form>
-        </div>
-    </nav>
+<nav class="navbar">
+    <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='logo.png') }}" alt="Logo"><strong>Expense Tracker</strong></a>
+    <div class="user-info"><button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button><a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a><form method="POST" action="{{ url_for('logout') }}" style="display:inline;margin:0"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0;background:none;cursor:pointer;font:inherit">Logout</button></form></div>
+</nav>
+<main class="page-shell">
+<section class="form-panel">
+    <div class="card-header"><h1 id="formTitle">Add New Record</h1><p class="subtitle" id="formSubtitle">Choose a type and enter your transaction details.</p></div>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for category,message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}{% endif %}{% endwith %}
+    <div class="type-toggle-wrap"><label>Select Type</label><div class="type-toggle"><button class="type-tab expense-tab {% if active_tab != 'income' %}active{% endif %}" id="tab-expense" type="button" onclick="switchTab('expense')">💸 Expense</button><button class="type-tab income-tab {% if active_tab == 'income' %}active{% endif %}" id="tab-income" type="button" onclick="switchTab('income')">💰 Income</button></div></div>
+    <div id="formIndicator" class="form-indicator {% if active_tab == 'income' %}income{% endif %}"></div>
 
-    <main class="page-shell">
-        <section class="form-panel">
-            <div class="card-header">
-                <div>
-                    <h1 id="formTitle">Add New Record</h1>
-                    <p class="subtitle" id="formSubtitle">Select type below to log expense or income.</p>
-                </div>
-            </div>
+    <div id="content-expense" class="tab-content {% if active_tab != 'income' %}active{% endif %}">
+        <form action="{{ url_for('add') }}" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="record_type" value="expense">
+            <div class="form-group"><label>Amount (Rs)</label><input type="number" name="amount" step="0.01" min="0.01" required placeholder="0.00"></div>
+            <div class="form-group"><label>Category</label><select name="category" id="categorySelect" onchange="checkCustomCategory(this)"><option value="Food" {% if last_used_category=='Food' %}selected{% endif %}>🍔 Food</option><option value="Travel" {% if last_used_category=='Travel' %}selected{% endif %}>🚗 Travel</option><option value="Groceries" {% if last_used_category=='Groceries' %}selected{% endif %}>🛒 Groceries</option><option value="Bills" {% if last_used_category=='Bills' %}selected{% endif %}>💡 Bills</option><option value="Shopping" {% if last_used_category=='Shopping' %}selected{% endif %}>🛍️ Shopping</option>{% if custom_categories %}{% for cat in custom_categories %}<option value="{{ cat }}" {% if last_used_category==cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}{% endif %}<option value="custom">➕ Add custom category</option></select></div>
+            <div class="form-group" id="customCategoryDiv" style="display:none"><label>Custom Category Name</label><input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Gym, Medicine"></div>
+            <div class="form-group"><label>Date</label><input type="date" name="date" value="{{ today_date }}" required></div>
+            <div class="form-group"><label>Description <span style="font-weight:500;text-transform:none">(Optional)</span></label><input type="text" name="description" maxlength="500" placeholder="Optional notes..."></div>
+            <button class="submit-btn expense-submit-btn" type="submit">💸 Add Expense</button>
+        </form>
+    </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="flash-container">
-                {% for category, message in messages %}
-                <div class="flash-message {{ category }}">{{ message }}</div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endwith %}
-
-            <!-- ── TYPE TOGGLE (like Email / Phone) ── -->
-            <div class="type-toggle-wrap">
-                <label>Select Type</label>
-                <div class="type-toggle" role="tablist">
-                    <button class="type-tab expense-tab {% if active_tab == 'expense' %}active{% endif %}"
-                        id="tab-expense" onclick="switchTab('expense')" type="button" role="tab">
-                        💸 Expense
-                    </button>
-                    <button class="type-tab income-tab {% if active_tab == 'income' %}active{% endif %}" id="tab-income"
-                        onclick="switchTab('income')" type="button" role="tab">
-                        💰 Income
-                    </button>
-                </div>
-            </div>
-
-            <!-- Color indicator strip -->
-            <div class="form-indicator {% if active_tab == 'income' %}income{% else %}expense{% endif %}"
-                id="formIndicator"></div>
-
-            <!-- ── EXPENSE TAB ── -->
-            <div class="tab-content {% if active_tab == 'expense' %}active{% endif %}" id="content-expense">
-                <form class="form-card" action="/add" method="POST">
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="record_type" value="expense">
-                    <div class="form-group">
-                        <label>Amount (Rs)</label>
-                        <input type="number" name="amount" step="0.01" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label for="categorySelect">Category</label>
-                        <select name="category" id="categorySelect" onchange="checkCustomCategory(this)">
-                            <option value="Food" {% if last_used_category=='Food' %}selected{% endif %}>🍔 Food</option>
-                            <option value="Travel" {% if last_used_category=='Travel' %}selected{% endif %}>🚗 Travel
-                            </option>
-                            <option value="Groceries" {% if last_used_category=='Groceries' %}selected{% endif %}>🛒
-                                Groceries</option>
-                            <option value="Bills" {% if last_used_category=='Bills' %}selected{% endif %}>💡 Bills
-                            </option>
-                            <option value="Shopping" {% if last_used_category=='Shopping' %}selected{% endif %}>🛍️
-                                Shopping</option>
-                            {% if custom_categories %}
-                            {% for cat in custom_categories %}
-                            <option value="{{ cat }}" {% if last_used_category==cat %}selected{% endif %}>{{ cat }}
-                            </option>
-                            <option value="DELETE:{{ cat }}">{{ cat }} — Delete</option>
-                            {% endfor %}
-                            {% endif %}
-                            <option value="custom">➕ Add custom category</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="customCategoryDiv" style="display:none;">
-                        <label for="customCategoryInput">Custom Category Name</label>
-                        <input type="text" name="custom_category" id="customCategoryInput"
-                            placeholder="e.g. Gym, Medicine">
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" name="date" value="{{ today_date }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Description (Optional)</label>
-                        <input type="text" name="description" placeholder="Optional notes...">
-                    </div>
-                    <button type="submit" class="expense-submit-btn">💸 Add Expense</button>
-                </form>
-            </div>
-
-            <!-- ── INCOME TAB ── -->
-            <div class="tab-content {% if active_tab == 'income' %}active{% endif %}" id="content-income">
-                <form class="form-card" action="/add" method="POST">
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="record_type" value="income">
-                    <div class="form-group">
-                        <label>Amount (Rs)</label>
-                        <input type="number" name="amount" step="0.01" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Income Source</label>
-                        <input type="hidden" name="category" id="incomeCategoryInput" value="Salary">
-                        <div class="income-source-grid">
-                            <div class="source-pill selected" onclick="selectSource(this,'Salary')">💰 Salary</div>
-                            <div class="source-pill" onclick="selectSource(this,'Freelance')">💻 Freelance</div>
-                            <div class="source-pill" onclick="selectSource(this,'Business')">🏢 Business</div>
-                            <div class="source-pill" onclick="selectSource(this,'Investment')">📈 Investment</div>
-                            <div class="source-pill" onclick="selectSource(this,'Bonus')">🎁 Bonus</div>
-                            <div class="source-pill" onclick="selectSource(this,'Other')">🏷️ Other</div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" name="date" value="{{ today_date }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Description (Optional)</label>
-                        <input type="text" name="description" placeholder="Optional notes...">
-                    </div>
-                    <button type="submit" class="income-submit-btn">💰 Add Income</button>
-                </form>
-            </div>
-
-            <a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
-        </section>
-    </main>
-
-    <script>
-        var currentTab = '{{ active_tab }}';
-
-        function switchTab(tab) {
-            currentTab = tab;
-            // Update tab buttons
-            document.querySelectorAll('.type-tab').forEach(function (t) { t.classList.remove('active'); });
-            document.getElementById('tab-' + tab).classList.add('active');
-            // Update content
-            document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
-            document.getElementById('content-' + tab).classList.add('active');
-            // Update indicator
-            var ind = document.getElementById('formIndicator');
-            ind.className = 'form-indicator ' + tab;
-            // Update title
-            if (tab === 'expense') {
-                document.getElementById('formTitle').textContent = 'Add New Expense';
-                document.getElementById('formSubtitle').textContent = 'Log your spending and track where your money goes.';
-            } else {
-                document.getElementById('formTitle').textContent = 'Add New Income';
-                document.getElementById('formSubtitle').textContent = 'Record your earnings and build a clear financial picture.';
-            }
-            history.replaceState(null, '', '/add?tab=' + tab);
-        }
-
-        function checkCustomCategory(select) {
-            var customDiv = document.getElementById('customCategoryDiv');
-            var customInput = document.getElementById('customCategoryInput');
-            if (select.value.startsWith('DELETE:')) {
-                var catName = select.value.replace('DELETE:', '');
-                if (confirm("Kya aap '" + catName + "' category delete karna chahte hain?")) {
-                    var form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ url_for("delete_custom_category") }}';
-                    var token = document.createElement('input');
-                    token.type = 'hidden';
-                    token.name = '_csrf_token';
-                    token.value = '{{ csrf_token() }}';
-                    var input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'name';
-                    input.value = catName;
-                    form.appendChild(token);
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-                    form.submit();
-                } else {
-                    select.value = 'Food';
-                }
-                return;
-            }
-            if (select.value === 'custom') {
-                customDiv.style.display = 'block';
-                customInput.required = true;
-                customInput.focus();
-            } else {
-                customDiv.style.display = 'none';
-                customInput.required = false;
-                customInput.value = '';
-            }
-        }
-
-        function selectSource(el, value) {
-            document.querySelectorAll('.source-pill').forEach(function (p) { p.classList.remove('selected'); });
-            el.classList.add('selected');
-            document.getElementById('incomeCategoryInput').value = value;
-        }
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', function () {
-            var select = document.getElementById('categorySelect');
-            if (select) checkCustomCategory(select);
-            switchTab(currentTab);
-        });
-    </script>
+    <div id="content-income" class="tab-content {% if active_tab == 'income' %}active{% endif %}">
+        <form action="{{ url_for('add') }}" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="record_type" value="income"><input type="hidden" name="category" value="Income">
+            <div class="form-group"><label>Amount (Rs)</label><input type="number" name="amount" step="0.01" min="0.01" required placeholder="0.00"></div>
+            <div class="form-group"><label>Description</label><input type="text" name="description" maxlength="500" required placeholder="e.g. Salary, Bonus, Freelance payment, Allowance"><p class="hint">Income always uses one category: <strong>Income</strong>. Use the description to identify the source.</p></div>
+            <div class="form-group"><label>Date</label><input type="date" name="date" value="{{ today_date }}" required></div>
+            <button class="submit-btn income-submit-btn" type="submit">💰 Add Income</button>
+        </form>
+    </div>
+    <a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+</section>
+</main>
+<script>
+var currentTab='{{ active_tab }}';
+function switchTab(tab){currentTab=tab;document.querySelectorAll('.type-tab').forEach(function(x){x.classList.remove('active')});document.getElementById('tab-'+tab).classList.add('active');document.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active')});document.getElementById('content-'+tab).classList.add('active');document.getElementById('formIndicator').className='form-indicator '+(tab==='income'?'income':'');document.getElementById('formTitle').textContent=tab==='income'?'Add New Income':'Add New Expense';document.getElementById('formSubtitle').textContent=tab==='income'?'Record your earnings with a clear description.':'Log your spending and track where your money goes.';history.replaceState(null,'','{{ url_for("add") }}?tab='+tab)}
+function checkCustomCategory(select){var box=document.getElementById('customCategoryDiv');var input=document.getElementById('customCategoryInput');var custom=select.value==='custom';box.style.display=custom?'block':'none';input.required=custom}
+</script>
 </body>
-
 </html>
