@@ -4,7 +4,6 @@
     document.documentElement.setAttribute('data-theme', savedTheme);
 })();
 
-// Toggle theme function
 function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -13,29 +12,40 @@ function toggleTheme() {
     updateToggleButtons(newTheme);
 }
 
-// Keep the theme control compact: one small sun/moon icon instead of a text/capsule switch.
 function updateToggleButtons(currentTheme) {
     const isDark = currentTheme === 'dark';
-    const toggleBtns = document.querySelectorAll('.theme-toggle-btn');
-    toggleBtns.forEach(btn => {
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+        btn.type = 'button';
         btn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
         btn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
-        btn.innerHTML = `<span class="theme-icon" aria-hidden="true">${isDark ? '🌙' : '☀️'}</span>`;
+        btn.innerHTML = `<span class="theme-icon" aria-hidden="true">${isDark ? '☀️' : '🌙'}</span>`;
     });
 }
 
-// Replace legacy Settings + Logout navbar controls on authenticated pages with one profile menu.
-// Dashboard already has this menu, so it is left untouched there.
+function setupGlobalThemeControl() {
+    // Remove duplicate theme controls while keeping the first one.
+    const themeButtons = document.querySelectorAll('.theme-toggle-btn');
+    themeButtons.forEach((btn, index) => {
+        if (index > 0) btn.remove();
+    });
+
+    const themeButton = document.querySelector('.theme-toggle-btn');
+    if (themeButton) {
+        themeButton.onclick = toggleTheme;
+    }
+    updateToggleButtons(document.documentElement.getAttribute('data-theme') || 'dark');
+}
+
 function setupGlobalProfileMenu() {
     if (document.querySelector('#profileMenu')) return;
 
     const userInfo = document.querySelector('.user-info');
     const settingsBtn = document.querySelector('.settings-btn');
     const logoutForm = document.querySelector('.logout-btn')?.closest('form');
-    if (!userInfo || !settingsBtn || !logoutForm) return;
+    if (!userInfo || !logoutForm) return;
 
-    const settingsHref = settingsBtn.getAttribute('href') || '/settings';
-    settingsBtn.remove();
+    const settingsHref = settingsBtn?.getAttribute('href') || '/settings';
+    if (settingsBtn) settingsBtn.remove();
 
     const profileMenu = document.createElement('div');
     profileMenu.className = 'profile-menu';
@@ -65,57 +75,53 @@ function setupGlobalProfileMenu() {
         profileMenu.classList.remove('open');
         trigger.setAttribute('aria-expanded', 'false');
     };
-    trigger.addEventListener('click', (event) => {
+    trigger.addEventListener('click', event => {
         event.stopPropagation();
         const open = profileMenu.classList.toggle('open');
         trigger.setAttribute('aria-expanded', String(open));
     });
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', event => {
         if (!profileMenu.contains(event.target)) closeMenu();
     });
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', event => {
         if (event.key === 'Escape') closeMenu();
     });
 }
 
-// Ensure profile-menu styling exists even on older authenticated templates.
 function setupProfileMenuStyles() {
     if (document.querySelector('#global-profile-menu-style')) return;
     const style = document.createElement('style');
     style.id = 'global-profile-menu-style';
     style.textContent = `
-        .profile-menu{position:relative}
+        .user-info{display:flex;align-items:center;gap:8px}
+        .profile-menu{position:relative;display:flex;align-items:center}
         .profile-trigger{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-color);border-radius:50%;background:var(--input-bg);color:var(--text-primary);cursor:pointer;font-size:1.05rem;transition:.2s}
         .profile-trigger:hover,.profile-trigger:focus-visible{border-color:var(--accent-primary);transform:translateY(-1px);outline:none}
         .profile-dropdown{position:absolute;top:calc(100% + 10px);right:0;min-width:165px;padding:7px;border:1px solid var(--border-color);border-radius:14px;background:var(--bg-card);box-shadow:var(--shadow-card);backdrop-filter:blur(18px);opacity:0;visibility:hidden;transform:translateY(-6px) scale(.98);transform-origin:top right;transition:.18s ease;z-index:1000}
         .profile-menu.open .profile-dropdown{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
-        .profile-item{width:100%;min-height:38px;display:flex;align-items:center;gap:9px;padding:8px 10px;border:0;border-radius:9px;background:transparent;color:var(--text-primary);text-decoration:none;font:inherit;font-size:.84rem;font-weight:750;cursor:pointer;text-align:left}
+        .profile-item{width:100%;min-height:38px;display:flex;align-items:center;gap:9px;padding:8px 10px;border:0;border-radius:9px;background:transparent;color:var(--text-primary);text-decoration:none;font:inherit;font-size:.84rem;font-weight:750;cursor:pointer;text-align:left;box-sizing:border-box}
         .profile-item:hover,.profile-item:focus-visible{background:var(--input-bg);color:var(--accent-primary);outline:none}
-        .profile-logout-form{margin:0;padding:0}
+        .profile-logout-form{margin:0;padding:0;width:100%}
         .profile-item.logout-item{color:var(--currency-expense)}
         .profile-item.logout-item:hover,.profile-item.logout-item:focus-visible{color:var(--currency-expense);background:rgba(244,63,94,.1)}
-        .theme-toggle-btn{width:34px!important;height:34px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+        .theme-toggle-btn{width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:10px!important}
         .theme-toggle-btn .theme-icon{display:block!important;font-size:.95rem!important;line-height:1!important}
         @media(max-width:600px){.profile-dropdown{right:0;min-width:155px}}
     `;
     document.head.appendChild(style);
 }
 
-// Force the dashboard Last Transaction card to remain blue regardless of income/expense type.
 function setupLastTransactionBlueCard() {
     const card = document.querySelector('#lastTransactionCard');
     if (!card) return;
-    const blueBorder = 'rgba(56,189,248,.58)';
-    const blueBackground = 'linear-gradient(135deg,rgba(56,189,248,.22),rgba(56,189,248,.07))';
-    card.style.borderColor = blueBorder;
-    card.style.background = blueBackground;
+    card.style.borderColor = 'rgba(56,189,248,.58)';
+    card.style.background = 'linear-gradient(135deg,rgba(56,189,248,.22),rgba(56,189,248,.07))';
     const icon = card.querySelector('.kpi-icon');
     if (icon) icon.style.background = 'rgba(56,189,248,.20)';
     const value = card.querySelector('.kpi-value');
     if (value) value.style.color = 'var(--accent-primary)';
 }
 
-// Prevent Double Submissions across all forms to stop duplicate data entries
 function setupDoubleSubmissionProtection() {
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', function (e) {
@@ -128,20 +134,14 @@ function setupDoubleSubmissionProtection() {
             if (submitBtn) {
                 const isAddForm = form.getAttribute('action') === '/add';
                 const labelText = isAddForm ? '⏳ Saving...' : '⏳ Processing...';
-                if (submitBtn.tagName === 'BUTTON') {
-                    submitBtn.innerHTML = labelText;
-                } else {
-                    submitBtn.value = labelText;
-                }
-                setTimeout(() => {
-                    submitBtn.disabled = true;
-                }, 10);
+                if (submitBtn.tagName === 'BUTTON') submitBtn.innerHTML = labelText;
+                else submitBtn.value = labelText;
+                setTimeout(() => { submitBtn.disabled = true; }, 10);
             }
         });
     });
 }
 
-// Enhance Flash Messages into a truly centered, screen-level animated toast popup.
 function setupToastModal() {
     const container = document.querySelector('.flash-container');
     if (!container) return;
@@ -182,10 +182,9 @@ function setupToastModal() {
         if (closeBtn) closeBtn.addEventListener('click',dismissToast);
         setTimeout(dismissToast,3200);
     });
-    container.addEventListener('click',(e)=>{if(e.target===container){const button=container.querySelector('.toast-close-btn');if(button)button.click();}});
+    container.addEventListener('click',e=>{if(e.target===container){const button=container.querySelector('.toast-close-btn');if(button)button.click();}});
 }
 
-// High-end visual polish shared by Dashboard and Summary pages.
 function setupPremiumPageMotion() {
     const path = window.location.pathname;
     const isDashboard = path === '/dashboard' || path === '/index';
@@ -199,7 +198,6 @@ function setupPremiumPageMotion() {
         @keyframes premiumShimmer { 0% { transform:translateX(-120%); } 100% { transform:translateX(120%); } }
         .premium-stagger { animation:premiumFadeUp .55s cubic-bezier(.22,1,.36,1) both; }
         .hero-card,.kpi-card,.module-card,.panel,.control-panel,.kpi,.category-card,.record { will-change:transform; }
-        ${isDashboard ? `
         .hero-card { background:linear-gradient(135deg,rgba(56,189,248,.10),rgba(99,102,241,.08) 52%,var(--bg-card));border-color:rgba(129,140,248,.28);box-shadow:0 22px 55px rgba(15,23,42,.18),0 0 0 1px rgba(255,255,255,.025) inset; }
         .hero-card::before { animation:premiumGlow 5s ease-in-out infinite; }
         .kpi-card { box-shadow:0 16px 38px rgba(15,23,42,.15),0 1px 0 rgba(255,255,255,.035) inset; }
@@ -209,54 +207,72 @@ function setupPremiumPageMotion() {
         .summary-mod-card { background:linear-gradient(145deg,rgba(129,140,248,.15),rgba(99,102,241,.035) 55%,var(--bg-card)); }
         .module-card::before { content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.08) 50%,transparent 65%);transform:translateX(-120%);opacity:0; }
         .module-card:hover::before { opacity:1;animation:premiumShimmer .8s ease; }
-        ` : ''}
-        ${isSummary ? `
         .panel { background:linear-gradient(145deg,rgba(56,189,248,.045),rgba(99,102,241,.035) 45%,var(--bg-card));box-shadow:0 24px 60px rgba(15,23,42,.16),0 1px 0 rgba(255,255,255,.035) inset; }
         .control-panel { box-shadow:0 12px 30px rgba(15,23,42,.10),0 1px 0 rgba(255,255,255,.035) inset; }
         .kpi { box-shadow:0 14px 32px rgba(15,23,42,.12),0 1px 0 rgba(255,255,255,.035) inset;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease; }
         .kpi:hover { transform:translateY(-4px);box-shadow:0 20px 42px rgba(15,23,42,.18); }
-        .kpi.inc { background:linear-gradient(145deg,rgba(16,185,129,.12),rgba(16,185,129,.035) 58%,var(--input-bg)); }
-        .kpi.exp { background:linear-gradient(145deg,rgba(244,63,94,.12),rgba(244,63,94,.035) 58%,var(--input-bg)); }
-        .kpi.net { background:linear-gradient(145deg,rgba(99,102,241,.13),rgba(99,102,241,.035) 58%,var(--input-bg)); }
-        .category-card,.record { box-shadow:0 10px 26px rgba(15,23,42,.09),0 1px 0 rgba(255,255,255,.025) inset; }
-        .category-card { transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease; }
-        .category-card:hover { transform:translateY(-5px) scale(1.008); }
-        ` : ''}
-        @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important; } }
+        .premium-stagger:nth-child(1){animation-delay:.04s}.premium-stagger:nth-child(2){animation-delay:.09s}.premium-stagger:nth-child(3){animation-delay:.14s}.premium-stagger:nth-child(4){animation-delay:.19s}.premium-stagger:nth-child(5){animation-delay:.24s}.premium-stagger:nth-child(6){animation-delay:.29s}
+        @media (prefers-reduced-motion: reduce){.premium-stagger{animation:none!important}.hero-card::before,.module-card:hover::before{animation:none!important}}
     `;
     document.head.appendChild(style);
-    const selectors = isDashboard ? ['.hero-card','.kpi-card','.module-card','.page-footer'] : ['.panel','.control-panel','.kpis','.category-card','.record'];
-    let delay=0;
-    selectors.forEach(selector=>document.querySelectorAll(selector).forEach(el=>{el.classList.add('premium-stagger');el.style.animationDelay=`${delay}ms`;delay+=65;}));
+    document.querySelectorAll('.hero-card,.kpi-card,.module-card,.panel,.control-panel,.kpi,.category-card,.record').forEach((el,index)=>{el.classList.add('premium-stagger');el.style.animationDelay=`${Math.min(index*0.06,0.42)}s`;});
 }
 
 function setupDashboardEnhancements() {
-    if (window.location.pathname !== '/dashboard' && window.location.pathname !== '/index') return;
-    const hero=document.querySelector('.hero-card');
-    const balance=document.querySelector('.balance-value');
-    if(!hero||!balance)return;
-    hero.addEventListener('pointermove',(event)=>{const rect=hero.getBoundingClientRect();const x=((event.clientX-rect.left)/rect.width)*100;const y=((event.clientY-rect.top)/rect.height)*100;hero.style.setProperty('--pointer-x',`${x}%`);hero.style.setProperty('--pointer-y',`${y}%`);});
-    const enhancementStyle=document.createElement('style');enhancementStyle.id='dashboard-fintech-enhancements';enhancementStyle.textContent=`
-        .hero-card::after{background:radial-gradient(circle at var(--pointer-x,80%) var(--pointer-y,20%),rgba(255,255,255,.09),transparent 30%),linear-gradient(135deg,rgba(16,185,129,.10),rgba(99,102,241,.10));transition:background-position .2s ease;}
-        .balance-value{text-shadow:0 8px 28px rgba(56,189,248,.12)}
-        .snapshot-row{transition:transform .22s ease,border-color .22s ease,background .22s ease}.snapshot-row:hover{transform:translateX(3px);border-color:rgba(129,140,248,.32)}
-        .kpi-card:focus-within,.module-card:focus-visible{outline:2px solid rgba(56,189,248,.45);outline-offset:3px}
-        @media(max-width:680px){.hero-card::after{display:none}}
-    `;document.head.appendChild(enhancementStyle);
-    const savingsKpi=document.querySelector('.savings-kpi');
-    if(savingsKpi){const value=savingsKpi.querySelector('.kpi-value');const meta=savingsKpi.querySelector('.kpi-meta');if(value&&meta&&!savingsKpi.querySelector('.savings-meter')){const caption=meta.textContent.trim();const match=caption.match(/(\d[\d,]*)\s*total/i);const meter=document.createElement('div');meter.className='savings-meter';meter.setAttribute('aria-hidden','true');meter.innerHTML='<span class="savings-meter-fill"></span>';savingsKpi.appendChild(meter);const fill=meter.querySelector('.savings-meter-fill');if(fill){const records=match?Number(match[1].replace(/,/g,'')):1;fill.style.width=`${Math.min(100,Math.max(12,records>0?72:12))}%`;}}}
-    document.querySelectorAll('.kpi-value,.balance-value').forEach(el=>{const raw=el.textContent.trim();const match=raw.match(/^(.*?)([\d,]+)(.*?)$/);if(!match||el.dataset.animated==='true')return;const target=Number(match[2].replace(/,/g,''));if(!Number.isFinite(target))return;el.dataset.animated='true';const prefix=match[1],suffix=match[3],duration=650,start=performance.now();const tick=(now)=>{const progress=Math.min(1,(now-start)/duration),eased=1-Math.pow(1-progress,3),current=Math.round(target*eased).toLocaleString('en-US');el.textContent=`${prefix}${current}${suffix}`;if(progress<1)requestAnimationFrame(tick)};requestAnimationFrame(tick);});
+    const dashboard = document.querySelector('.dashboard-page');
+    if (!dashboard) return;
+    const cards = dashboard.querySelectorAll('.kpi-card,.module-card');
+    cards.forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width - .5) * 2;
+            const y = ((e.clientY - rect.top) / rect.height - .5) * 2;
+            card.style.transform = `perspective(900px) rotateX(${(-y*2).toFixed(2)}deg) rotateY(${(x*2).toFixed(2)}deg) translateY(-3px)`;
+        });
+        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
 }
 
-// Event listener on page load
-document.addEventListener('DOMContentLoaded',()=>{
-    const currentTheme=document.documentElement.getAttribute('data-theme')||'dark';
-    updateToggleButtons(currentTheme);
+function setupLastTransactionData() {
+    const card = document.querySelector('#lastTransactionCard');
+    if (!card) return;
+    fetch('/view?type=all', {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(response => response.ok ? response.text() : '')
+        .then(html => {
+            if (!html) return;
+            const doc = new DOMParser().parseFromString(html,'text/html');
+            const firstRow = doc.querySelector('tbody tr');
+            if (!firstRow) return;
+            const cells = firstRow.querySelectorAll('td');
+            const date = cells[0]?.textContent.trim() || '—';
+            const description = cells[1]?.textContent.trim() || '—';
+            const amount = cells[3]?.textContent.trim() || '—';
+            const type = (firstRow.getAttribute('data-record-type') || cells[2]?.textContent || '').toLowerCase();
+            const label = card.querySelector('.kpi-label');
+            const value = card.querySelector('.kpi-value');
+            const meta = card.querySelector('.kpi-meta');
+            if (label) label.textContent = 'Last Transaction';
+            if (value) value.textContent = amount;
+            if (meta) meta.innerHTML = `${description} · ${date}`;
+            card.classList.remove('income','expense');
+            card.classList.add(type.includes('income') ? 'income' : 'expense');
+        })
+        .catch(() => {});
+}
+
+function setupPage() {
+    setupGlobalThemeControl();
     setupProfileMenuStyles();
     setupGlobalProfileMenu();
-    setupLastTransactionBlueCard();
+    setupProfileMenuStyles();
+    updateToggleButtons(document.documentElement.getAttribute('data-theme') || 'dark');
     setupDoubleSubmissionProtection();
     setupToastModal();
     setupPremiumPageMotion();
     setupDashboardEnhancements();
-});
+    setupLastTransactionData();
+    setupLastTransactionBlueCard();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupPage);
+else setupPage();
