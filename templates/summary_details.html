@@ -34,7 +34,7 @@
             </div>
         </div>
         <div class="total-box">
-            <h2>Total: Rs {{ "{:,.2f}".format(total) }}</h2>
+            <h2>Total: Rs {{ "{:,}".format(total|float|round(0)|int) }}</h2>
             {% if filter_text %}
             <p class="range-label">{{ filter_text }}</p>
             {% endif %}
@@ -46,7 +46,7 @@
                 <div class="detail-card" style="border-left: 4px solid {% if is_inc %}var(--currency-income){% else %}var(--currency-expense){% endif %};">
                     <div>
                         <strong style="color: {% if is_inc %}var(--currency-income){% else %}var(--currency-expense){% endif %}; font-size: 1.15rem;">
-                            {% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(exp.amount|float) }}
+                            {% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,}".format(exp.amount|float|round(0)|int) }}
                         </strong>
                         <span style="font-size: 0.85rem; color: var(--text-secondary);">📅 {{ exp.date }}</span>
                     </div>
