@@ -121,8 +121,8 @@ function setupToastModal() {
             svgHtml = `
                 <div class="toast-svg-wrapper">
                     <svg class="checkmark-svg success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                        <circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/>
-                        <path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/>
+                    <path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
             `;
@@ -154,7 +154,6 @@ function setupToastModal() {
             <div class="toast-progress-bar"></div>
         `;
 
-        // Keep the card itself centered even if a page-specific stylesheet changes flex behavior.
         Object.assign(msg.style, {
             position: 'relative',
             margin: '0 auto',
@@ -176,10 +175,7 @@ function setupToastModal() {
             setTimeout(() => container.remove(), 300);
         };
 
-        if (closeBtn) {
-            closeBtn.addEventListener('click', dismissToast);
-        }
-
+        if (closeBtn) closeBtn.addEventListener('click', dismissToast);
         setTimeout(dismissToast, 3200);
     });
 
@@ -213,12 +209,8 @@ function setupPremiumPageMotion() {
             0% { transform:translateX(-120%); }
             100% { transform:translateX(120%); }
         }
-        .premium-stagger {
-            animation: premiumFadeUp .55s cubic-bezier(.22,1,.36,1) both;
-        }
-        .hero-card, .kpi-card, .module-card, .panel, .control-panel, .kpi, .category-card, .record {
-            will-change: transform;
-        }
+        .premium-stagger { animation: premiumFadeUp .55s cubic-bezier(.22,1,.36,1) both; }
+        .hero-card, .kpi-card, .module-card, .panel, .control-panel, .kpi, .category-card, .record { will-change: transform; }
         ${isDashboard ? `
         .hero-card {
             background:linear-gradient(135deg,rgba(56,189,248,.10),rgba(99,102,241,.08) 52%,var(--bg-card));
@@ -226,9 +218,7 @@ function setupPremiumPageMotion() {
             box-shadow:0 22px 55px rgba(15,23,42,.18),0 0 0 1px rgba(255,255,255,.025) inset;
         }
         .hero-card::before { animation:premiumGlow 5s ease-in-out infinite; }
-        .kpi-card {
-            box-shadow:0 16px 38px rgba(15,23,42,.15),0 1px 0 rgba(255,255,255,.035) inset;
-        }
+        .kpi-card { box-shadow:0 16px 38px rgba(15,23,42,.15),0 1px 0 rgba(255,255,255,.035) inset; }
         .module-card {
             min-height:220px;
             justify-content:center;
@@ -249,21 +239,14 @@ function setupPremiumPageMotion() {
             background:linear-gradient(145deg,rgba(56,189,248,.045),rgba(99,102,241,.035) 45%,var(--bg-card));
             box-shadow:0 24px 60px rgba(15,23,42,.16),0 1px 0 rgba(255,255,255,.035) inset;
         }
-        .control-panel {
-            box-shadow:0 12px 30px rgba(15,23,42,.10),0 1px 0 rgba(255,255,255,.035) inset;
-        }
-        .kpi {
-            box-shadow:0 14px 32px rgba(15,23,42,.12),0 1px 0 rgba(255,255,255,.035) inset;
-            transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease;
-        }
+        .control-panel { box-shadow:0 12px 30px rgba(15,23,42,.10),0 1px 0 rgba(255,255,255,.035) inset; }
+        .kpi { box-shadow:0 14px 32px rgba(15,23,42,.12),0 1px 0 rgba(255,255,255,.035) inset; transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease; }
         .kpi:hover { transform:translateY(-4px); box-shadow:0 20px 42px rgba(15,23,42,.18); }
         .kpi.inc { background:linear-gradient(145deg,rgba(16,185,129,.12),rgba(16,185,129,.035) 58%,var(--input-bg)); }
         .kpi.exp { background:linear-gradient(145deg,rgba(244,63,94,.12),rgba(244,63,94,.035) 58%,var(--input-bg)); }
         .kpi.net { background:linear-gradient(145deg,rgba(99,102,241,.13),rgba(99,102,241,.035) 58%,var(--input-bg)); }
-        .category-card, .record {
-            box-shadow:0 10px 26px rgba(15,23,42,.09),0 1px 0 rgba(255,255,255,.025) inset;
-        }
-        .category-card { transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease; }
+        .category-card, .record { box-shadow:0 10px 26px rgba(15,23,42,.09),0 1px 0 rgba(255,255,255,.025) inset; }
+        .category-card { transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease; }
         .category-card:hover { transform:translateY(-5px) scale(1.008); }
         ` : ''}
         @media (prefers-reduced-motion: reduce) {
@@ -285,6 +268,86 @@ function setupPremiumPageMotion() {
     });
 }
 
+// Dashboard-only premium micro-interactions. Uses the existing server-rendered
+// values, so calculations and database behavior remain completely unchanged.
+function setupDashboardEnhancements() {
+    if (window.location.pathname !== '/dashboard' && window.location.pathname !== '/index') return;
+
+    const hero = document.querySelector('.hero-card');
+    const balance = document.querySelector('.balance-value');
+    const snapshot = document.querySelector('.snapshot');
+    if (!hero || !balance) return;
+
+    // Add a subtle focus ring/glow that follows the pointer on desktop.
+    hero.addEventListener('pointermove', (event) => {
+        const rect = hero.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 100;
+        const y = ((event.clientY - rect.top) / rect.height) * 100;
+        hero.style.setProperty('--pointer-x', `${x}%`);
+        hero.style.setProperty('--pointer-y', `${y}%`);
+    });
+
+    const enhancementStyle = document.createElement('style');
+    enhancementStyle.id = 'dashboard-fintech-enhancements';
+    enhancementStyle.textContent = `
+        .hero-card::after {
+            background:radial-gradient(circle at var(--pointer-x,80%) var(--pointer-y,20%),rgba(255,255,255,.09),transparent 30%),linear-gradient(135deg,rgba(16,185,129,.10),rgba(99,102,241,.10));
+            transition:background-position .2s ease;
+        }
+        .balance-value { text-shadow:0 8px 28px rgba(56,189,248,.12); }
+        .snapshot-row { transition:transform .22s ease,border-color .22s ease,background .22s ease; }
+        .snapshot-row:hover { transform:translateX(3px); border-color:rgba(129,140,248,.32); }
+        .kpi-card:focus-within,.module-card:focus-visible { outline:2px solid rgba(56,189,248,.45); outline-offset:3px; }
+        @media(max-width:680px){ .hero-card::after { display:none; } }
+    `;
+    document.head.appendChild(enhancementStyle);
+
+    // Turn the savings KPI into a compact visual progress meter without
+    // changing the server-side calculation or adding any new data source.
+    const savingsKpi = document.querySelector('.savings-kpi');
+    if (savingsKpi) {
+        const value = savingsKpi.querySelector('.kpi-value');
+        const meta = savingsKpi.querySelector('.kpi-meta');
+        if (value && meta && !savingsKpi.querySelector('.savings-meter')) {
+            const caption = meta.textContent.trim();
+            const match = caption.match(/(\d[\d,]*)\s*total/i);
+            const meter = document.createElement('div');
+            meter.className = 'savings-meter';
+            meter.setAttribute('aria-hidden', 'true');
+            meter.innerHTML = '<span class="savings-meter-fill"></span>';
+            savingsKpi.appendChild(meter);
+
+            const fill = meter.querySelector('.savings-meter-fill');
+            if (fill) {
+                const records = match ? Number(match[1].replace(/,/g, '')) : 1;
+                fill.style.width = `${Math.min(100, Math.max(12, records > 0 ? 72 : 12))}%`;
+            }
+        }
+    }
+
+    // Animate numeric KPI values on first paint for a polished FinTech feel.
+    document.querySelectorAll('.kpi-value, .balance-value').forEach(el => {
+        const raw = el.textContent.trim();
+        const match = raw.match(/^(.*?)([\d,]+)(.*?)$/);
+        if (!match || el.dataset.animated === 'true') return;
+        const target = Number(match[2].replace(/,/g, ''));
+        if (!Number.isFinite(target)) return;
+        el.dataset.animated = 'true';
+        const prefix = match[1];
+        const suffix = match[3];
+        const duration = 650;
+        const start = performance.now();
+        const tick = (now) => {
+            const progress = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(target * eased).toLocaleString('en-US');
+            el.textContent = `${prefix}${current}${suffix}`;
+            if (progress < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    });
+}
+
 // Event listener on page load
 document.addEventListener('DOMContentLoaded', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -292,4 +355,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDoubleSubmissionProtection();
     setupToastModal();
     setupPremiumPageMotion();
+    setupDashboardEnhancements();
 });
