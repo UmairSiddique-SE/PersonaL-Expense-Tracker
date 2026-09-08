@@ -32,25 +32,27 @@ function setupGlobalThemeControl() {
     updateToggleButtons(document.documentElement.getAttribute('data-theme') || 'dark');
 }
 
+function isDashboardPage() {
+    const path = window.location.pathname.replace(/\/$/, '');
+    return path === '/dashboard' || path === '/index' || path === '';
+}
+
 function setupGlobalProfileMenu() {
-    // Profile is intentionally available ONLY on the dashboard.
-    const path = window.location.pathname;
-    const isDashboard = path === '/dashboard' || path === '/index' || path === '/';
-
-    const userInfo = document.querySelector('.user-info');
-    if (!userInfo) return;
-
-    if (!isDashboard) {
-        // Remove Settings + Logout from every non-dashboard page.
-        userInfo.querySelectorAll('.settings-btn, .logout-btn, form[action*="logout"], .profile-menu').forEach(el => el.remove());
+    // Profile menu is intentionally dashboard-only.
+    if (!isDashboardPage()) {
+        document.querySelectorAll('.settings-btn, .logout-btn').forEach(el => {
+            const form = el.classList.contains('logout-btn') ? el.closest('form') : null;
+            (form || el).remove();
+        });
         return;
     }
 
     if (document.querySelector('#profileMenu')) return;
 
-    const settingsBtn = userInfo.querySelector('.settings-btn');
-    const logoutForm = userInfo.querySelector('.logout-btn')?.closest('form');
-    if (!logoutForm && !settingsBtn) return;
+    const userInfo = document.querySelector('.user-info');
+    const settingsBtn = document.querySelector('.settings-btn');
+    const logoutForm = document.querySelector('.logout-btn')?.closest('form');
+    if (!userInfo || !logoutForm) return;
 
     const settingsHref = settingsBtn?.getAttribute('href') || '/settings';
     if (settingsBtn) settingsBtn.remove();
@@ -66,16 +68,14 @@ function setupGlobalProfileMenu() {
     `;
 
     const dropdown = profileMenu.querySelector('.profile-dropdown');
-    if (logoutForm) {
-        dropdown.appendChild(logoutForm);
-        logoutForm.className = 'profile-logout-form';
-        const logoutBtn = logoutForm.querySelector('.logout-btn');
-        if (logoutBtn) {
-            logoutBtn.className = 'profile-item logout-item';
-            logoutBtn.setAttribute('role', 'menuitem');
-            logoutBtn.innerHTML = '🚪 Logout';
-            logoutBtn.style.cssText = '';
-        }
+    dropdown.appendChild(logoutForm);
+    logoutForm.className = 'profile-logout-form';
+    const logoutBtn = logoutForm.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.className = 'profile-item logout-item';
+        logoutBtn.setAttribute('role', 'menuitem');
+        logoutBtn.innerHTML = '🚪 Logout';
+        logoutBtn.style.cssText = '';
     }
 
     userInfo.appendChild(profileMenu);
@@ -135,10 +135,7 @@ function setupLastTransactionBlueCard() {
 function setupDoubleSubmissionProtection() {
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', function (e) {
-            if (form.dataset.submitting === 'true') {
-                e.preventDefault();
-                return false;
-            }
+            if (form.dataset.submitting === 'true') { e.preventDefault(); return false; }
             form.dataset.submitting = 'true';
             const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
             if (submitBtn) {
@@ -156,53 +153,27 @@ function setupToastModal() {
     const container = document.querySelector('.flash-container');
     if (!container) return;
     if (container.parentElement !== document.body) document.body.appendChild(container);
-    Object.assign(container.style, {position:'fixed',inset:'0',width:'100vw',height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',margin:'0',padding:'20px',zIndex:'2147483647',boxSizing:'border-box'});
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    const messages = container.querySelectorAll('.flash-message');
-    messages.forEach(msg => {
-        const text = msg.innerText.trim();
-        const lowerText = text.toLowerCase();
-        const isDelete = lowerText.includes('delete');
-        const isDanger = msg.classList.contains('danger') || msg.classList.contains('error') || lowerText.includes('invalid') || lowerText.includes('error');
-        const isUpdate = lowerText.includes('update') || lowerText.includes('edit') || lowerText.includes('reset');
-        let title = 'Success!';
-        let svgHtml = '';
-        if (isDelete) {
-            title = 'Deleted Successfully!'; msg.classList.add('delete-type');
-            svgHtml = `<div class="toast-svg-wrapper"><svg class="checkmark-svg delete" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle delete" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check delete" fill="none" d="M17 17 L35 35 M35 17 L17 35" stroke-linecap="round"/></svg></div>`;
-        } else if (isDanger) {
-            title = 'Attention!'; msg.classList.add('danger-type');
-            svgHtml = `<div class="toast-svg-wrapper"><svg class="checkmark-svg danger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle danger" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check danger" fill="none" d="M26 15 v14 M26 35 v2" stroke-linecap="round"/></svg></div>`;
-        } else if (isUpdate) {
-            title = 'Updated Successfully!';
-            svgHtml = `<div class="toast-svg-wrapper"><svg class="checkmark-svg success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
-        } else {
-            if (lowerText.includes('income')) title = 'Income Added!';
-            else if (lowerText.includes('expense')) title = 'Expense Added!';
-            else if (lowerText.includes('login') || lowerText.includes('welcome')) title = 'Welcome Back!';
-            else if (lowerText.includes('signup')) title = 'Account Created!';
-            svgHtml = `<div class="toast-svg-wrapper"><svg class="checkmark-svg success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
-        }
-        msg.innerHTML = `${svgHtml}<div class="toast-title">${title}</div><div class="toast-body">${text}</div><button type="button" class="toast-close-btn">OK</button><div class="toast-progress-bar"></div>`;
+    Object.assign(container.style,{position:'fixed',inset:'0',width:'100vw',height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',margin:'0',padding:'20px',zIndex:'2147483647',boxSizing:'border-box'});
+    document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden';
+    const messages=container.querySelectorAll('.flash-message');
+    messages.forEach(msg=>{
+        const text=msg.innerText.trim(), lowerText=text.toLowerCase(), isDelete=lowerText.includes('delete'), isDanger=msg.classList.contains('danger')||msg.classList.contains('error')||lowerText.includes('invalid')||lowerText.includes('error'), isUpdate=lowerText.includes('update')||lowerText.includes('edit')||lowerText.includes('reset');
+        let title='Success!',svgHtml='';
+        if(isDelete){title='Deleted Successfully!';msg.classList.add('delete-type');svgHtml='<div class="toast-svg-wrapper"><svg class="checkmark-svg delete" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle delete" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check delete" fill="none" d="M17 17 L35 35 M35 17 L17 35" stroke-linecap="round"/></svg></div>'}
+        else if(isDanger){title='Attention!';msg.classList.add('danger-type');svgHtml='<div class="toast-svg-wrapper"><svg class="checkmark-svg danger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle danger" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check danger" fill="none" d="M26 15 v14 M26 35 v2" stroke-linecap="round"/></svg></div>'}
+        else if(isUpdate){title='Updated Successfully!';svgHtml='<div class="toast-svg-wrapper"><svg class="checkmark-svg success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'}
+        else{if(lowerText.includes('income'))title='Income Added!';else if(lowerText.includes('expense'))title='Expense Added!';else if(lowerText.includes('login')||lowerText.includes('welcome'))title='Welcome Back!';else if(lowerText.includes('signup'))title='Account Created!';svgHtml='<div class="toast-svg-wrapper"><svg class="checkmark-svg success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle success" cx="26" cy="26" r="23" fill="none"/><path class="checkmark-check success" fill="none" d="M14.5 27.5 L22.5 35.5 L37.5 17.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'}
+        msg.innerHTML=`${svgHtml}<div class="toast-title">${title}</div><div class="toast-body">${text}</div><button type="button" class="toast-close-btn">OK</button><div class="toast-progress-bar"></div>`;
         Object.assign(msg.style,{position:'relative',margin:'0 auto',left:'auto',right:'auto',top:'auto',bottom:'auto',transform:'none'});
-        const closeBtn = msg.querySelector('.toast-close-btn');
-        let dismissed = false;
-        const dismissToast = () => { if (dismissed) return; dismissed = true; container.classList.add('toast-hiding'); document.documentElement.style.overflow=''; document.body.style.overflow=''; setTimeout(()=>container.remove(),300); };
-        if (closeBtn) closeBtn.addEventListener('click',dismissToast);
-        setTimeout(dismissToast,3200);
+        const closeBtn=msg.querySelector('.toast-close-btn');let dismissed=false;const dismissToast=()=>{if(dismissed)return;dismissed=true;container.classList.add('toast-hiding');document.documentElement.style.overflow='';document.body.style.overflow='';setTimeout(()=>container.remove(),300)};if(closeBtn)closeBtn.addEventListener('click',dismissToast);setTimeout(dismissToast,3200);
     });
-    container.addEventListener('click',e=>{if(e.target===container){const button=container.querySelector('.toast-close-btn');if(button)button.click();}});
+    container.addEventListener('click',e=>{if(e.target===container){const button=container.querySelector('.toast-close-btn');if(button)button.click()}});
 }
 
 function setupPremiumPageMotion() {
-    const path = window.location.pathname;
-    const isDashboard = path === '/dashboard' || path === '/index';
-    const isSummary = path === '/summary';
-    if (!isDashboard && !isSummary) return;
-    const style = document.createElement('style');
-    style.id = 'premium-page-motion';
-    style.textContent = `
+    const path=window.location.pathname,isDashboard=path==='/dashboard'||path==='/index',isSummary=path==='/summary';
+    if(!isDashboard&&!isSummary)return;
+    const style=document.createElement('style');style.id='premium-page-motion';style.textContent=`
         @keyframes premiumFadeUp { from { opacity:0;transform:translateY(18px) scale(.985); } to { opacity:1;transform:translateY(0) scale(1); } }
         @keyframes premiumGlow { 0%,100% { opacity:.45;transform:scale(1); } 50% { opacity:.8;transform:scale(1.04); } }
         @keyframes premiumShimmer { 0% { transform:translateX(-120%); } 100% { transform:translateX(120%); } }
@@ -223,59 +194,28 @@ function setupPremiumPageMotion() {
         .kpi:hover { transform:translateY(-4px);box-shadow:0 20px 42px rgba(15,23,42,.18); }
         .premium-stagger:nth-child(1){animation-delay:.04s}.premium-stagger:nth-child(2){animation-delay:.09s}.premium-stagger:nth-child(3){animation-delay:.14s}.premium-stagger:nth-child(4){animation-delay:.19s}.premium-stagger:nth-child(5){animation-delay:.24s}.premium-stagger:nth-child(6){animation-delay:.29s}
         @media (prefers-reduced-motion: reduce){.premium-stagger{animation:none!important}.hero-card::before,.module-card:hover::before{animation:none!important}}
-    `;
-    document.head.appendChild(style);
-    document.querySelectorAll('.hero-card,.kpi-card,.module-card,.panel,.control-panel,.kpi,.category-card,.record').forEach((el,index)=>{el.classList.add('premium-stagger');el.style.animationDelay=`${Math.min(index*0.06,0.42)}s`;});
+    `;document.head.appendChild(style);document.querySelectorAll('.hero-card,.kpi-card,.module-card,.panel,.control-panel,.kpi,.category-card,.record').forEach((el,index)=>{el.classList.add('premium-stagger');el.style.animationDelay=`${Math.min(index*0.06,0.42)}s`});
 }
 
 function setupDashboardEnhancements() {
-    const dashboard = document.querySelector('.dashboard-page');
-    if (!dashboard) return;
-    const cards = dashboard.querySelectorAll('.kpi-card,.module-card');
-    cards.forEach(card => {
-        card.addEventListener('mousemove', e => {
-            const rect = card.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width - .5) * 2;
-            const y = ((e.clientY - rect.top) / rect.height - .5) * 2;
-            card.style.transform = `perspective(900px) rotateX(${(-y*2).toFixed(2)}deg) rotateY(${(x*2).toFixed(2)}deg) translateY(-3px)`;
-        });
-        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
-    });
+    const dashboard=document.querySelector('.dashboard-page');if(!dashboard)return;
+    dashboard.querySelectorAll('.kpi-card,.module-card').forEach(card=>{card.addEventListener('mousemove',e=>{const rect=card.getBoundingClientRect(),x=((e.clientX-rect.left)/rect.width-.5)*2,y=((e.clientY-rect.top)/rect.height-.5)*2;card.style.transform=`perspective(900px) rotateX(${(-y*2).toFixed(2)}deg) rotateY(${(x*2).toFixed(2)}deg) translateY(-3px)`});card.addEventListener('mouseleave',()=>{card.style.transform=''})});
 }
 
 function setupLastTransactionData() {
-    const card = document.querySelector('#lastTransactionCard');
-    if (!card) return;
-    fetch('/view?type=all', {headers:{'X-Requested-With':'XMLHttpRequest'}})
-        .then(response => response.ok ? response.text() : '')
-        .then(html => {
-            if (!html) return;
-            const doc = new DOMParser().parseFromString(html,'text/html');
-            const firstRow = doc.querySelector('tbody tr');
-            if (!firstRow) return;
-            const cells = firstRow.querySelectorAll('td');
-            const date = cells[0]?.textContent.trim() || '—';
-            const description = cells[1]?.textContent.trim() || '—';
-            const amount = cells[3]?.textContent.trim() || '—';
-            const type = (firstRow.getAttribute('data-record-type') || cells[2]?.textContent || '').toLowerCase();
-            const label = card.querySelector('.kpi-label');
-            const value = card.querySelector('.kpi-value');
-            const meta = card.querySelector('.kpi-meta');
-            if (label) label.textContent = 'Last Transaction';
-            if (value) value.textContent = amount;
-            if (meta) meta.innerHTML = `${description} · ${date}`;
-            card.classList.remove('income','expense');
-            card.classList.add(type.includes('income') ? 'income' : 'expense');
-        })
-        .catch(() => {});
+    const card=document.querySelector('#lastTransactionCard');if(!card)return;
+    // This dashboard card must show ONLY the latest expense, never income/all types.
+    fetch('/view?type=expense',{headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(response=>response.ok?response.text():'')
+        .then(html=>{if(!html)return;const doc=new DOMParser().parseFromString(html,'text/html');const firstRow=doc.querySelector('tbody tr[data-record-type="expense"]')||doc.querySelector('tbody tr');if(!firstRow)return;const cells=firstRow.querySelectorAll('td');const date=cells[0]?.textContent.trim()||'—';const description=cells[1]?.textContent.trim()||'—';const amount=cells[3]?.textContent.trim()||'—';const type=(firstRow.getAttribute('data-record-type')||'').toLowerCase();if(type!=='expense')return;const label=card.querySelector('.kpi-label'),value=card.querySelector('.kpi-value'),meta=card.querySelector('.kpi-meta');if(label)label.textContent='Last Expense';if(value)value.textContent=amount;if(meta)meta.innerHTML=`${description} · ${date}`;card.classList.remove('income','expense');card.classList.add('expense')})
+        .catch(()=>{});
 }
 
 function setupPage() {
     setupGlobalThemeControl();
     setupProfileMenuStyles();
     setupGlobalProfileMenu();
-    setupProfileMenuStyles();
-    updateToggleButtons(document.documentElement.getAttribute('data-theme') || 'dark');
+    updateToggleButtons(document.documentElement.getAttribute('data-theme')||'dark');
     setupDoubleSubmissionProtection();
     setupToastModal();
     setupPremiumPageMotion();
@@ -284,5 +224,4 @@ function setupPage() {
     setupLastTransactionBlueCard();
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupPage);
-else setupPage();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupPage);else setupPage();
