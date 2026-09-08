@@ -56,8 +56,10 @@ class CalculationAndOrderingTests(unittest.TestCase):
     def test_last_six_months_returns_current_month_and_five_previous(self):
         months = last_six_months(date(2026, 9, 7))
         self.assertEqual(len(months), 6)
-        self.assertEqual(months[0], (2026, 4))
-        self.assertEqual(months[-1], (2026, 9))
+        self.assertEqual(months[0][:2], (2026, 4))
+        self.assertEqual(months[-1][:2], (2026, 9))
+        self.assertEqual(months[0][2], "Apr 2026")
+        self.assertEqual(months[-1][2], "Sep 2026")
 
 
 if __name__ == "__main__":
