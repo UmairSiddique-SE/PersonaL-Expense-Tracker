@@ -45,7 +45,7 @@
                     {% set is_inc = (item.get('type', 'expense')|lower == 'income') %}
                     <tr data-record-id="{{ item.get('_id') }}" data-record-type="{{ 'income' if is_inc else 'expense' }}">
                         <td><span class="{% if is_inc %}tag-type-income{% else %}tag-type-expense{% endif %}">{% if is_inc %}🟢 Income{% else %}🔴 Expense{% endif %}</span></td>
-                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">{% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.get('amount', 0)|float) }}</td>
+                        <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">{% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,}".format(item.get('amount', 0)|float|round(0)|int) }}</td>
                         <td><strong>{{ item.get('category', 'Other') }}</strong></td>
                         <td>{{ item.get('date', '—') }}</td>
                         <td>{{ item.get('description') or '-' }}</td>
