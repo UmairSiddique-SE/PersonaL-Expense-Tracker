@@ -9,7 +9,6 @@
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="192x192">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Expense Tracker">
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
@@ -33,7 +32,7 @@
       {% if messages %}<div class="flash-container">{% for category, message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
     {% endwith %}
     <section class="form-panel">
-        <div class="card-header"><div><h1>All Records</h1><p class="subtitle">Review and manage income and expense transactions in newest-added-first order.</p></div></div>
+        <div class="card-header"><div><h1 id="recordsTitle">All Records</h1><p class="subtitle">Review and manage income and expense transactions in newest-added-first order.</p></div></div>
         <div class="filter-pills-bar">
             <a href="{{ url_for('view', type='all') }}" class="filter-pill {% if filter_type == 'all' %}active-all{% endif %}">📋 All ({{ expenses|length }})</a>
             <a href="{{ url_for('view', type='expense') }}" class="filter-pill {% if filter_type == 'expense' %}active-expense{% endif %}">🔴 Expenses Only</a>
@@ -46,7 +45,7 @@
                     {% if expenses %}
                     {% for item in expenses %}
                     {% set is_inc = (item.get('type', 'expense')|lower == 'income') %}
-                    <tr data-record-id="{{ item.get('_id') }}">
+                    <tr data-record-id="{{ item.get('_id') }}" data-record-type="{{ 'income' if is_inc else 'expense' }}">
                         <td><span class="{% if is_inc %}tag-type-income{% else %}tag-type-expense{% endif %}">{% if is_inc %}🟢 Income{% else %}🔴 Expense{% endif %}</span></td>
                         <td class="{% if is_inc %}amount-income{% else %}amount-expense{% endif %}">{% if is_inc %}+{% else %}-{% endif %} Rs {{ "{:,.2f}".format(item.get('amount', 0)|float) }}</td>
                         <td><strong>{{ item.get('category', 'Other') }}</strong></td>
@@ -64,5 +63,17 @@
         <div class="footer-actions"><a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a></div>
     </section>
 </main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filter = new URLSearchParams(window.location.search).get('type') || 'all';
+    const rows = document.querySelectorAll('#recordsTable tbody tr[data-record-type]');
+    rows.forEach(function (row) {
+        const type = row.getAttribute('data-record-type');
+        row.hidden = filter !== 'all' && type !== filter;
+    });
+    const title = document.getElementById('recordsTitle');
+    if (title) title.textContent = filter === 'expense' ? 'Expense Records' : filter === 'income' ? 'Income Records' : 'All Records';
+});
+</script>
 </body>
 </html>
