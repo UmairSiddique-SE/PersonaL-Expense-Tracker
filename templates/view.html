@@ -23,8 +23,6 @@
     </div>
     <div class="user-info">
         <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
-        <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
-        <form method="POST" action="{{ url_for('logout') }}" style="display:inline;margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0;background:none;cursor:pointer;font:inherit;">Logout</button></form>
     </div>
 </nav>
 <main class="page-shell">
