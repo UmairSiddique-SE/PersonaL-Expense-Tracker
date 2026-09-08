@@ -518,22 +518,17 @@ def view():
     filter_type = request.args.get("type", "all").strip().lower()
     if filter_type not in {"all", "expense", "income"}:
         filter_type = "all"
-
     query = {"user_id": uid}
     if filter_type != "all":
         query["type"] = filter_type
-
     try:
-        # MongoDB performs the primary ordering; _id is the deterministic tie-breaker.
         cursor = expenses_collection.find(query).sort([("created_at", -1), ("_id", -1)])
         expenses = [record_to_view(item) for item in cursor]
-        # Legacy records without created_at still need deterministic newest-first ordering.
         expenses = sort_by_added(expenses, newest_first=True)
     except Exception:
         app.logger.exception("View records query error")
         flash("Unable to load your records right now. Please refresh and try again.", "danger")
         expenses = []
-
     return render_template("view.html", expenses=expenses, filter_type=filter_type)
 
 
@@ -729,6 +724,7 @@ def download_report():
     filtered = []
     total_income = Decimal("0.00")
     total_expense = Decimal("0.00")
+    category_totals = {}
     for item in items:
         trans_date = transaction_date(item)
         category = normalize_category(item.get("category"))
@@ -743,25 +739,29 @@ def download_report():
             continue
         filtered.append(item)
         amount = money(item.get("amount"))
+        category_totals[category] = category_totals.get(category, {"income": Decimal("0.00"), "expense": Decimal("0.00")})
         if trans_type == "income":
             total_income += amount
+            category_totals[category]["income"] += amount
         else:
             total_expense += amount
+            category_totals[category]["expense"] += amount
 
     filtered = sort_by_added(filtered, newest_first=True)
     net = total_income - total_expense
     buffer = io.BytesIO()
     try:
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=15 * mm, bottomMargin=15 * mm, leftMargin=15 * mm, rightMargin=15 * mm)
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=14 * mm, bottomMargin=14 * mm, leftMargin=14 * mm, rightMargin=14 * mm)
         styles = getSampleStyleSheet()
-        title_style = ParagraphStyle("StatementTitle", parent=styles["Title"], fontSize=18, leading=22, textColor=colors.HexColor("#0f172a"), spaceAfter=5)
+        title_style = ParagraphStyle("StatementTitle", parent=styles["Title"], fontSize=19, leading=23, textColor=colors.HexColor("#0f172a"), spaceAfter=5)
+        section_style = ParagraphStyle("Section", parent=styles["Heading3"], fontSize=11, leading=14, fontName="Helvetica-Bold", textColor=colors.HexColor("#0f172a"), spaceBefore=8, spaceAfter=5)
         meta_style = ParagraphStyle("StatementMeta", parent=styles["Normal"], fontSize=8.5, leading=12, textColor=colors.HexColor("#475569"), spaceAfter=10)
-        cell_style = ParagraphStyle("StatementCell", parent=styles["Normal"], fontSize=7.5, leading=9, textColor=colors.HexColor("#0f172a"))
+        cell_style = ParagraphStyle("StatementCell", parent=styles["Normal"], fontSize=7.3, leading=9, textColor=colors.HexColor("#0f172a"))
         header_style = ParagraphStyle("StatementHeader", parent=cell_style, fontName="Helvetica-Bold", textColor=colors.white)
         total_label_style = ParagraphStyle("TotalLabel", parent=styles["Normal"], fontSize=9, leading=12, fontName="Helvetica-Bold", textColor=colors.HexColor("#0f172a"))
         total_value_style = ParagraphStyle("TotalValue", parent=total_label_style, alignment=2)
 
-        elements = [Paragraph("Financial Tracker — Financial Statement", title_style)]
+        elements = [Paragraph("Expense Tracker — Accountant Financial Report", title_style)]
         period = view_type.capitalize()
         if view_type == "daily":
             period += f" ({escape(selected_date)})"
@@ -774,37 +774,55 @@ def download_report():
         tab_label = {"expense": "Expenses Only", "income": "Income Only", "all": "Income & Expenses"}[active_tab]
         user_name = escape(normalize_text(session.get("first_name", "User"), 80))
         generated = datetime.now().strftime("%d %b %Y, %I:%M %p")
-        elements.append(Paragraph(f"<b>User:</b> {user_name} &nbsp;&nbsp; <b>Period:</b> {escape(period)} &nbsp;&nbsp; <b>View:</b> {escape(tab_label)}<br/><b>Generated:</b> {escape(generated)}", meta_style))
+        elements.append(Paragraph(f"<b>Prepared for:</b> {user_name} &nbsp;&nbsp; <b>Period:</b> {escape(period)}<br/><b>Report scope:</b> {escape(tab_label)} &nbsp;&nbsp; <b>Generated:</b> {escape(generated)}", meta_style))
 
-        summary_data = [[Paragraph("Total Income", total_label_style), Paragraph(f"Rs {total_income:,.2f}", total_value_style)], [Paragraph("Total Expense", total_label_style), Paragraph(f"Rs {total_expense:,.2f}", total_value_style)], [Paragraph("Net Savings / Balance", total_label_style), Paragraph(f"Rs {net:,.2f}", total_value_style)]]
+        summary_data = [
+            [Paragraph("Gross Income", total_label_style), Paragraph(f"Rs {total_income:,.0f}", total_value_style)],
+            [Paragraph("Total Expenses", total_label_style), Paragraph(f"Rs {total_expense:,.0f}", total_value_style)],
+            [Paragraph("Net Balance / Savings", total_label_style), Paragraph(f"Rs {net:,.0f}", total_value_style)],
+            [Paragraph("Transactions", total_label_style), Paragraph(str(len(filtered)), total_value_style)],
+        ]
         summary_table = Table(summary_data, colWidths=[110 * mm, 65 * mm], hAlign="LEFT")
         summary_table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")), ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7), ("LEFTPADDING", (0, 0), (-1, -1), 8), ("RIGHTPADDING", (0, 0), (-1, -1), 8)]))
         elements.extend([summary_table, Spacer(1, 10)])
 
+        elements.append(Paragraph("Transaction Register", section_style))
         table_data = [[Paragraph("#", header_style), Paragraph("Date", header_style), Paragraph("Type", header_style), Paragraph("Category", header_style), Paragraph("Description", header_style), Paragraph("Amount (Rs)", header_style)]]
         for index, item in enumerate(filtered, 1):
             trans_type = str(item.get("type", "expense")).capitalize()
             amount = money(item.get("amount"))
             category = normalize_category(item.get("category"))
             description = normalize_text(item.get("description"), 180).replace("\x00", "")
-            table_data.append([Paragraph(str(index), cell_style), Paragraph(escape(str(item.get("date", "—"))), cell_style), Paragraph(escape(trans_type), cell_style), Paragraph(escape(category), cell_style), Paragraph(escape(description or "—"), cell_style), Paragraph(f"Rs {amount:,.2f}", cell_style)])
+            table_data.append([Paragraph(str(index), cell_style), Paragraph(escape(str(item.get("date", "—"))), cell_style), Paragraph(escape(trans_type), cell_style), Paragraph(escape(category), cell_style), Paragraph(escape(description or "—"), cell_style), Paragraph(f"Rs {amount:,.0f}", cell_style)])
 
         if len(table_data) == 1:
-            table_data.append([Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("No transactions found for this selection.", cell_style), Paragraph("Rs 0.00", cell_style)])
+            table_data.append([Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("—", cell_style), Paragraph("No transactions found for this selection.", cell_style), Paragraph("Rs 0", cell_style)])
 
         table = Table(table_data, colWidths=[18, 58, 52, 78, 195, 76], repeatRows=1, hAlign="LEFT")
         table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white), ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#cbd5e1")), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5), ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5)]))
         elements.extend([table, Spacer(1, 12)])
 
+        elements.append(Paragraph("Category Analysis", section_style))
+        category_rows = [[Paragraph("Category", header_style), Paragraph("Income (Rs)", header_style), Paragraph("Expense (Rs)", header_style), Paragraph("Net (Rs)", header_style)]]
+        for category, totals in sorted(category_totals.items(), key=lambda pair: pair[1]["income"] + pair[1]["expense"], reverse=True):
+            category_net = totals["income"] - totals["expense"]
+            category_rows.append([Paragraph(escape(category), cell_style), Paragraph(f"{totals['income']:,.0f}", cell_style), Paragraph(f"{totals['expense']:,.0f}", cell_style), Paragraph(f"{category_net:,.0f}", cell_style)])
+        if len(category_rows) == 1:
+            category_rows.append([Paragraph("No category data", cell_style), Paragraph("0", cell_style), Paragraph("0", cell_style), Paragraph("0", cell_style)])
+        category_table = Table(category_rows, colWidths=[88 * mm, 32 * mm, 32 * mm, 23 * mm], repeatRows=1, hAlign="LEFT")
+        category_table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#334155")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white), ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#cbd5e1")), ("ALIGN", (1, 1), (-1, -1), "RIGHT"), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5), ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5)]))
+        elements.extend([category_table, Spacer(1, 12)])
+
+        elements.append(Paragraph("Statement Totals", section_style))
         final_totals = [
-            [Paragraph("Total Income", total_label_style), Paragraph(f"Rs {total_income:,.2f}", total_value_style)],
-            [Paragraph("Total Expense", total_label_style), Paragraph(f"Rs {total_expense:,.2f}", total_value_style)],
-            [Paragraph("Net Savings / Balance", total_label_style), Paragraph(f"Rs {net:,.2f}", total_value_style)],
+            [Paragraph("Gross Income", total_label_style), Paragraph(f"Rs {total_income:,.0f}", total_value_style)],
+            [Paragraph("Total Expenses", total_label_style), Paragraph(f"Rs {total_expense:,.0f}", total_value_style)],
+            [Paragraph("Net Balance / Savings", total_label_style), Paragraph(f"Rs {net:,.0f}", total_value_style)],
             [Paragraph("Total Records", total_label_style), Paragraph(str(len(filtered)), total_value_style)],
         ]
         totals_table = Table(final_totals, colWidths=[110 * mm, 65 * mm], hAlign="LEFT")
         totals_table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f1f5f9")), ("GRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#94a3b8")), ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7), ("LEFTPADDING", (0, 0), (-1, -1), 8), ("RIGHTPADDING", (0, 0), (-1, -1), 8)]))
-        elements.extend([Paragraph("Statement Totals", ParagraphStyle("TotalsHeading", parent=styles["Heading3"], fontSize=11, spaceAfter=5, textColor=colors.HexColor("#0f172a"))), totals_table])
+        elements.append(totals_table)
         doc.build(elements)
     except Exception:
         app.logger.exception("PDF report generation error")
@@ -813,7 +831,7 @@ def download_report():
         return redirect(url_for("summary", type=view_type, tab=active_tab, date=selected_date, category=selected_category, from_date=from_date, to_date=to_date))
 
     buffer.seek(0)
-    return send_file(buffer, mimetype="application/pdf", as_attachment=True, download_name=f"financial_statement_{view_type}_{datetime.now().strftime('%Y%m%d')}.pdf")
+    return send_file(buffer, mimetype="application/pdf", as_attachment=True, download_name=f"financial_report_{view_type}_{datetime.now().strftime('%Y%m%d')}.pdf")
 
 
 @app.route("/sitemap.xml")
