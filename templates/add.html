@@ -31,7 +31,7 @@
     <div id="content-expense" class="tab-content {% if active_tab != 'income' %}active{% endif %}">
         <form action="{{ url_for('add') }}" method="POST">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="record_type" value="expense">
-            <div class="form-group"><label>Amount (Rs)</label><input type="number" name="amount" step="0.01" min="0.01" required placeholder="0.00"></div>
+            <div class="form-group"><label>Amount (Rs)</label><input type="number" name="amount" step="1" min="1" required placeholder="0"></div>
             <div class="form-group"><label>Category</label><select name="category" id="categorySelect" onchange="checkCustomCategory(this)"><option value="Food" {% if last_used_category=='Food' %}selected{% endif %}>🍔 Food</option><option value="Travel" {% if last_used_category=='Travel' %}selected{% endif %}>🚗 Travel</option><option value="Groceries" {% if last_used_category=='Groceries' %}selected{% endif %}>🛒 Groceries</option><option value="Bills" {% if last_used_category=='Bills' %}selected{% endif %}>💡 Bills</option><option value="Shopping" {% if last_used_category=='Shopping' %}selected{% endif %}>🛍️ Shopping</option>{% if custom_categories %}{% for cat in custom_categories %}<option value="{{ cat }}" {% if last_used_category==cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}{% endif %}<option value="custom">➕ Add custom category</option></select></div>
             <div class="form-group" id="customCategoryDiv" style="display:none"><label>Custom Category Name</label><input type="text" name="custom_category" id="customCategoryInput" placeholder="e.g. Gym, Medicine"></div>
             <div class="form-group"><label>Date</label><input type="date" name="date" value="{{ today_date }}" required></div>
@@ -43,7 +43,7 @@
     <div id="content-income" class="tab-content {% if active_tab == 'income' %}active{% endif %}">
         <form action="{{ url_for('add') }}" method="POST">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="record_type" value="income"><input type="hidden" name="category" value="Income">
-            <div class="form-group"><label>Amount (Rs)</label><input type="number" name="amount" step="0.01" min="0.01" required placeholder="0.00"></div>
+            <div class="form-group"><label>Amount (Rs)</label><input type="number" name="amount" step="1" min="1" required placeholder="0"></div>
             <div class="form-group"><label>Description</label><input type="text" name="description" maxlength="500" required placeholder="e.g. Salary, Bonus, Freelance payment, Allowance"><p class="hint">Income always uses one category: <strong>Income</strong>. Use the description to identify the source.</p></div>
             <div class="form-group"><label>Date</label><input type="date" name="date" value="{{ today_date }}" required></div>
             <button class="submit-btn income-submit-btn" type="submit">💰 Add Income</button>
