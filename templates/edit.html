@@ -40,12 +40,12 @@
             <form class="form-card" method="POST">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <div class="type-toggle-group">
-                    <input type="radio" name="type" id="editExpense" value="expense" class="type-toggle-input" {% if expense.get('type') != 'income' %}checked{% endif %}>
+                    <input type="radio" name="record_type" id="editExpense" value="expense" class="type-toggle-input" {% if item.get('type') != 'income' %}checked{% endif %}>
                     <label for="editExpense" class="type-toggle-label">
                         <span>🔴</span> Expense
                     </label>
 
-                    <input type="radio" name="type" id="editIncome" value="income" class="type-toggle-input" {% if expense.get('type') == 'income' %}checked{% endif %}>
+                    <input type="radio" name="record_type" id="editIncome" value="income" class="type-toggle-input" {% if item.get('type') == 'income' %}checked{% endif %}>
                     <label for="editIncome" class="type-toggle-label">
                         <span>🟢</span> Income
                     </label>
@@ -53,19 +53,19 @@
 
                 <div class="form-group">
                     <label>Amount (Rs)</label>
-                    <input type="number" step="0.01" name="amount" placeholder="Amount" value="{{ expense.amount }}" required style="font-size: 1.2rem; font-weight: 700;">
+                    <input type="number" step="0.01" name="amount" placeholder="Amount" value="{{ item.amount }}" required style="font-size: 1.2rem; font-weight: 700;">
                 </div>
                 <div class="form-group">
                     <label>Category</label>
-                    <input type="text" name="category" placeholder="Category" value="{{ expense.category }}" required>
+                    <input type="text" name="category" placeholder="Category" value="{{ item.category }}" required>
                 </div>
                 <div class="form-group">
                     <label>Date</label>
-                    <input type="date" name="date" value="{{ expense.date }}" required>
+                    <input type="date" name="date" value="{{ item.date }}" required>
                 </div>
                 <div class="form-group">
                     <label>Description / Notes</label>
-                    <input type="text" name="description" placeholder="Description" value="{{ expense.description }}">
+                    <input type="text" name="description" placeholder="Description" value="{{ item.description }}">
                 </div>
                 <button type="submit" class="primary-btn">Update Transaction</button>
             </form>
