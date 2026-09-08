@@ -23,26 +23,34 @@ function updateToggleButtons(currentTheme) {
 }
 
 function setupGlobalThemeControl() {
-    // Remove duplicate theme controls while keeping the first one.
     const themeButtons = document.querySelectorAll('.theme-toggle-btn');
     themeButtons.forEach((btn, index) => {
         if (index > 0) btn.remove();
     });
-
     const themeButton = document.querySelector('.theme-toggle-btn');
-    if (themeButton) {
-        themeButton.onclick = toggleTheme;
-    }
+    if (themeButton) themeButton.onclick = toggleTheme;
     updateToggleButtons(document.documentElement.getAttribute('data-theme') || 'dark');
 }
 
 function setupGlobalProfileMenu() {
-    if (document.querySelector('#profileMenu')) return;
+    // Profile is intentionally available ONLY on the dashboard.
+    const path = window.location.pathname;
+    const isDashboard = path === '/dashboard' || path === '/index' || path === '/';
 
     const userInfo = document.querySelector('.user-info');
-    const settingsBtn = document.querySelector('.settings-btn');
-    const logoutForm = document.querySelector('.logout-btn')?.closest('form');
-    if (!userInfo || !logoutForm) return;
+    if (!userInfo) return;
+
+    if (!isDashboard) {
+        // Remove Settings + Logout from every non-dashboard page.
+        userInfo.querySelectorAll('.settings-btn, .logout-btn, form[action*="logout"], .profile-menu').forEach(el => el.remove());
+        return;
+    }
+
+    if (document.querySelector('#profileMenu')) return;
+
+    const settingsBtn = userInfo.querySelector('.settings-btn');
+    const logoutForm = userInfo.querySelector('.logout-btn')?.closest('form');
+    if (!logoutForm && !settingsBtn) return;
 
     const settingsHref = settingsBtn?.getAttribute('href') || '/settings';
     if (settingsBtn) settingsBtn.remove();
@@ -58,14 +66,16 @@ function setupGlobalProfileMenu() {
     `;
 
     const dropdown = profileMenu.querySelector('.profile-dropdown');
-    dropdown.appendChild(logoutForm);
-    logoutForm.className = 'profile-logout-form';
-    const logoutBtn = logoutForm.querySelector('.logout-btn');
-    if (logoutBtn) {
-        logoutBtn.className = 'profile-item logout-item';
-        logoutBtn.setAttribute('role', 'menuitem');
-        logoutBtn.innerHTML = '🚪 Logout';
-        logoutBtn.style.cssText = '';
+    if (logoutForm) {
+        dropdown.appendChild(logoutForm);
+        logoutForm.className = 'profile-logout-form';
+        const logoutBtn = logoutForm.querySelector('.logout-btn');
+        if (logoutBtn) {
+            logoutBtn.className = 'profile-item logout-item';
+            logoutBtn.setAttribute('role', 'menuitem');
+            logoutBtn.innerHTML = '🚪 Logout';
+            logoutBtn.style.cssText = '';
+        }
     }
 
     userInfo.appendChild(profileMenu);
