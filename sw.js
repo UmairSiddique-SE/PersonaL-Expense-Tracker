@@ -1,4 +1,4 @@
-const CACHE_NAME = 'expense-tracker-v2';
+const CACHE_NAME = 'expense-tracker-v3';
 const STATIC_ASSETS = [
   '/static/style.css',
   '/static/theme.css',
