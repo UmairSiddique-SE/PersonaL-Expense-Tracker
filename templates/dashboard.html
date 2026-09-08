@@ -18,11 +18,10 @@
         .user-info{display:flex;gap:14px;align-items:center}.logout-btn{color:var(--currency-expense);font-weight:700;font-size:.9rem}.logout-btn:hover{opacity:.75}
         .page-shell{width:100%;max-width:1180px;margin:0 auto;padding:28px 20px 50px}.flash-container{width:100%;margin-bottom:16px}.flash-message{padding:12px 18px;border-radius:12px;margin-bottom:8px;font-weight:600;font-size:.9rem}.flash-message.success{background:rgba(16,185,129,.15);color:var(--currency-income);border:1px solid rgba(16,185,129,.3)}.flash-message.danger{background:rgba(244,63,94,.15);color:var(--currency-expense);border:1px solid rgba(244,63,94,.3)}
         .hero-card{width:100%;background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:24px;padding:30px 34px;box-shadow:var(--shadow-card);backdrop-filter:blur(18px);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:24px;position:relative;overflow:hidden;animation:fadeUp .45s ease both}.hero-card:before{content:'';position:absolute;top:-90px;right:-50px;width:230px;height:230px;border-radius:50%;background:linear-gradient(135deg,rgba(56,189,248,.13),rgba(129,140,248,.12));pointer-events:none}.hero-left,.hero-balance{position:relative;z-index:1}.hero-left h1{font-size:clamp(1.7rem,3vw,2.4rem);font-weight:900;margin:0 0 8px}.user-name{background:linear-gradient(135deg,#38bdf8,#818cf8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}.hero-left p{margin:0;color:var(--text-secondary);font-size:.9rem}.hero-balance{text-align:right}.balance-label{display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-secondary);margin-bottom:7px}.balance-value{font-size:clamp(2.1rem,4vw,3.1rem);font-weight:900;letter-spacing:-1px}.balance-positive{color:#10b981}.balance-negative{color:#f43f5e}.balance-caption{font-size:.75rem;color:var(--text-secondary)}
-        .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}.kpi-card{padding:22px;border-radius:20px;background:var(--bg-card);border:1.5px solid var(--border-color);box-shadow:var(--shadow-card);transition:transform .25s ease}.kpi-card:hover{transform:translateY(-3px)}.kpi-top{display:flex;justify-content:space-between;align-items:center}.kpi-label{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary)}.kpi-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:1.2rem}.income-kpi{border-color:rgba(16,185,129,.3)}.income-kpi .kpi-icon{background:rgba(16,185,129,.13)}.expense-kpi{border-color:rgba(244,63,94,.3)}.expense-kpi .kpi-icon{background:rgba(244,63,94,.13)}.savings-kpi{border-color:rgba(99,102,241,.3)}.savings-kpi .kpi-icon{background:rgba(99,102,241,.13)}.kpi-value{font-size:clamp(1.55rem,2.5vw,2.1rem);font-weight:900;margin:14px 0 7px}.income-kpi .kpi-value{color:var(--currency-income)}.expense-kpi .kpi-value{color:var(--currency-expense)}.savings-kpi .kpi-value{color:#818cf8}.kpi-meta{font-size:.74rem;color:var(--text-secondary)}
-        .actions-panel{background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:22px;padding:24px;box-shadow:var(--shadow-card);margin-bottom:20px}.panel-head{margin-bottom:18px}.panel-title{margin:0;font-size:1.05rem;font-weight:900}.panel-subtitle{margin:5px 0 0;color:var(--text-secondary);font-size:.78rem}.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.action-card{display:flex;align-items:center;gap:13px;padding:18px;border-radius:17px;background:var(--input-bg);border:1px solid var(--border-color);text-decoration:none;color:var(--text-primary);transition:all .25s ease}.action-card:hover{transform:translateY(-3px);border-color:var(--accent-primary)}.action-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:1.35rem;flex-shrink:0}.add-action .action-icon{background:rgba(16,185,129,.14)}.records-action .action-icon{background:rgba(56,189,248,.14)}.summary-action .action-icon{background:rgba(129,140,248,.14)}.action-title{font-size:.9rem;font-weight:850}.action-text{font-size:.72rem;color:var(--text-secondary);margin-top:3px;line-height:1.4}
+        .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.kpi-card{min-width:0;padding:16px 18px;border-radius:16px;background:var(--bg-card);border:1.5px solid var(--border-color);box-shadow:var(--shadow-card);transition:transform .2s ease,box-shadow .2s ease}.kpi-card:hover{transform:translateY(-2px)}.kpi-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.kpi-label{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-secondary)}.kpi-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:1rem;flex-shrink:0}.income-kpi{border-color:rgba(16,185,129,.3)}.income-kpi .kpi-icon{background:rgba(16,185,129,.13)}.expense-kpi{border-color:rgba(244,63,94,.3)}.expense-kpi .kpi-icon{background:rgba(244,63,94,.13)}.transaction-kpi{border-color:rgba(56,189,248,.3)}.transaction-kpi.income{border-color:rgba(16,185,129,.38)}.transaction-kpi.expense{border-color:rgba(244,63,94,.38)}.transaction-kpi .kpi-icon{background:rgba(56,189,248,.12)}.transaction-kpi.income .kpi-icon{background:rgba(16,185,129,.13)}.transaction-kpi.expense .kpi-icon{background:rgba(244,63,94,.13)}.kpi-value{font-size:clamp(1.35rem,2.1vw,1.8rem);font-weight:900;margin:10px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.income-kpi .kpi-value{color:var(--currency-income)}.expense-kpi .kpi-value{color:var(--currency-expense)}.transaction-kpi.income .kpi-value{color:var(--currency-income)}.transaction-kpi.expense .kpi-value{color:var(--currency-expense)}.transaction-name{font-size:.84rem;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.transaction-meta{font-size:.68rem;color:var(--text-secondary);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .footer{padding:16px;border-top:1px solid var(--border-color);color:var(--text-muted);text-align:center;font-size:.82rem}.footer strong{color:var(--accent-primary)}
         @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-        @media(max-width:760px){.navbar{padding:12px 16px}.page-shell{padding:16px 13px 40px}.hero-card{padding:22px 20px;flex-direction:column;align-items:flex-start}.hero-balance{text-align:left}.kpi-row{grid-template-columns:1fr}.action-grid{grid-template-columns:1fr}.user-info{gap:8px}}
+        @media(max-width:760px){.navbar{padding:12px 16px}.page-shell{padding:16px 13px 40px}.hero-card{padding:22px 20px;flex-direction:column;align-items:flex-start}.hero-balance{text-align:left}.kpi-row{grid-template-columns:1fr;gap:10px}.user-info{gap:8px}.kpi-card{padding:15px 16px}}
     </style>
 </head>
 <body>
@@ -50,22 +49,57 @@
     </section>
 
     <section class="kpi-row">
-        <article class="kpi-card income-kpi"><div class="kpi-top"><span class="kpi-label">Total Income</span><span class="kpi-icon">💰</span></div><div class="kpi-value">Rs {{ "{:,.0f}".format(total_income) }}</div><div class="kpi-meta">All recorded income</div></article>
-        <article class="kpi-card expense-kpi"><div class="kpi-top"><span class="kpi-label">Total Expense</span><span class="kpi-icon">💸</span></div><div class="kpi-value">Rs {{ "{:,.0f}".format(total_expense) }}</div><div class="kpi-meta">All recorded expenses</div></article>
-        <article class="kpi-card savings-kpi"><div class="kpi-top"><span class="kpi-label">Net Savings</span><span class="kpi-icon">🏦</span></div><div class="kpi-value" style="color:{% if total_savings >= 0 %}#818cf8{% else %}#f43f5e{% endif %}">Rs {{ "{:,.0f}".format(total_savings) }}</div><div class="kpi-meta">{{ total_records }} total record{{ '' if total_records == 1 else 's' }}</div></article>
-    </section>
-
-    <section class="actions-panel">
-        <div class="panel-head"><h2 class="panel-title">Quick Actions</h2><p class="panel-subtitle">Manage your finances from one place.</p></div>
-        <div class="action-grid">
-            <a href="{{ url_for('add') }}" class="action-card add-action"><span class="action-icon">📝</span><span><div class="action-title">Add Record</div><div class="action-text">Add income or expense.</div></span></a>
-            <a href="{{ url_for('view') }}" class="action-card records-action"><span class="action-icon">📋</span><span><div class="action-title">View Records</div><div class="action-text">Browse, edit and delete records.</div></span></a>
-            <a href="{{ url_for('summary') }}" class="action-card summary-action"><span class="action-icon">📊</span><span><div class="action-title">Reports & Summary</div><div class="action-text">Detailed financial analysis.</div></span></a>
-        </div>
+        <article class="kpi-card income-kpi">
+            <div class="kpi-top"><span class="kpi-label">Total Income</span><span class="kpi-icon">💰</span></div>
+            <div class="kpi-value">Rs {{ "{:,.0f}".format(total_income) }}</div>
+            <div class="transaction-meta">All recorded income</div>
+        </article>
+        <article class="kpi-card expense-kpi">
+            <div class="kpi-top"><span class="kpi-label">Total Expense</span><span class="kpi-icon">💸</span></div>
+            <div class="kpi-value">Rs {{ "{:,.0f}".format(total_expense) }}</div>
+            <div class="transaction-meta">All recorded expenses</div>
+        </article>
+        <article class="kpi-card transaction-kpi" id="lastTransactionCard">
+            <div class="kpi-top"><span class="kpi-label">Last Transaction</span><span class="kpi-icon" id="lastTransactionIcon">↕️</span></div>
+            <div class="transaction-name" id="lastTransactionName">Loading…</div>
+            <div class="kpi-value" id="lastTransactionAmount">—</div>
+            <div class="transaction-meta" id="lastTransactionMeta">Most recently added record</div>
+        </article>
     </section>
 
     <footer class="footer">Made by <strong>Umair Siddique</strong> &bull; Personal Expense Tracker</footer>
 </main>
-<script>(function(){var h=new Date().getHours(),el=document.getElementById('greetingText');if(el){if(h<12)el.textContent='Good Morning,';else if(h<17)el.textContent='Good Afternoon,';else if(h<21)el.textContent='Good Evening,';else el.textContent='Good Night,';}})();</script>
+<script>
+(function(){
+    var h=new Date().getHours(),el=document.getElementById('greetingText');
+    if(el){if(h<12)el.textContent='Good Morning,';else if(h<17)el.textContent='Good Afternoon,';else if(h<21)el.textContent='Good Evening,';else el.textContent='Good Night,';}
+
+    var card=document.getElementById('lastTransactionCard');
+    var nameEl=document.getElementById('lastTransactionName');
+    var amountEl=document.getElementById('lastTransactionAmount');
+    var metaEl=document.getElementById('lastTransactionMeta');
+    var iconEl=document.getElementById('lastTransactionIcon');
+
+    fetch('{{ url_for("view", type="all") }}', {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(response){ if(!response.ok) throw new Error('Unable to load records'); return response.text(); })
+        .then(function(html){
+            var doc=new DOMParser().parseFromString(html,'text/html');
+            var row=doc.querySelector('#recordsTable tbody tr[data-record-id]');
+            if(!row){nameEl.textContent='No transactions';amountEl.textContent='—';metaEl.textContent='Add your first income or expense';return;}
+            var cells=row.querySelectorAll('td');
+            var type=(cells[0]?.textContent || '').toLowerCase().indexOf('income') !== -1 ? 'income' : 'expense';
+            var amount=(cells[1]?.textContent || '—').trim();
+            var category=(cells[2]?.textContent || '').trim();
+            var transactionDate=(cells[3]?.textContent || '').trim();
+            var description=(cells[4]?.textContent || '').trim();
+            card.classList.add(type);
+            iconEl.textContent=type === 'income' ? '↗️' : '↘️';
+            nameEl.textContent=description && description !== '-' ? description : category || (type === 'income' ? 'Income' : 'Expense');
+            amountEl.textContent=amount;
+            metaEl.textContent=(type === 'income' ? 'Income' : 'Expense') + ' · ' + transactionDate;
+        })
+        .catch(function(){nameEl.textContent='Unavailable';amountEl.textContent='—';metaEl.textContent='Could not load latest transaction';});
+})();
+</script>
 </body>
 </html>
