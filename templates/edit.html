@@ -57,7 +57,29 @@
                 </div>
                 <div class="form-group">
                     <label>Category</label>
-                    <input type="text" name="category" placeholder="Category" value="{{ item.category }}" required>
+                    {% set current_category = item.get('category', 'Other') %}
+                    {% if item.get('type') == 'income' %}
+                    <input type="text" name="category" placeholder="Category" value="{{ current_category }}" required>
+                    {% else %}
+                    <select name="category" id="editCategory" required onchange="checkEditCustomCategory(this)">
+                        {% if current_category not in ['Food','Travel','Groceries','Bills','Shopping','Other'] %}
+                        <option value="{{ current_category }}" selected>⭐ {{ current_category }} (Your Category)</option>
+                        {% endif %}
+                        <option value="Food" {% if current_category == 'Food' %}selected{% endif %}>🍔 Food</option>
+                        <option value="Travel" {% if current_category == 'Travel' %}selected{% endif %}>🚗 Travel</option>
+                        <option value="Groceries" {% if current_category == 'Groceries' %}selected{% endif %}>🛒 Groceries</option>
+                        <option value="Bills" {% if current_category == 'Bills' %}selected{% endif %}>💡 Bills</option>
+                        <option value="Shopping" {% if current_category == 'Shopping' %}selected{% endif %}>🛍️ Shopping</option>
+                        {% if current_category == 'Other' %}
+                        <option value="Other" selected>📦 Other</option>
+                        {% endif %}
+                        <option value="custom">➕ Use Custom Category</option>
+                    </select>
+                    <div class="form-group" id="editCustomCategoryDiv" style="display:none;margin-top:12px;margin-bottom:0;">
+                        <label>Custom Category Name</label>
+                        <input type="text" name="custom_category" id="editCustomCategoryInput" placeholder="e.g. Gym, Medicine">
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group">
                     <label>Date</label>
@@ -73,6 +95,17 @@
             <a class="back-link" href="{{ url_for('view') }}">← Back to Records</a>
         </section>
     </main>
+    <script>
+        function checkEditCustomCategory(select) {
+            var box = document.getElementById('editCustomCategoryDiv');
+            var input = document.getElementById('editCustomCategoryInput');
+            if (!box || !input) return;
+            var custom = select.value === 'custom';
+            box.style.display = custom ? 'block' : 'none';
+            input.required = custom;
+            if (!custom) input.value = '';
+        }
+    </script>
     <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
 </body>
 </html>
