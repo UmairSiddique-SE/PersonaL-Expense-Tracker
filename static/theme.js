@@ -3,8 +3,6 @@
     const savedTheme = localStorage.getItem('app-theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
 
-    // Apply the same compact single-button design before the page renders.
-    // This prevents the theme control from briefly changing shape/icon when navigating.
     const style = document.createElement('style');
     style.id = 'global-theme-button-style';
     style.textContent = `
@@ -65,23 +63,40 @@ function setupGlobalThemeControl() {
     updateToggleButtons(document.documentElement.getAttribute('data-theme') || 'dark');
 }
 
-function isDashboardPage() {
-    const path = window.location.pathname.replace(/\/$/, '');
-    return path === '/dashboard' || path === '/index' || path === '';
-}
-
 function setupGlobalProfileMenu() {
-    // Profile menu is intentionally dashboard-only.
-    if (!isDashboardPage()) {
-        document.querySelectorAll('.settings-btn, .logout-btn').forEach(el => {
-            const form = el.classList.contains('logout-btn') ? el.closest('form') : null;
-            (form || el).remove();
-        });
+    const profileMenu = document.querySelector('#profileMenu');
+    const profileTrigger = document.querySelector('#profileTrigger');
+
+    // Dashboard may already contain the profile markup, so never return
+    // just because #profileMenu already exists. Bind its interactions.
+    if (profileMenu && profileTrigger) {
+        if (profileTrigger.dataset.profileBound !== 'true') {
+            profileTrigger.dataset.profileBound = 'true';
+
+            const closeMenu = () => {
+                profileMenu.classList.remove('open');
+                profileTrigger.setAttribute('aria-expanded', 'false');
+            };
+
+            profileTrigger.addEventListener('click', event => {
+                event.stopPropagation();
+                const open = profileMenu.classList.toggle('open');
+                profileTrigger.setAttribute('aria-expanded', String(open));
+            });
+
+            document.addEventListener('click', event => {
+                if (!profileMenu.contains(event.target)) closeMenu();
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') closeMenu();
+            });
+        }
         return;
     }
 
-    if (document.querySelector('#profileMenu')) return;
-
+    // For pages where the profile markup is not already present, create it
+    // only when the required user controls exist.
     const userInfo = document.querySelector('.user-info');
     const settingsBtn = document.querySelector('.settings-btn');
     const logoutForm = document.querySelector('.logout-btn')?.closest('form');
@@ -90,17 +105,17 @@ function setupGlobalProfileMenu() {
     const settingsHref = settingsBtn?.getAttribute('href') || '/settings';
     if (settingsBtn) settingsBtn.remove();
 
-    const profileMenu = document.createElement('div');
-    profileMenu.className = 'profile-menu';
-    profileMenu.id = 'profileMenu';
-    profileMenu.innerHTML = `
+    const menu = document.createElement('div');
+    menu.className = 'profile-menu';
+    menu.id = 'profileMenu';
+    menu.innerHTML = `
         <button class="profile-trigger" id="profileTrigger" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu" title="Profile">👤</button>
         <div class="profile-dropdown" id="profileDropdown" role="menu">
             <a href="${settingsHref}" class="profile-item" role="menuitem">⚙️ Settings</a>
         </div>
     `;
 
-    const dropdown = profileMenu.querySelector('.profile-dropdown');
+    const dropdown = menu.querySelector('.profile-dropdown');
     dropdown.appendChild(logoutForm);
     logoutForm.className = 'profile-logout-form';
     const logoutBtn = logoutForm.querySelector('.logout-btn');
@@ -111,20 +126,20 @@ function setupGlobalProfileMenu() {
         logoutBtn.style.cssText = '';
     }
 
-    userInfo.appendChild(profileMenu);
+    userInfo.appendChild(menu);
 
-    const trigger = profileMenu.querySelector('#profileTrigger');
+    const trigger = menu.querySelector('#profileTrigger');
     const closeMenu = () => {
-        profileMenu.classList.remove('open');
+        menu.classList.remove('open');
         trigger.setAttribute('aria-expanded', 'false');
     };
     trigger.addEventListener('click', event => {
         event.stopPropagation();
-        const open = profileMenu.classList.toggle('open');
+        const open = menu.classList.toggle('open');
         trigger.setAttribute('aria-expanded', String(open));
     });
     document.addEventListener('click', event => {
-        if (!profileMenu.contains(event.target)) closeMenu();
+        if (!menu.contains(event.target)) closeMenu();
     });
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') closeMenu();
@@ -239,7 +254,6 @@ function setupDashboardEnhancements() {
 
 function setupLastTransactionData() {
     const card=document.querySelector('#lastTransactionCard');if(!card)return;
-    // This dashboard card must show ONLY the latest expense, never income/all types.
     fetch('/view?type=expense',{headers:{'X-Requested-With':'XMLHttpRequest'}})
         .then(response=>response.ok?response.text():'')
         .then(html=>{if(!html)return;const doc=new DOMParser().parseFromString(html,'text/html');const firstRow=doc.querySelector('tbody tr[data-record-type="expense"]')||doc.querySelector('tbody tr');if(!firstRow)return;const cells=firstRow.querySelectorAll('td');const date=cells[0]?.textContent.trim()||'—';const description=cells[1]?.textContent.trim()||'—';const amount=cells[3]?.textContent.trim()||'—';const type=(firstRow.getAttribute('data-record-type')||'').toLowerCase();if(type!=='expense')return;const label=card.querySelector('.kpi-label'),value=card.querySelector('.kpi-value'),meta=card.querySelector('.kpi-meta');if(label)label.textContent='Last Expense';if(value)value.textContent=amount;if(meta)meta.innerHTML=`${description} · ${date}`;card.classList.remove('income','expense');card.classList.add('expense')})
