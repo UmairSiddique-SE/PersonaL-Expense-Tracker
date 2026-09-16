@@ -108,10 +108,18 @@ def type_label(transaction_type):
 # enhances its ReportLab tables, so it cannot change the web UI or accounting.
 def _install_pdf_table_theme():
     try:
+        from reportlab.lib.colors import HexColor
         from reportlab.platypus import Table, TableStyle
         if getattr(Table, "_expense_tracker_theme", False):
             return
         original_set_style = Table.setStyle
+        green = HexColor("#059669")
+        red = HexColor("#E11D48")
+        blue = HexColor("#2563EB")
+        green_bg = HexColor("#ECFDF5")
+        red_bg = HexColor("#FFF1F2")
+        blue_bg = HexColor("#EFF6FF")
+        stripe = HexColor("#F8FAFC")
 
         def themed_set_style(self, tblstyle):
             commands = list(tblstyle.getCommands())
@@ -121,34 +129,31 @@ def _install_pdf_table_theme():
             extra = []
 
             if rows == 3 and cols == 2:
-                # Income / Expense / Balance summary.
                 extra += [
-                    ("BACKGROUND", (0, 0), (-1, 0), "#ECFDF5"),
-                    ("BACKGROUND", (0, 1), (-1, 1), "#FFF1F2"),
-                    ("BACKGROUND", (0, 2), (-1, 2), "#EFF6FF"),
-                    ("TEXTCOLOR", (1, 0), (1, 0), "#059669"),
-                    ("TEXTCOLOR", (1, 1), (1, 1), "#E11D48"),
-                    ("TEXTCOLOR", (1, 2), (1, 2), "#2563EB"),
+                    ("BACKGROUND", (0, 0), (-1, 0), green_bg),
+                    ("BACKGROUND", (0, 1), (-1, 1), red_bg),
+                    ("BACKGROUND", (0, 2), (-1, 2), blue_bg),
+                    ("TEXTCOLOR", (1, 0), (1, 0), green),
+                    ("TEXTCOLOR", (1, 1), (1, 1), red),
+                    ("TEXTCOLOR", (1, 2), (1, 2), blue),
                 ]
             elif rows >= 2 and cols == 7:
-                # Ledger: zebra rows plus semantic money colors.
                 for row in range(1, rows):
                     if row % 2 == 0:
-                        extra.append(("BACKGROUND", (0, row), (-1, row), "#F8FAFC"))
+                        extra.append(("BACKGROUND", (0, row), (-1, row), stripe))
                 extra += [
-                    ("TEXTCOLOR", (4, 1), (4, -1), "#059669"),
-                    ("TEXTCOLOR", (5, 1), (5, -1), "#E11D48"),
-                    ("TEXTCOLOR", (6, 1), (6, -1), "#2563EB"),
+                    ("TEXTCOLOR", (4, 1), (4, -1), green),
+                    ("TEXTCOLOR", (5, 1), (5, -1), red),
+                    ("TEXTCOLOR", (6, 1), (6, -1), blue),
                 ]
             elif rows == 2 and cols == 3:
-                # Final summary cards.
                 extra += [
-                    ("BACKGROUND", (0, 0), (0, 1), "#ECFDF5"),
-                    ("BACKGROUND", (1, 0), (1, 1), "#FFF1F2"),
-                    ("BACKGROUND", (2, 0), (2, 1), "#EFF6FF"),
-                    ("TEXTCOLOR", (0, 0), (0, -1), "#059669"),
-                    ("TEXTCOLOR", (1, 0), (1, -1), "#E11D48"),
-                    ("TEXTCOLOR", (2, 0), (2, -1), "#2563EB"),
+                    ("BACKGROUND", (0, 0), (0, 1), green_bg),
+                    ("BACKGROUND", (1, 0), (1, 1), red_bg),
+                    ("BACKGROUND", (2, 0), (2, 1), blue_bg),
+                    ("TEXTCOLOR", (0, 0), (0, -1), green),
+                    ("TEXTCOLOR", (1, 0), (1, -1), red),
+                    ("TEXTCOLOR", (2, 0), (2, -1), blue),
                 ]
 
             if extra:
