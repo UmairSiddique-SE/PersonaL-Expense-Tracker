@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='edit-style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <style>.top-dashboard{display:inline-flex;align-items:center;justify-content:center;padding:8px 13px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border-color);color:var(--text-primary);text-decoration:none;font-size:.82rem;font-weight:800}.top-dashboard:hover{background:var(--button-gradient);color:#fff;border-color:transparent}</style>
 </head>
 <body>
     <nav class="navbar">
@@ -22,6 +23,7 @@
             Expense<span>Tracker</span>
         </a>
         <div class="user-info">
+            <a href="{{ url_for('dashboard') }}" class="top-dashboard">← Dashboard</a>
             <button class="theme-toggle-btn" onclick="toggleTheme()" type="button"><span class="theme-icon">🌙</span><span class="theme-label">Dark</span></button>
             <a href="{{ url_for('settings') }}" class="settings-btn">⚙️ Settings</a>
             <form method="POST" action="{{ url_for('logout') }}" style="display:inline; margin:0;"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-btn" style="border:0; background:none; cursor:pointer; font:inherit;">Logout</button></form>
@@ -41,71 +43,19 @@
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <div class="type-toggle-group">
                     <input type="radio" name="record_type" id="editExpense" value="expense" class="type-toggle-input" {% if item.get('type') != 'income' %}checked{% endif %}>
-                    <label for="editExpense" class="type-toggle-label">
-                        <span>🔴</span> Expense
-                    </label>
-
+                    <label for="editExpense" class="type-toggle-label"><span>🔴</span> Expense</label>
                     <input type="radio" name="record_type" id="editIncome" value="income" class="type-toggle-input" {% if item.get('type') == 'income' %}checked{% endif %}>
-                    <label for="editIncome" class="type-toggle-label">
-                        <span>🟢</span> Income
-                    </label>
+                    <label for="editIncome" class="type-toggle-label"><span>🟢</span> Income</label>
                 </div>
-
-                <div class="form-group">
-                    <label>Amount (Rs)</label>
-                    <input type="number" step="0.01" name="amount" placeholder="Amount" value="{{ item.amount }}" required style="font-size: 1.2rem; font-weight: 700;">
-                </div>
-                <div class="form-group">
-                    <label>Category</label>
-                    {% set current_category = item.get('category', 'Other') %}
-                    {% if item.get('type') == 'income' %}
-                    <input type="text" name="category" placeholder="Category" value="{{ current_category }}" required>
-                    {% else %}
-                    <select name="category" id="editCategory" required onchange="checkEditCustomCategory(this)">
-                        {% if current_category not in ['Food','Travel','Groceries','Bills','Shopping','Other'] %}
-                        <option value="{{ current_category }}" selected>⭐ {{ current_category }} (Your Category)</option>
-                        {% endif %}
-                        <option value="Food" {% if current_category == 'Food' %}selected{% endif %}>🍔 Food</option>
-                        <option value="Travel" {% if current_category == 'Travel' %}selected{% endif %}>🚗 Travel</option>
-                        <option value="Groceries" {% if current_category == 'Groceries' %}selected{% endif %}>🛒 Groceries</option>
-                        <option value="Bills" {% if current_category == 'Bills' %}selected{% endif %}>💡 Bills</option>
-                        <option value="Shopping" {% if current_category == 'Shopping' %}selected{% endif %}>🛍️ Shopping</option>
-                        {% if current_category == 'Other' %}
-                        <option value="Other" selected>📦 Other</option>
-                        {% endif %}
-                        <option value="custom">➕ Use Custom Category</option>
-                    </select>
-                    <div class="form-group" id="editCustomCategoryDiv" style="display:none;margin-top:12px;margin-bottom:0;">
-                        <label>Custom Category Name</label>
-                        <input type="text" name="custom_category" id="editCustomCategoryInput" placeholder="e.g. Gym, Medicine">
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" name="date" value="{{ item.date }}" required>
-                </div>
-                <div class="form-group">
-                    <label>Description / Notes</label>
-                    <input type="text" name="description" placeholder="Description" value="{{ item.description }}">
-                </div>
+                <div class="form-group"><label>Amount (Rs)</label><input type="number" step="0.01" name="amount" placeholder="Amount" value="{{ item.amount }}" required style="font-size: 1.2rem; font-weight: 700;"></div>
+                <div class="form-group"><label>Category</label>{% set current_category = item.get('category', 'Other') %}{% if item.get('type') == 'income' %}<input type="text" name="category" placeholder="Category" value="{{ current_category }}" required>{% else %}<select name="category" id="editCategory" required onchange="checkEditCustomCategory(this)">{% if current_category not in ['Food','Travel','Groceries','Bills','Shopping','Other'] %}<option value="{{ current_category }}" selected>⭐ {{ current_category }} (Your Category)</option>{% endif %}<option value="Food" {% if current_category == 'Food' %}selected{% endif %}>🍔 Food</option><option value="Travel" {% if current_category == 'Travel' %}selected{% endif %}>🚗 Travel</option><option value="Groceries" {% if current_category == 'Groceries' %}selected{% endif %}>🛒 Groceries</option><option value="Bills" {% if current_category == 'Bills' %}selected{% endif %}>💡 Bills</option><option value="Shopping" {% if current_category == 'Shopping' %}selected{% endif %}>🛍️ Shopping</option>{% if current_category == 'Other' %}<option value="Other" selected>📦 Other</option>{% endif %}<option value="custom">➕ Use Custom Category</option></select><div class="form-group" id="editCustomCategoryDiv" style="display:none;margin-top:12px;margin-bottom:0;"><label>Custom Category Name</label><input type="text" name="custom_category" id="editCustomCategoryInput" placeholder="e.g. Gym, Medicine"></div>{% endif %}</div>
+                <div class="form-group"><label>Date</label><input type="date" name="date" value="{{ item.date }}" required></div>
+                <div class="form-group"><label>Description / Notes</label><input type="text" name="description" placeholder="Description" value="{{ item.description }}"></div>
                 <button type="submit" class="primary-btn">Update Transaction</button>
             </form>
-
-            <a class="back-link" href="{{ url_for('view') }}">← Back to Records</a>
         </section>
     </main>
-    <script>
-        function checkEditCustomCategory(select) {
-            var box = document.getElementById('editCustomCategoryDiv');
-            var input = document.getElementById('editCustomCategoryInput');
-            if (!box || !input) return;
-            var custom = select.value === 'custom';
-            box.style.display = custom ? 'block' : 'none';
-            input.required = custom;
-            if (!custom) input.value = '';
-        }
-    </script>
+    <script>function checkEditCustomCategory(select){var box=document.getElementById('editCustomCategoryDiv');var input=document.getElementById('editCustomCategoryInput');if(!box||!input)return;var custom=select.value==='custom';box.style.display=custom?'block':'none';input.required=custom;if(!custom)input.value='';}</script>
     <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
 </body>
 </html>
