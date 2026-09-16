@@ -6,36 +6,19 @@ later phases one canonical vocabulary for transaction classification.
 
 from decimal import Decimal
 
-# Canonical transaction natures. These are business events, not merely cash-flow
-# directions. Income and expense affect profit; the other types affect assets or
-# liabilities without pretending to be revenue/expense.
 TRANSACTION_TYPES = (
-    "income",
-    "expense",
-    "money_lent",
-    "money_returned",
-    "loan_received",
-    "loan_repayment",
-    "transfer_in",
-    "transfer_out",
-    "adjustment",
+    "income", "expense", "money_lent", "money_returned", "loan_received",
+    "loan_repayment", "transfer_in", "transfer_out", "adjustment",
 )
 
 TYPE_LABELS = {
-    "income": "Income",
-    "expense": "Expense",
-    "money_lent": "Money Given",
-    "money_returned": "Money Received Back",
-    "loan_received": "Loan Received",
-    "loan_repayment": "Loan Repayment",
-    "transfer_in": "Transfer In",
-    "transfer_out": "Transfer Out",
-    "adjustment": "Adjustment",
+    "income": "Income", "expense": "Expense", "money_lent": "Money Given",
+    "money_returned": "Money Received Back", "loan_received": "Loan Received",
+    "loan_repayment": "Loan Repayment", "transfer_in": "Transfer In",
+    "transfer_out": "Transfer Out", "adjustment": "Adjustment",
 }
 
-# Existing records only have income/expense, so they remain valid forever.
 LEGACY_TYPES = {"income", "expense"}
-
 INCOME_TYPES = {"income"}
 EXPENSE_TYPES = {"expense"}
 RECEIVABLE_TYPES = {"money_lent", "money_returned"}
@@ -47,15 +30,10 @@ def normalize_transaction_type(value, default="expense"):
     """Return a supported canonical transaction type."""
     value = str(value or default).strip().lower()
     aliases = {
-        "lent": "money_lent",
-        "loan_given": "money_lent",
-        "money_given": "money_lent",
-        "returned": "money_returned",
-        "loan_returned": "money_returned",
-        "loan_in": "loan_received",
-        "borrowed": "loan_received",
-        "loan_out": "loan_repayment",
-        "repaid": "loan_repayment",
+        "lent": "money_lent", "loan_given": "money_lent", "money_given": "money_lent",
+        "returned": "money_returned", "loan_returned": "money_returned",
+        "loan_in": "loan_received", "borrowed": "loan_received",
+        "loan_out": "loan_repayment", "repaid": "loan_repayment",
         "transfer": "transfer_out",
     }
     value = aliases.get(value, value)
@@ -83,7 +61,6 @@ def is_transfer(transaction_type):
 
 
 def profit_effect(transaction_type, amount):
-    """Return the transaction's effect on profit/loss."""
     amount = Decimal(str(amount or 0))
     if is_income(transaction_type):
         return amount
@@ -93,11 +70,6 @@ def profit_effect(transaction_type, amount):
 
 
 def cash_effect(transaction_type, amount):
-    """Return the transaction's effect on the selected cash account.
-
-    This is intentionally separate from profit_effect: a loan received or a
-    receivable recovered changes cash but is not operating income.
-    """
     amount = Decimal(str(amount or 0))
     transaction_type = normalize_transaction_type(transaction_type)
     if transaction_type in {"income", "money_returned", "loan_received", "transfer_in"}:
@@ -108,7 +80,6 @@ def cash_effect(transaction_type, amount):
 
 
 def receivable_effect(transaction_type, amount):
-    """Return the effect on money owed to the user."""
     amount = Decimal(str(amount or 0))
     transaction_type = normalize_transaction_type(transaction_type)
     if transaction_type == "money_lent":
@@ -119,7 +90,6 @@ def receivable_effect(transaction_type, amount):
 
 
 def liability_effect(transaction_type, amount):
-    """Return the effect on money the user owes to others."""
     amount = Decimal(str(amount or 0))
     transaction_type = normalize_transaction_type(transaction_type)
     if transaction_type == "loan_received":
@@ -132,3 +102,65 @@ def liability_effect(transaction_type, amount):
 def type_label(transaction_type):
     transaction_type = normalize_transaction_type(transaction_type)
     return TYPE_LABELS.get(transaction_type, "Expense")
+
+
+# The PDF route already contains the report data/calculations. This hook only
+# enhances its ReportLab tables, so it cannot change the web UI or accounting.
+def _install_pdf_table_theme():
+    try:
+        from reportlab.platypus import Table, TableStyle
+        if getattr(Table, "_expense_tracker_theme", False):
+            return
+        original_set_style = Table.setStyle
+
+        def themed_set_style(self, tblstyle):
+            commands = list(tblstyle.getCommands())
+            cells = getattr(self, "_cellvalues", [])
+            rows = len(cells)
+            cols = len(cells[0]) if rows else 0
+            extra = []
+
+            if rows == 3 and cols == 2:
+                # Income / Expense / Balance summary.
+                extra += [
+                    ("BACKGROUND", (0, 0), (-1, 0), "#ECFDF5"),
+                    ("BACKGROUND", (0, 1), (-1, 1), "#FFF1F2"),
+                    ("BACKGROUND", (0, 2), (-1, 2), "#EFF6FF"),
+                    ("TEXTCOLOR", (1, 0), (1, 0), "#059669"),
+                    ("TEXTCOLOR", (1, 1), (1, 1), "#E11D48"),
+                    ("TEXTCOLOR", (1, 2), (1, 2), "#2563EB"),
+                ]
+            elif rows >= 2 and cols == 7:
+                # Ledger: zebra rows plus semantic money colors.
+                for row in range(1, rows):
+                    if row % 2 == 0:
+                        extra.append(("BACKGROUND", (0, row), (-1, row), "#F8FAFC"))
+                extra += [
+                    ("TEXTCOLOR", (4, 1), (4, -1), "#059669"),
+                    ("TEXTCOLOR", (5, 1), (5, -1), "#E11D48"),
+                    ("TEXTCOLOR", (6, 1), (6, -1), "#2563EB"),
+                ]
+            elif rows == 2 and cols == 3:
+                # Final summary cards.
+                extra += [
+                    ("BACKGROUND", (0, 0), (0, 1), "#ECFDF5"),
+                    ("BACKGROUND", (1, 0), (1, 1), "#FFF1F2"),
+                    ("BACKGROUND", (2, 0), (2, 1), "#EFF6FF"),
+                    ("TEXTCOLOR", (0, 0), (0, -1), "#059669"),
+                    ("TEXTCOLOR", (1, 0), (1, -1), "#E11D48"),
+                    ("TEXTCOLOR", (2, 0), (2, -1), "#2563EB"),
+                ]
+
+            if extra:
+                original_set_style(self, TableStyle(commands + extra))
+            else:
+                original_set_style(self, tblstyle)
+
+        Table.setStyle = themed_set_style
+        Table._expense_tracker_theme = True
+    except Exception:
+        # PDF styling must never prevent the application from starting.
+        pass
+
+
+_install_pdf_table_theme()
