@@ -3,36 +3,24 @@ from pathlib import Path
 path = Path("app.py")
 text = path.read_text(encoding="utf-8")
 
-start = text.index('        summary = Table(')
-end = text.index('        elements += [summary, Spacer(1,4), Paragraph("Category-wise Summary", section)]', start)
+# Remove the injected top summary cards and leave the accounting sections:
+# Category-wise Summary -> Transaction Ledger -> Final Summary.
+for marker in [
+    '        elements += [summary, Spacer(1,4), Paragraph("Category-wise Summary", section)]',
+    '        elements += [summary, Spacer(1, 4), Paragraph("Category-wise Summary", section)]',
+]:
+    if marker in text:
+        before, after = text.split(marker, 1)
+        start = before.rfind('        summary = Table(')
+        if start >= 0:
+            text = before[:start] + '        elements += [Paragraph("Category-wise Summary", section)]' + after
 
-new_summary = '''        # PDF TOP CARDS — intentionally the same 3-box shape as Final Summary.
-        summary = Table([[
-            Paragraph("TOTAL INCOME", ParagraphStyle("sh1", parent=head, alignment=1)),
-            Paragraph("TOTAL EXPENSE", ParagraphStyle("sh2", parent=head, alignment=1)),
-            Paragraph("FINAL BALANCE", ParagraphStyle("sh3", parent=head, alignment=1))
-        ], [
-            Paragraph(f"Rs {total_income:,.2f}", ParagraphStyle("si", parent=value, textColor=colors.HexColor("#059669"), alignment=1)),
-            Paragraph(f"Rs {total_expense:,.2f}", ParagraphStyle("se", parent=value, textColor=colors.HexColor("#e11d48"), alignment=1)),
-            Paragraph(f"Rs {running_balance:,.2f}", ParagraphStyle("sb", parent=value, textColor=colors.HexColor("#2563eb"), alignment=1))
-        ]], colWidths=[58*mm,58*mm,58*mm])
-        summary.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#2563eb")),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-            ("BACKGROUND", (0,1), (0,1), colors.HexColor("#ecfdf5")),
-            ("BACKGROUND", (1,1), (1,1), colors.HexColor("#fff1f2")),
-            ("BACKGROUND", (2,1), (2,1), colors.HexColor("#eff6ff")),
-            ("BOX", (0,0), (-1,-1), .6, colors.HexColor("#cbd5e1")),
-            ("INNERGRID", (0,0), (-1,-1), .4, colors.HexColor("#cbd5e1")),
-            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("TOPPADDING", (0,0), (-1,0), 7),
-            ("BOTTOMPADDING", (0,0), (-1,0), 7),
-            ("TOPPADDING", (0,1), (-1,1), 10),
-            ("BOTTOMPADDING", (0,1), (-1,1), 10),
-        ]))
-'''
+# Remove an old duplicate category-card appendix if it exists.
+card_start = text.find('        Paragraph("Category-wise Report Cards", section)')
+if card_start >= 0:
+    final_start = text.find('        Paragraph("Final Summary", section)', card_start)
+    if final_start >= 0:
+        text = text[:card_start] + text[final_start:]
 
-text = text[:start] + new_summary + text[end:]
 path.write_text(text, encoding="utf-8")
-print("PDF report: top summary cards now use the exact final-summary 3-box layout")
+print("PDF report simplified: no top cards; no duplicate category cards; category table, ledger and final summary retained")
