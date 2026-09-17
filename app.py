@@ -406,7 +406,23 @@ def download_report():
         final_val = ParagraphStyle("fv", parent=styles["Normal"], fontSize=10, leading=12, fontName="Helvetica-Bold", alignment=2)
         elements = [Paragraph("Expense Tracker — Financial Report", title), Paragraph(f"<b>Prepared for:</b> {escape(normalize_text(session.get('first_name','User'),80))} &nbsp;&nbsp; <b>Period:</b> {escape(view_type.capitalize())}<br/><b>Transactions:</b> {len(ledger)} &nbsp;&nbsp; <b>Generated:</b> {datetime.now().strftime('%d %b %Y, %I:%M %p')}", meta)]
         summary = Table([[Paragraph("Total Income", head), Paragraph("Total Expense", head), Paragraph("Final Balance", head)], [Paragraph(f"Rs {total_income:,.2f}", ParagraphStyle("si", parent=value, textColor=colors.HexColor("#059669"))), Paragraph(f"Rs {total_expense:,.2f}", ParagraphStyle("se", parent=value, textColor=colors.HexColor("#e11d48"))), Paragraph(f"Rs {running_balance:,.2f}", ParagraphStyle("sb", parent=value, textColor=colors.HexColor("#2563eb")))]], colWidths=[58*mm,58*mm,58*mm])
-        summary.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#f1f5f9")),("GRID",(0,0),(-1,-1),.5,colors.HexColor("#cbd5e1")),("VALIGN",(0,0),(-1,-1),"MIDDLE"),("TOPPADDING",(0,0),(-1,0),6),("BOTTOMPADDING",(0,0),(-1,0),6),("TOPPADDING",(0,1),(-1,1),8),("BOTTOMPADDING",(0,1),(-1,1),8)]))
+        summary.setStyle(TableStyle([
+            ("BACKGROUND",(0,0),(0,0),colors.HexColor("#059669")),
+            ("BACKGROUND",(1,0),(1,0),colors.HexColor("#e11d48")),
+            ("BACKGROUND",(2,0),(2,0),colors.HexColor("#2563eb")),
+            ("BACKGROUND",(0,1),(0,1),colors.HexColor("#ecfdf5")),
+            ("BACKGROUND",(1,1),(1,1),colors.HexColor("#fff1f2")),
+            ("BACKGROUND",(2,1),(2,1),colors.HexColor("#eff6ff")),
+            ("TEXTCOLOR",(0,0),(-1,0),colors.white),
+            ("BOX",(0,0),(-1,-1),.7,colors.HexColor("#cbd5e1")),
+            ("INNERGRID",(0,0),(-1,-1),.45,colors.HexColor("#cbd5e1")),
+            ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+            ("ALIGN",(0,0),(-1,-1),"CENTER"),
+            ("TOPPADDING",(0,0),(-1,0),7),
+            ("BOTTOMPADDING",(0,0),(-1,0),7),
+            ("TOPPADDING",(0,1),(-1,1),10),
+            ("BOTTOMPADDING",(0,1),(-1,1),10),
+        ]))
         elements += [summary, Spacer(1,4), Paragraph("Category-wise Summary", section)]
         cats = []
         for category, value_data in category_totals.items():
