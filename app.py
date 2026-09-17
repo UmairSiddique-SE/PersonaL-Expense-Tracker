@@ -405,10 +405,18 @@ def download_report():
         final_head = ParagraphStyle("fh", parent=styles["Normal"], fontSize=8.5, leading=10, fontName="Helvetica-Bold", textColor=colors.HexColor("#0f172a"))
         final_val = ParagraphStyle("fv", parent=styles["Normal"], fontSize=10, leading=12, fontName="Helvetica-Bold", alignment=2)
         elements = [Paragraph("Expense Tracker — Financial Report", title), Paragraph(f"<b>Prepared for:</b> {escape(normalize_text(session.get('first_name','User'),80))} &nbsp;&nbsp; <b>Period:</b> {escape(view_type.capitalize())}<br/><b>Transactions:</b> {len(ledger)} &nbsp;&nbsp; <b>Generated:</b> {datetime.now().strftime('%d %b %Y, %I:%M %p')}", meta)]
-        summary = Table([[Paragraph("Total Income", head), Paragraph("Total Expense", head), Paragraph("Final Balance", head)], [Paragraph(f"Rs {total_income:,.2f}", ParagraphStyle("si", parent=value, textColor=colors.HexColor("#059669"))), Paragraph(f"Rs {total_expense:,.2f}", ParagraphStyle("se", parent=value, textColor=colors.HexColor("#e11d48"))), Paragraph(f"Rs {running_balance:,.2f}", ParagraphStyle("sb", parent=value, textColor=colors.HexColor("#2563eb")))]], colWidths=[58*mm,58*mm,58*mm])
+        summary = Table([[
+            Paragraph("Total Income", head),
+            Paragraph("Total Expense", head),
+            Paragraph("Final Balance", head)
+        ], [
+            Paragraph(f"Rs {total_income:,.2f}", ParagraphStyle("si", parent=value, textColor=colors.HexColor("#059669"))),
+            Paragraph(f"Rs {total_expense:,.2f}", ParagraphStyle("se", parent=value, textColor=colors.HexColor("#e11d48"))),
+            Paragraph(f"Rs {running_balance:,.2f}", ParagraphStyle("sb", parent=value, textColor=colors.HexColor("#2563eb")))
+        ]], colWidths=[58*mm,58*mm,58*mm])
         summary.setStyle(TableStyle([
-            ("BACKGROUND",(0,0),(0,0),colors.HexColor("#059669")),
-            ("BACKGROUND",(1,0),(1,0),colors.HexColor("#e11d48")),
+            ("BACKGROUND",(0,0),(0,0),colors.HexColor("#2563eb")),
+            ("BACKGROUND",(1,0),(1,0),colors.HexColor("#2563eb")),
             ("BACKGROUND",(2,0),(2,0),colors.HexColor("#2563eb")),
             ("BACKGROUND",(0,1),(0,1),colors.HexColor("#ecfdf5")),
             ("BACKGROUND",(1,1),(1,1),colors.HexColor("#fff1f2")),
