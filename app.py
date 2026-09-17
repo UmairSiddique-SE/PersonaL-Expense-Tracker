@@ -406,6 +406,7 @@ def download_report():
         final_val = ParagraphStyle("fv", parent=styles["Normal"], fontSize=10, leading=12, fontName="Helvetica-Bold", alignment=2)
         elements = [Paragraph("Expense Tracker — Financial Report", title), Paragraph(f"<b>Prepared for:</b> {escape(normalize_text(session.get('first_name','User'),80))} &nbsp;&nbsp; <b>Period:</b> {escape(view_type.capitalize())}<br/><b>Transactions:</b> {len(ledger)} &nbsp;&nbsp; <b>Generated:</b> {datetime.now().strftime('%d %b %Y, %I:%M %p')}", meta)]
         # Top summary uses the exact same 3-box visual treatment as the final summary.
+        # PDF TOP CARDS — intentionally the same 3-box shape as Final Summary.
         summary = Table([[
             Paragraph("TOTAL INCOME", ParagraphStyle("sh1", parent=head, alignment=1)),
             Paragraph("TOTAL EXPENSE", ParagraphStyle("sh2", parent=head, alignment=1)),
@@ -416,10 +417,8 @@ def download_report():
             Paragraph(f"Rs {running_balance:,.2f}", ParagraphStyle("sb", parent=value, textColor=colors.HexColor("#2563eb"), alignment=1))
         ]], colWidths=[58*mm,58*mm,58*mm])
         summary.setStyle(TableStyle([
-            # Blue heading strip, matching the requested report style.
             ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#2563eb")),
             ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-            # Keep the requested income/expense/balance colors.
             ("BACKGROUND", (0,1), (0,1), colors.HexColor("#ecfdf5")),
             ("BACKGROUND", (1,1), (1,1), colors.HexColor("#fff1f2")),
             ("BACKGROUND", (2,1), (2,1), colors.HexColor("#eff6ff")),
